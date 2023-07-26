@@ -1,7 +1,9 @@
 #include "cribbage_scoring.h"
-#include "hash_map.h"
+#include "utils/hash_map.h"
 #include <stdio.h>
 
+
+// Used for getting the key for the score table
 static char primes[14] = { 0, 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 };
 
 /*
@@ -12,7 +14,7 @@ static char primes[14] = { 0, 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 };
 */ 
 static int score_table_size = 6197;
 
-HashMap score_table;
+static HashMap score_table;
 
 int hash_score_prime(int key) {
    return (key - 2) % score_table_size;
@@ -122,6 +124,7 @@ void init_scoring() {
     */
 }
 
+// Used for testing
 void check_scoring() {
     int n = 0;
     for (int i1 = 1; i1 < 14; i1++) {

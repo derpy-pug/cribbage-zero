@@ -2,6 +2,13 @@
 #include <stdio.h>
 #include <string.h>
 #include "cards.h"
+#include "cribbage_scoring.h"
+
+char compare_card(Card card1, Card card2) {
+    if (card1.rank > card2.rank) return 1;
+    if (card1.rank < card2.rank) return -1;
+    return 0;
+} 
 
 void card_to_string(char* card_s, Card card) {
     static const char suits[4] = "CDHS";
@@ -12,7 +19,7 @@ void card_to_string(char* card_s, Card card) {
 void print_card(const Card card) {
     char card_s[3];
     card_to_string(card_s, card);
-    printf("%s\n", card_s);
+    printf("%s", card_s);
 }
 
 void print_hand(const Hand hand) {
@@ -21,7 +28,6 @@ void print_hand(const Hand hand) {
         card_to_string(card_s, hand.cards[i]);
         printf("%s ", card_s);
     }
-    printf("\n");
 }
 
 void print_pile(const CardPile pile) {
@@ -30,7 +36,6 @@ void print_pile(const CardPile pile) {
         card_to_string(card_s, pile.cards[i]);
         printf("%s ", card_s);
     }
-    printf("\n");
 }
 
 char rank_value(char rank) {
@@ -50,6 +55,26 @@ void add_card_to_pile(CardPile* pile, Card card) {
     pile->cards[(int)pile->length] = card;
     pile->sum_31 += rank_value(card.rank);
     pile->length++;
+}
+
+char can_add_to_pile(CardPile pile, Card card) {
+    return pile.sum_31 + rank_value(card.rank) <= 31;
+}
+
+void remove_last_card_from_pile(CardPile* pile) {
+    if (pile->length == 0) return;
+    pile->length--;
+    pile->sum_31 -= rank_value(pile->cards[(int)pile->length].rank);
+}
+
+char score_pile_with_card(CardPile pile, Card card) {
+    if (can_add_to_pile(pile, card)) {
+        add_card_to_pile(&pile, card);
+        int score = score_pile(pile);
+        remove_last_card_from_pile(&pile);
+        return score;
+    }
+    return -1;    
 }
 
 void reset_pile(CardPile* pile) {
@@ -130,3 +155,24 @@ void shuffle_used_deck(Card *deck, int num_cards_used) {
 	}
 }
 
+char remove_cards_from_deck(Card* deck, const Hand hand) {
+    // remove cards in hand from deck
+    Card _hand_cpy[6];
+    Hand hand_cpy = {_hand_cpy, 0}; 
+    for (int i = 0; i < 6; i++) {
+        add_card_to_hand(&hand_cpy, hand.cards[i]);
+    }
+    int num_cards_removed = 0;
+    int deck_last = 51;
+    for (int i = 0; i < 52; i++) {
+        for (int j = 0; j < hand_cpy.length; j++) {
+            if (compare_card(deck[i], hand_cpy.cards[j]) == 0) {
+                deck[i] = deck[deck_last--];
+                remove_card_from_hand(&hand_cpy, j);
+                num_cards_removed++;
+                break;
+            }
+        }
+    }
+    return num_cards_removed;
+}

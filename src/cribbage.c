@@ -28,7 +28,8 @@ void discard_into_crib(Hand* hand, Hand* crib, const int discards[2]) {
 void discard_turn(Hand* hand, Hand* crib, PlayerInfo* player, char is_my_crib) {
     if (player->type == HUMAN) sort_hand(hand);
     int discards[2];
-    while (1) {
+    int tries = 10;
+    while (tries--) {
         discards[0] = -1;
         discards[1] = -1;
         get_player_discards_input(*hand, discards, player, is_my_crib);
@@ -41,6 +42,10 @@ void discard_turn(Hand* hand, Hand* crib, PlayerInfo* player, char is_my_crib) {
         }
         if (player->type == HUMAN) printf("Invalid discards: Index out of bounds\n");
     }
+    if (tries <= 0) {
+        printf("Error: Failed to get valid discards\n");
+        exit(1);
+    }
     discard_into_crib(hand, crib, discards);
 }
 
@@ -49,7 +54,8 @@ void discard_turn(Hand* hand, Hand* crib, PlayerInfo* player, char is_my_crib) {
 // Return Card.rank == 0 if go
 char play_turn(Hand hand, CardPile pile, PlayerInfo* player, Card cut) {
     unsigned char card_index;
-    while (1) {
+    int tries = 10;
+    while (tries--) {
         card_index = get_player_play_input(hand, pile, player, cut);
         if (card_index < hand.length) {
             if (pile.sum_31 + rank_value(hand.cards[card_index].rank) > 31) {
@@ -61,6 +67,17 @@ char play_turn(Hand hand, CardPile pile, PlayerInfo* player, Card cut) {
         }
         if (player->type == HUMAN)
             printf("Invalid card: Index out of bounds\n");
+    }
+    if (tries <= 0) {
+        printf("Error: Failed to get valid card\n");
+        printf("Player: %s\n", player->name);
+        printf("Hand: ");
+        print_hand(hand);
+        printf("\n");
+        printf("Pile: ");
+        print_pile(pile);
+        printf("\n");
+        exit(1);
     }
     return card_index;
 }
@@ -165,6 +182,7 @@ Winner cribbage_round(const Card* deck, PlayerInfo* dealer, PlayerInfo* pone) {
         printf("%s's Hand: ", pone->name);
         sort_hand(&pone_hand);
         print_hand(pone_hand);
+        printf("\n");
         printf("Score: %d\n", score);
     }
     if (pone->score >= 121) return PONE;
@@ -184,6 +202,7 @@ Winner cribbage_round(const Card* deck, PlayerInfo* dealer, PlayerInfo* pone) {
         printf("%s's Crib: ", dealer->name);
         sort_hand(&crib);
         print_hand(crib);
+        printf("\n");
         printf("Score: %d\n", score);
     }
     if (dealer->score >= 121) return DEALER;

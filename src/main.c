@@ -1,6 +1,9 @@
 #include "cards.h"
 #include "cribbage.h"
+#include "utils/random.h"
 #include "cribbage_scoring.h"
+#include "discard.h"
+#include "discard_table.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +12,7 @@ void play_games(int num_games, PlayerInfo *player1, PlayerInfo *player2) {
     Card deck[52];
     new_deck(deck);
     for (int i = 0; i < num_games; i++) {
+        if (i % 1000 == 0) printf("Game %d\n", i);
         player1->score = 0;
         player2->score = 0;
         Winner winner = cribbage_game(deck, player1, player2);
@@ -40,16 +44,39 @@ char score_hands(int num_hands) {
     return score;
 }
 
+char score_hands_discard_stats(int num_hands) {
+    Card deck[52];
+    new_deck(deck);
+    shuffle_deck(deck);
+    Hand hand = new_hand(deck, 6);
+    for (int i = 0; i < num_hands; i++) {
+        char is_my_crib = i%2;
+        DiscardStats* sorted_discards = sorted_discard_stats(hand, is_my_crib);
+        printf("Hand: ");
+        print_hand(hand);
+        printf("\n");
+        if (is_my_crib) printf("My Crib\n");
+        else printf("Opp Crib\n");
+        print_all_discard_stats(sorted_discards, hand, 3);
+        free(sorted_discards);
+        printf("\n");
+        shuffle_used_deck(deck, 5);
+    }
+    return 0;
+}
+
 int main() {
     random_init();
     init_scoring(); 
+    //PlayerInfo player1 = {PLAYER1, 0, AI, "Derpy Pug", 0, 0};
+    //PlayerInfo player2 = {PLAYER2, 0, RANDOM, "Randy", 0, 0};
 
-    PlayerInfo player1 = {PLAYER1, 0, RANDOM, "Derpy Pug", 0, 0};
-    PlayerInfo player2 = {PLAYER2, 0, RANDOM, "Randy", 0, 0};
-    
-    play_games(10000, &player1, &player2);
+    //load_discard_tables("txt/discard_table_AI_AI_v1.0.txt");
+    //print_discard_tables();
+   
+    score_hands_discard_stats(10);
     /*
-    play_games(100000, &player1, &player2);
+    play_games(10000, &player1, &player2);
     printf("Total Wins: %d - %d\n", player1.wins, player2.wins);
     */
     free_scoring();  

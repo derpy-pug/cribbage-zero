@@ -40,10 +40,16 @@ void card_to_string(char* card_s, Card card);
 
 void print_card(Card card);
 
+char compare_card(Card card1, Card card2);
+
 
 CardPile new_card_pile(Card* cards);
 
 void add_card_to_pile(CardPile* pile, Card card);
+
+char can_add_to_pile(CardPile pile, Card card);
+
+char score_pile_with_card(CardPile pile, Card card);
 
 void reset_pile(CardPile* pile); 
 
@@ -66,6 +72,8 @@ void print_hand(const Hand hand);
 void new_deck(Card* deck);
 
 void shuffle_deck(Card* deck);
+
+char remove_cards_from_deck(Card* deck, const Hand hand);
 
 // Only shuffles the cards that have been used
 // Used for faster shuffling

@@ -1,18 +1,22 @@
 #include "player_input.h"
 #include "cards.h"
-#include "random.h"
+#include "utils/random.h"
 #include <stdio.h>
 #include <string.h>
+#include "discard.h"
 
 
-int human_input(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
+int player_play_input_human(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
     printf("\n");
     printf("Cut: ");
     print_card(cut);
+    printf("\n");
     printf("Pile: ");
     print_pile(pile);
+    printf("\n");
     printf("Hand: ");
     print_hand(hand);
+    printf("\n");
 
     printf("Enter card index: ");
     char input[3];
@@ -33,28 +37,46 @@ int human_input(const Hand hand, const CardPile pile, const PlayerInfo* player_i
     return card_index;
 }
 
-int random_input(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
-    return random_int(hand.length);
+int player_play_input_random(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
+    int card_index = random_int(hand.length); 
+    while (!can_add_to_pile(pile, hand.cards[card_index])) {
+        card_index = random_int(hand.length);
+    }
+    return card_index;
 }
 
-char probability_ai(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
-    // TODO
-    return 0;
+char player_play_input_ai(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
+    Card _pile[8];
+    CardPile pile_copy = pile;
+    pile_copy.cards = _pile;
+    memcpy(pile_copy.cards, pile.cards, pile.length * sizeof(Card));
+
+    int max_score = -1;
+    int max_score_index;
+    for (int i = 0; i < hand.length; i++) {
+        char score = score_pile_with_card(pile_copy, hand.cards[i]);
+        if (score == -1) continue;
+        if (score > max_score) {
+            max_score = score;
+            max_score_index = i;
+        }
+    }
+    return max_score_index;
 }
 
-int ai_input(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
-    return probability_ai(hand, pile, player_info, cut);
+int get_player_play_input_ai(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
+    return player_play_input_ai(hand, pile, player_info, cut);
 }
 
 
 int get_player_play_input(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
     switch (player_info->type) {
         case HUMAN:
-            return human_input(hand, pile, player_info, cut);
+            return player_play_input_human(hand, pile, player_info, cut);
         case RANDOM:
-            return random_input(hand, pile, player_info, cut);
+            return player_play_input_random(hand, pile, player_info, cut);
         case AI:
-            return ai_input(hand, pile, player_info, cut);
+            return get_player_play_input_ai(hand, pile, player_info, cut);
     }
     return -1;
 }
@@ -64,6 +86,7 @@ void get_player_discards_input_human(const Hand hand, int discards[2], const Pla
     is_my_crib ? printf("My crib\n") : printf("Opponent's crib\n");
     printf("Hand: ");
     print_hand(hand);
+    printf("\n");
 
     printf("Enter 2 cards to discard: ");
     char input[5];
@@ -93,6 +116,9 @@ void get_player_discards_input_random(const Hand hand, int discards[2], const Pl
 
 void get_player_discards_input_ai(const Hand hand, int discards[2], const PlayerInfo* player_info, char is_my_crib) {
     // TODO
+    DiscardStats stats = best_discard(hand, is_my_crib);
+    discards[0] = stats.discards.first;
+    discards[1] = stats.discards.second;
 }
 
 void get_player_discards_input(const Hand hand, int discards[2], const PlayerInfo* player_info, char is_my_crib) {
