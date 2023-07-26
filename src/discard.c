@@ -52,16 +52,14 @@ void combined_stats(DiscardStats* stat, char is_my_crib) {
 // TODO
 Stats discard_stats_crib(const Card deck[46], const Hand Crib, char is_my_crib) {
     Stats stats = {0};
-    //stats.min = 29;
     stats.mean = get_discard_table_value(Crib.cards, is_my_crib);
 
-    /*
     Card _crib[6];
     memcpy(_crib, Crib.cards, 2 * sizeof(Card));
     Hand crib = {_crib, 4};
 
-    int sum = 0;
     // TODO: optimize by removing suits
+    stats.min = 29;
     for (int i = 0; i < 46; i++) {
         for (int j = i + 1; j < 46; j++) {
             for (int k = 0; k < 46; k++) {
@@ -71,14 +69,12 @@ Stats discard_stats_crib(const Card deck[46], const Hand Crib, char is_my_crib) 
                 add_card_to_hand(&crib, deck[j]);
                 Card cut = deck[k];
                 int score = score_hand(crib, cut, 1);
-                sum += score;
                 if (score > stats.max) stats.max = score;
                 if (score < stats.min) stats.min = score;
             }
         }
     }
-    const int num_combinations = (46 * 45 / 2) * 44;
-    stats.mean = sum / (float)num_combinations;
+    /*
     */
     // TODO: calculate standard deviation
     return stats;
