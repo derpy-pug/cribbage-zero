@@ -18,7 +18,6 @@ typedef enum {
 
 typedef struct {
     Player player;
-    int score;
     PlayerType type;
     char* name;
     int wins;

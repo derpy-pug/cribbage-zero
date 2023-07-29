@@ -6,7 +6,7 @@
 #include "discard.h"
 
 
-int player_play_input_human(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
+int player_play_input_human(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut, Board board) {
     printf("\n");
     printf("Cut: ");
     print_card(cut);
@@ -37,7 +37,7 @@ int player_play_input_human(const Hand hand, const CardPile pile, const PlayerIn
     return card_index;
 }
 
-int player_play_input_random(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
+int player_play_input_random(const Hand hand, const CardPile pile) {
     int card_index = random_int(hand.length); 
     while (!can_add_to_pile(pile, hand.cards[card_index])) {
         card_index = random_int(hand.length);
@@ -45,7 +45,7 @@ int player_play_input_random(const Hand hand, const CardPile pile, const PlayerI
     return card_index;
 }
 
-char player_play_input_ai(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
+char player_play_input_ai(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut, Board board) {
     Card _pile[8];
     CardPile pile_copy = pile;
     pile_copy.cards = _pile;
@@ -64,24 +64,24 @@ char player_play_input_ai(const Hand hand, const CardPile pile, const PlayerInfo
     return max_score_index;
 }
 
-int get_player_play_input_ai(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
-    return player_play_input_ai(hand, pile, player_info, cut);
+int get_player_play_input_ai(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut, Board board) {
+    return player_play_input_ai(hand, pile, player_info, cut, board);
 }
 
 
-int get_player_play_input(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut) {
+int get_player_play_input(const Hand hand, const CardPile pile, const PlayerInfo* player_info, Card cut, Board board) {
     switch (player_info->type) {
         case HUMAN:
-            return player_play_input_human(hand, pile, player_info, cut);
+            return player_play_input_human(hand, pile, player_info, cut, board);
         case RANDOM:
-            return player_play_input_random(hand, pile, player_info, cut);
+            return player_play_input_random(hand, pile);
         case AI:
-            return get_player_play_input_ai(hand, pile, player_info, cut);
+            return get_player_play_input_ai(hand, pile, player_info, cut, board);
     }
     return -1;
 }
 
-void get_player_discards_input_human(const Hand hand, int discards[2], const PlayerInfo* player_info, char is_my_crib) {
+void get_player_discards_input_human(const Hand hand, int discards[2], const PlayerInfo* player_info, char is_my_crib, Board board) {
     printf("\n");
     is_my_crib ? printf("My crib\n") : printf("Opponent's crib\n");
     printf("Hand: ");
@@ -106,7 +106,7 @@ void get_player_discards_input_human(const Hand hand, int discards[2], const Pla
     discards[1]--;
 }
 
-void get_player_discards_input_random(const Hand hand, int discards[2], const PlayerInfo* player_info, char is_my_crib) {
+void get_player_discards_input_random(const Hand hand, int discards[2]) {
     discards[0] = random_int(hand.length);
     discards[1] = random_int(hand.length);
     while (discards[0] == discards[1]) {
@@ -114,25 +114,25 @@ void get_player_discards_input_random(const Hand hand, int discards[2], const Pl
     }
 }
 
-void get_player_discards_input_ai(const Hand hand, int discards[2], const PlayerInfo* player_info, char is_my_crib) {
+void get_player_discards_input_ai(const Hand hand, int discards[2], const PlayerInfo* player_info, char is_my_crib, Board board) {
     // TODO
     DiscardStats stats = best_discard(hand, is_my_crib);
     discards[0] = stats.discards.first;
     discards[1] = stats.discards.second;
 }
 
-void get_player_discards_input(const Hand hand, int discards[2], const PlayerInfo* player_info, char is_my_crib) {
+void get_player_discards_input(const Hand hand, int discards[2], const PlayerInfo* player_info, char is_my_crib, Board board) {
 	// Force user to discard 2 unique cards
     // TODO
     switch (player_info->type) {
         case HUMAN:
-            get_player_discards_input_human(hand, discards, player_info, is_my_crib);
+            get_player_discards_input_human(hand, discards, player_info, is_my_crib, board);
             break;
         case RANDOM:
-            get_player_discards_input_random(hand, discards, player_info, is_my_crib);
+            get_player_discards_input_random(hand, discards);
             break;
         case AI:
-            get_player_discards_input_ai(hand, discards, player_info, is_my_crib);
+            get_player_discards_input_ai(hand, discards, player_info, is_my_crib, board);
             break;
     }
 }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "board.h"
 #include "player_input.h"
 #include "cards.h"
 #include "cribbage.h"
@@ -25,14 +26,14 @@ void discard_into_crib(Hand* hand, Hand* crib, const int discards[2]) {
 
 // Can sort the hand if the player is human
 // TODO: Pass in the two cards that were discarded
-void discard_turn(Hand* hand, Hand* crib, PlayerInfo* player, char is_my_crib) {
+void discard_turn(Hand* hand, Hand* crib, PlayerInfo* player, char is_my_crib, Board board) {
     if (player->type == HUMAN) sort_hand(hand);
     int discards[2];
     int tries = 10;
     while (tries--) {
         discards[0] = -1;
         discards[1] = -1;
-        get_player_discards_input(*hand, discards, player, is_my_crib);
+        get_player_discards_input(*hand, discards, player, is_my_crib, board);
         if (discards[0] < hand->length && discards[1] < hand->length) {
             if (discards[0] != discards[1]) {
                 break;
@@ -52,11 +53,11 @@ void discard_turn(Hand* hand, Hand* crib, PlayerInfo* player, char is_my_crib) {
 // turn: 0 -> player 1, 1 -> player 2
 // Requires hand to have at least 1 card
 // Return Card.rank == 0 if go
-char play_turn(Hand hand, CardPile pile, PlayerInfo* player, Card cut) {
+char play_turn(Hand hand, CardPile pile, PlayerInfo* player, Card cut, Board board) {
     unsigned char card_index;
     int tries = 10;
     while (tries--) {
-        card_index = get_player_play_input(hand, pile, player, cut);
+        card_index = get_player_play_input(hand, pile, player, cut, board);
         if (card_index < hand.length) {
             if (pile.sum_31 + rank_value(hand.cards[card_index].rank) > 31) {
                 if (player->type == HUMAN) 
@@ -95,7 +96,7 @@ GoState get_go_state(const Hand hand, const CardPile pile) {
     return GO;
 }
 
-Winner play_phase(const Hand hand1, const Hand hand2, PlayerInfo* dealer, PlayerInfo* pone, Card cut) {
+Winner play_phase(const Hand hand1, const Hand hand2, PlayerInfo* dealer, PlayerInfo* pone, Card cut, Board* board) {
     Card _hand1_played[4];
     Card _hand2_played[4];
     memcpy(_hand1_played, hand1.cards, 4 * sizeof(Card));
@@ -116,25 +117,23 @@ Winner play_phase(const Hand hand1, const Hand hand2, PlayerInfo* dealer, Player
         are_cards_left = dealer_hand.length || pone_hand.length;
         go += get_go_state(turn ? pone_hand : dealer_hand, pile);
         if (go == NO_GO) {
-            // TODO combine hand and player in one struct
             Hand* hand = turn ? &pone_hand : &dealer_hand;
             PlayerInfo* player = turn ? pone : dealer;
-            char index = play_turn(*hand, pile, player, cut);
+            char index = play_turn(*hand, pile, player, cut, *board);
             Card card = remove_card_from_hand(hand, index);
             add_card_to_pile(&pile, card);
             
             // Score the pile
             char pile_score = score_pile(pile);
-            int* score = turn ? &pone->score : &dealer->score;
-            *score += pile_score;
-            if (*score >= 121) return turn ? PONE : DEALER;
+            move_peg(board, player->player, pile_score);
+            if (is_winner(board)) return turn ? PONE : DEALER;
         }
         // GO does nothing
         else if (go == GO_TWICE) {
             // This turns player gets 1 point for go
             PlayerInfo* player = turn ? pone : dealer;
-            player->score += 1;
-            if (player->score >= 121) return turn ? PONE : DEALER;
+            move_peg(board, player->player, 1);
+            if (is_winner(board)) return turn ? PONE : DEALER;
 
             reset_pile(&pile); 
             // When there are no cards left, go = GO_TWICE and the round ends
@@ -145,7 +144,7 @@ Winner play_phase(const Hand hand1, const Hand hand2, PlayerInfo* dealer, Player
     return NO_WINNER;
 }
 
-Winner cribbage_round(const Card* deck, PlayerInfo* dealer, PlayerInfo* pone) {
+Winner cribbage_round(const Card* deck, PlayerInfo* dealer, PlayerInfo* pone, Board* board) {
     Card deckcpy[17];
     memcpy(deckcpy, deck, 13 * sizeof(Card));
 
@@ -154,19 +153,21 @@ Winner cribbage_round(const Card* deck, PlayerInfo* dealer, PlayerInfo* pone) {
     Hand crib = new_hand(deckcpy + 13, 0);
 	Card cut = deckcpy[12];
 
-    // Check for his heels
-    dealer->score += cut.rank == 11 ? 2 : 0;
-    if (dealer->score >= 121) return DEALER;
-
     // Discard phase
-    discard_turn(&dealer_hand, &crib, dealer, 1);
-    discard_turn(&pone_hand, &crib, pone, 0);
+    discard_turn(&dealer_hand, &crib, dealer, 1, *board);
+    discard_turn(&pone_hand, &crib, pone, 0, *board);
     
-
-    Winner winner = play_phase(dealer_hand, pone_hand, dealer, pone, cut);
-    if (winner != NO_WINNER) { 
-        return winner;
+    // Check for his heels
+    if (cut.rank == 11) {
+        move_peg(board, dealer->player, 2);
+        if (dealer->type == HUMAN || pone->type == HUMAN) {
+            printf("His Heels: 2\n");
+        }
+        if (is_winner(board)) return DEALER;
     }
+
+    Winner winner = play_phase(dealer_hand, pone_hand, dealer, pone, cut, board);
+    if (winner != NO_WINNER)  return winner;
 
     // Score Phase
     if (dealer->type == HUMAN || pone->type == HUMAN) {
@@ -177,7 +178,7 @@ Winner cribbage_round(const Card* deck, PlayerInfo* dealer, PlayerInfo* pone) {
     }
 
     int score = score_hand(pone_hand, cut, 0);
-    pone->score += score;
+    move_peg(board, pone->player, score);
     if (dealer->type == HUMAN || pone->type == HUMAN) {
         printf("%s's Hand: ", pone->name);
         sort_hand(&pone_hand);
@@ -185,10 +186,10 @@ Winner cribbage_round(const Card* deck, PlayerInfo* dealer, PlayerInfo* pone) {
         printf("\n");
         printf("Score: %d\n", score);
     }
-    if (pone->score >= 121) return PONE;
+    if (is_winner(board)) return PONE;
 
     score = score_hand(dealer_hand, cut, 0);
-    dealer->score += score;
+    move_peg(board, dealer->player, score);
     if (dealer->type == HUMAN || pone->type == HUMAN) {
         printf("%s's Hand: ", dealer->name);
         sort_hand(&dealer_hand);
@@ -196,8 +197,8 @@ Winner cribbage_round(const Card* deck, PlayerInfo* dealer, PlayerInfo* pone) {
         printf("Score: %d\n", score);
     }
 
-    score = score_hand(crib, cut, 0);
-    dealer->score += score;
+    score = score_hand(crib, cut, 1);
+    move_peg(board, dealer->player, score);
     if (dealer->type == HUMAN || pone->type == HUMAN) {
         printf("%s's Crib: ", dealer->name);
         sort_hand(&crib);
@@ -205,7 +206,7 @@ Winner cribbage_round(const Card* deck, PlayerInfo* dealer, PlayerInfo* pone) {
         printf("\n");
         printf("Score: %d\n", score);
     }
-    if (dealer->score >= 121) return DEALER;
+    if (is_winner(board)) return DEALER;
 
 	return NO_WINNER;
 }
@@ -214,16 +215,15 @@ Winner cribbage_game(Card* deck, PlayerInfo* player1, PlayerInfo* player2) {
     int turn = 0;
     int round = 1;
     shuffle_deck(deck);
-    int i = 0;
-    while (i++ < 100) {
+    Board board;
+    init_board(&board);
+    while (1) {
         shuffle_used_deck(deck, 13);
         PlayerInfo* dealer = turn ? player2 : player1;
         PlayerInfo* pone = turn ? player1 : player2;
-        if (dealer->type == HUMAN || pone->type == HUMAN) {
-            printf("\n\n(%d) %s's Score -> %d  - %s's Score ->  %d\n", 
-                    round, dealer->name, dealer->score, pone->name, pone->score);
-        }
-        Winner winner = cribbage_round(deck, dealer, pone);
+        if (dealer->type == HUMAN || pone->type == HUMAN)
+            print_board(&board, dealer, pone);
+        Winner winner = cribbage_round(deck, dealer, pone, &board);
         if (winner != NO_WINNER) {
             if (turn == 0) return winner;
             else return winner == DEALER ? PONE : DEALER;

@@ -54,6 +54,7 @@ Stats discard_stats_crib(const Card deck[46], const Hand Crib, char is_my_crib) 
     Stats stats = {0};
     stats.mean = get_discard_table_value(Crib.cards, is_my_crib);
 
+    /*
     Card _crib[6];
     memcpy(_crib, Crib.cards, 2 * sizeof(Card));
     Hand crib = {_crib, 4};
@@ -74,7 +75,6 @@ Stats discard_stats_crib(const Card deck[46], const Hand Crib, char is_my_crib) 
             }
         }
     }
-    /*
     */
     // TODO: calculate standard deviation
     return stats;
