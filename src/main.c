@@ -1,4 +1,5 @@
 #include "cribbage.h"
+#include "gen_stats.h"
 #include "utils/random.h"
 #include "cribbage_scoring.h"
 #include "discard.h"
@@ -8,7 +9,7 @@
 
 void play_games(int num_games, PlayerInfo *player1, PlayerInfo *player2) {
     Card deck[52];
-    new_deck(deck);
+    init_deck(deck);
     for (int i = 0; i < num_games; i++) {
         if (i % 1000 == 0) printf("Game %d\n", i);
         Winner winner = cribbage_game(deck, player1, player2);
@@ -22,9 +23,9 @@ void play_games(int num_games, PlayerInfo *player1, PlayerInfo *player2) {
 
 char score_hands(int num_hands) {
     Card deck[52];
-    new_deck(deck);
+    init_deck(deck);
     shuffle_deck(deck);
-    Hand hand = new_hand(deck, 4);
+    Hand hand = init_hand(deck, 4);
     int score;
     for (int i = 0; i < num_hands; i++) {
         score = score_hand(hand, deck[5], i%2);
@@ -42,9 +43,9 @@ char score_hands(int num_hands) {
 
 char score_hands_discard_stats(int num_hands) {
     Card deck[52];
-    new_deck(deck);
+    init_deck(deck);
     shuffle_deck(deck);
-    Hand hand = new_hand(deck, 6);
+    Hand hand = init_hand(deck, 6);
     for (int i = 0; i < num_hands; i++) {
         char is_my_crib = i%2;
         DiscardStats* sorted_discards = sorted_discard_stats(hand, is_my_crib);
@@ -64,7 +65,11 @@ char score_hands_discard_stats(int num_hands) {
 int main(int argc, char** argv) {
     random_init();
     init_scoring(); 
-    load_discard_tables("txt/discard_table_AI_AI_v1.0.txt");
+
+    print_cribbage_stats();
+
+    //load_discard_tables("txt/discard_table_AI_AI_v1.0.txt");
+    /*
     PlayerInfo player1 = {PLAYER1, AI, "Derpy Pug", 0, 0};
     PlayerInfo player2 = {PLAYER2, RANDOM, "Randy", 0, 0};
 
@@ -73,7 +78,6 @@ int main(int argc, char** argv) {
     //score_hands_discard_stats(10);
     play_games(10000, &player1, &player2);
     printf("Total Wins: %d - %d\n", player1.wins, player2.wins);
-    /*
     */
     free_scoring();  
     return 0;

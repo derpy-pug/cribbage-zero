@@ -235,7 +235,7 @@ void print_progress_bar(int epoch, int epochs) {
 
 void generate_discard_tables(int epochs, int num_hands, PlayerInfo* dealer, PlayerInfo* pone) {
     Card deck[52];
-    new_deck(deck);
+    init_deck(deck);
     shuffle_deck(deck);
 
     for (int i = 1; i <= epochs; i++) {
@@ -248,13 +248,15 @@ void generate_discard_tables(int epochs, int num_hands, PlayerInfo* dealer, Play
             Card deckcpy[17];
             memcpy(deckcpy, deck, 13 * sizeof(Card));
 
-            Hand dealer_hand = new_hand(deckcpy, 6);
-            Hand pone_hand = new_hand(deckcpy + 6, 6);
-            Hand crib = new_hand(deckcpy + 13, 0);
+            Hand dealer_hand = init_hand(deckcpy, 6);
+            Hand pone_hand = init_hand(deckcpy + 6, 6);
+            Hand crib = init_hand(deckcpy + 13, 0);
             Card cut = deckcpy[12];
+            Board board;
+            init_board(&board);
 
-            discard_turn(&dealer_hand, &crib, dealer, 1);
-            discard_turn(&pone_hand, &crib, pone, 0);
+            discard_turn(&dealer_hand, &crib, dealer, 1, board);
+            discard_turn(&pone_hand, &crib, pone, 0, board);
 
             int score = score_hand(crib, cut, is_my_crib);
             Card* cards = crib.cards;

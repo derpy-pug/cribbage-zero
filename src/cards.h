@@ -34,7 +34,7 @@ typedef struct {
     char sum_31;
 }  CardPile;
 
-Card new_card(char rank, char suit);
+Card init_card(char rank, char suit);
 
 void card_to_string(char* card_s, Card card); 
 
@@ -43,7 +43,7 @@ void print_card(Card card);
 char compare_card(Card card1, Card card2);
 
 
-CardPile new_card_pile(Card* cards);
+CardPile init_card_pile(Card* cards);
 
 void add_card_to_pile(CardPile* pile, Card card);
 
@@ -56,7 +56,7 @@ void reset_pile(CardPile* pile);
 void print_pile(const CardPile pile); 
 
 
-Hand new_hand(Card* cards, int current_length);
+Hand init_hand(Card* cards, int current_length);
 
 void add_card_to_hand(Hand* hand, Card card);
 
@@ -69,7 +69,7 @@ void sort_hand(Hand* hand);
 void print_hand(const Hand hand); 
 
 
-void new_deck(Card* deck);
+void init_deck(Card* deck);
 
 void shuffle_deck(Card* deck);
 

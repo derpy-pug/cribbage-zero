@@ -43,7 +43,7 @@ char rank_value(char rank) {
     return rank;
 }
 
-CardPile new_card_pile(Card* cards) {
+CardPile init_card_pile(Card* cards) {
     CardPile pile;
     pile.cards = cards;
     pile.length = 0;
@@ -82,14 +82,14 @@ void reset_pile(CardPile* pile) {
     pile->sum_31 = 0;
 }
 
-Card new_card(char rank, char suit) {
+Card init_card(char rank, char suit) {
 	Card card;
 	card.rank = rank;
 	card.suit = suit;
 	return card;
 }
 
-Hand new_hand(Card* cards, int current_length) {
+Hand init_hand(Card* cards, int current_length) {
     Hand hand;
     hand.cards = cards;
     hand.length = current_length;
@@ -125,11 +125,11 @@ void sort_hand(Hand *hand) {
     qsort(hand->cards, hand->length, sizeof(Card), compare_cards_rank);
 }
 
-void new_deck(Card* deck) {
+void init_deck(Card* deck) {
 	for (int suit = 0; suit < 4; suit++) {
 		for (int rank = 1; rank < 14; rank++) {
 			int i = 13 * suit + (rank - 1);
-			deck[i] = new_card(rank, suit);
+			deck[i] = init_card(rank, suit);
 		}
 	}
 }

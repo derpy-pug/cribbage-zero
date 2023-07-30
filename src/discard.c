@@ -55,7 +55,7 @@ Stats discard_stats_crib(const Card deck[46], const Hand Crib, char is_my_crib) 
     stats.mean = get_discard_table_value(Crib.cards, is_my_crib);
 
     /*
-    Card _crib[6];
+    Card _crib[4];
     memcpy(_crib, Crib.cards, 2 * sizeof(Card));
     Hand crib = {_crib, 4};
 
@@ -126,7 +126,7 @@ DiscardStats* all_discard_stats(const Hand hand, char is_my_crib) {
     DiscardStats* stats = malloc(sizeof(DiscardStats) * 15); 
 
     Card deck[52];
-    new_deck(deck);
+    init_deck(deck);
     remove_cards_from_deck(deck, hand);
 
     int offset = -6;
