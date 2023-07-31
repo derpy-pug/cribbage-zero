@@ -1,3 +1,4 @@
+#include "cards.h"
 #include "cribbage.h"
 #include "gen_stats.h"
 #include "utils/random.h"
@@ -41,14 +42,24 @@ char score_hands(int num_hands) {
     return score;
 }
 
+void print_hand_format(Hand hand, char is_my_crib) {
+    for (int i = 0; i < hand.length; i++) {
+        print_card(hand.cards[i]);
+    }   
+    printf("%c", is_my_crib ? 'Y' : 'N');
+    printf("\n");
+}
+
 char score_hands_discard_stats(int num_hands) {
     Card deck[52];
     init_deck(deck);
     shuffle_deck(deck);
     Hand hand = init_hand(deck, 6);
     for (int i = 0; i < num_hands; i++) {
+        sort_hand(&hand);
         char is_my_crib = i%2;
         DiscardStats* sorted_discards = sorted_discard_stats(hand, is_my_crib);
+        print_hand_format(hand, is_my_crib);
         printf("Hand: ");
         print_hand(hand);
         printf("\n");
@@ -65,17 +76,47 @@ char score_hands_discard_stats(int num_hands) {
 int main(int argc, char** argv) {
     random_init();
     init_scoring(); 
+    //load_mean_discard_tables("txt/discard_table_AI_AI_v1.0.txt");
+    generate_min_max_discard_tables();
+    /*
+    Stats stats = {0};
+    Stats flush_stats = {0};
+    int hand[5] = {2, 11, 5, 5, 5};
+    min_max_stats(hand, &stats, &flush_stats);
+    printf("Max: %d\n", stats.max);
+    printf("Max: %d\n", flush_stats.max);
+    */
 
-    print_cribbage_stats();
+    //score_hands_discard_stats(10);
 
-    //load_discard_tables("txt/discard_table_AI_AI_v1.0.txt");
+    /*
+    int key = get_hand_ranks_key(hand);
+    char score = get_hash_score(key);
+    printf("Score: %d\n", score);
+
+    Card _cards[50];
+    Hand hand1 = init_hand(_cards, 0);
+    for (int i = 0; i < 4; i++) {
+        Card card = init_card(hand[i], i % 4);
+        add_card_to_hand(&hand1, card);
+    }
+    Card cut = init_card(hand[4], 0);
+    score = score_hand(hand1, cut, 0);
+    printf("Score: %d\n", score);
+    score = score_hand_15s_runs_pairs(hand);
+    printf("Score: %d\n", score);
+    score = score_15(hand);
+    printf("Score: %d\n", score);
+    */
+
+    //print_cribbage_stats();
+
     /*
     PlayerInfo player1 = {PLAYER1, AI, "Derpy Pug", 0, 0};
     PlayerInfo player2 = {PLAYER2, RANDOM, "Randy", 0, 0};
 
     //print_discard_tables();
    
-    //score_hands_discard_stats(10);
     play_games(10000, &player1, &player2);
     printf("Total Wins: %d - %d\n", player1.wins, player2.wins);
     */

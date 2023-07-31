@@ -28,7 +28,7 @@ int hash_score_prime(int key) {
  * 4 -> 12
 */ 
 static inline char score_exp_pair(char exp) {
-	return (1 << exp) - 2 - (exp & 4); 	
+	return (1 << exp) - 2 - ((exp & 4) >> 1); 	
 }
 
 struct card_set_type {
@@ -177,10 +177,22 @@ int get_hand_key(const Hand hand, Card cut) {
     return key;
 }
 
+int get_hand_ranks_key(int hand[5]) {
+    int key = 1; 
+    for (int i = 0; i < 5; i++) {
+        key *= primes[hand[i]];
+    }
+    return key;
+}
+
+char get_hash_score(int key) {
+    return hash_map_get(score_table, key);
+}
+
 // NOTE: add skip flush if it was impossible to get a flush
 char score_hand(const Hand hand, Card cut, char is_crib) {
 	char score = 0;
-    score += hash_map_get(score_table, get_hand_key(hand, cut));
+    score += get_hash_score(get_hand_key(hand, cut));
 	score += score_flush(hand, cut, is_crib);
 	score += score_knob(hand, cut);
 	return score;

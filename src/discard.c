@@ -50,17 +50,27 @@ void combined_stats(DiscardStats* stat, char is_my_crib) {
 } 
 
 // TODO
-Stats discard_stats_crib(const Card deck[46], const Hand Crib, char is_my_crib) {
-    Stats stats = {0};
-    stats.mean = get_discard_table_value(Crib.cards, is_my_crib);
+Stats discard_stats_crib(const Card deck[46], const Hand crib, char is_my_crib) {
+    char is_flush = crib.cards[0].suit == crib.cards[1].suit;
+    Stats stats = get_discard_table_stats(crib.cards, is_my_crib, is_flush);
+    if (is_flush) {
+        // Expected value of a flush given 2 cards of the same suit
+        // and how many cards of that suit are in their remaining hand
+        // This assumes that the oppenents discards suits are random
+        // 0 in hand: 0.108696 * 5 = 0.054348
+        // 1 in hand: 0.007905 * 5 = 0.039526
+        // 2 in hand: 0.005533 * 5 = 0.027668
+        // 3 in hand: 0.003689 * 5 = 0.018445
+        // 4 in hand: 0.002306 * 5 = 0.011528
+        stats.mean += 0.054348;
+    }
 
     /*
     Card _crib[4];
-    memcpy(_crib, Crib.cards, 2 * sizeof(Card));
+    memcpy(_crib, crib.cards, 2 * sizeof(Card));
     Hand crib = {_crib, 4};
 
     // TODO: optimize by removing suits
-    stats.min = 29;
     for (int i = 0; i < 46; i++) {
         for (int j = i + 1; j < 46; j++) {
             for (int k = 0; k < 46; k++) {

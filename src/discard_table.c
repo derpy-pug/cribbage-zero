@@ -40,8 +40,42 @@ static float table_pone_crib[13][13] = {
     {0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,4.8370}
 }; 
 
+Stats stats_discard_table_min_max[13][13];
 
-float get_discard_table_value(const Card cards[2], char is_my_crib) {
+Stats stats_discard_table_min_max_flush[13][13];
+
+Stats get_discard_table_stats(const Card cards[2], char is_my_crib, char is_flush) {
+    int i = (int)cards[0].rank - 1;
+    int j = (int)cards[1].rank - 1;
+    if (i > j) {
+        int temp = i;
+        i = j;
+        j = temp;
+    }
+    if (is_my_crib) {
+        if (is_flush) {
+            Stats stats = stats_discard_table_min_max_flush[i][j];
+            stats.mean = table_my_crib[i][j];
+            return stats;
+        } else {
+            Stats stats = stats_discard_table_min_max[i][j];
+            stats.mean = table_my_crib[i][j];
+            return stats;
+        }
+    } else {
+        if (is_flush) {
+            Stats stats = stats_discard_table_min_max_flush[i][j];
+            stats.mean = table_pone_crib[i][j];
+            return stats;
+        } else {
+            Stats stats = stats_discard_table_min_max[i][j];
+            stats.mean = table_pone_crib[i][j];
+            return stats;
+        }
+    }
+}
+
+float get_discard_table_mean(const Card cards[2], char is_my_crib) {
     int i = (int)cards[0].rank - 1;
     int j = (int)cards[1].rank - 1;
     if (i > j) {
@@ -233,7 +267,69 @@ void print_progress_bar(int epoch, int epochs) {
     printf("] %d%%\r", (int)(progress * 100.0));
 }
 
-void generate_discard_tables(int epochs, int num_hands, PlayerInfo* dealer, PlayerInfo* pone) {
+char min_max_stats(int cards_in_hand[5], Stats* stats, Stats* flush_stats) {
+    int has_jack = 0;
+    int is_invalid_hand = 1;
+    int is_possible_flush = 1;
+    short seen_cards = 1 << cards_in_hand[0];
+    for (int l = 1; l < 5; l++) {
+        if (!(seen_cards & (1 << cards_in_hand[l]))) {
+            is_invalid_hand = 0;
+            seen_cards |= 1 << cards_in_hand[l];
+        }
+        else {
+            is_possible_flush = 0; 
+        }
+        if (cards_in_hand[l] == 11) has_jack = 1; 
+    }
+    if (is_invalid_hand) return 0;
+    if (cards_in_hand[0] == 11) has_jack = 1;
+
+    int score = 0;
+    int key = get_hand_ranks_key(cards_in_hand);
+    score = get_hash_score(key);
+    if (score < stats->min) {
+        stats->min = score;
+        flush_stats->min = score;
+    }
+    if (has_jack) {
+        if (cards_in_hand[2] != cards_in_hand[3] ||  cards_in_hand[3] !=  cards_in_hand[4] || cards_in_hand[3] != 11) score++;
+    }
+    if (score > stats->max) stats->max = score;
+
+    if (is_possible_flush) score += 5;
+    if (score > flush_stats->max) flush_stats->max = score;
+    return 1;
+
+}
+
+void generate_min_max_discard_tables() {
+    int cards_in_hand[5];
+    for (int crib0 = 1; crib0 < 14; crib0++) {
+        cards_in_hand[0] = crib0;
+        for (int crib1 = crib0; crib1 < 14; crib1++) {
+            cards_in_hand[1] = crib1;
+            Stats stats = {0};
+            Stats flush_stats = {0};
+            stats.min = 29;
+            for (int i = 1; i < 14; i++) {
+                cards_in_hand[2] = i;
+                for (int j = i; j < 14; j++) {
+                    cards_in_hand[3] = j;
+                    for (int k = j; k < 14; k++) {
+                        cards_in_hand[4] = k;
+
+                        min_max_stats(cards_in_hand, &stats, &flush_stats);
+                    }
+                }
+            }
+            stats_discard_table_min_max[crib0 - 1][crib1 - 1] = stats;
+            stats_discard_table_min_max_flush[crib0 - 1][crib1 - 1] = flush_stats;
+        }
+    }
+}
+
+void generate_mean_discard_tables(int epochs, int num_hands, PlayerInfo* dealer, PlayerInfo* pone) {
     Card deck[52];
     init_deck(deck);
     shuffle_deck(deck);

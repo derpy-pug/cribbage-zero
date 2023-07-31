@@ -12,7 +12,7 @@ char compare_card(Card card1, Card card2) {
 
 void card_to_string(char* card_s, Card card) {
     static const char suits[4] = "CDHS";
-    static const char ranks[14] = "0123456789TJQK";
+    static const char ranks[14] = "0A23456789TJQK";
    sprintf(card_s, "%c%c", ranks[(int)card.rank], suits[(int)card.suit]); 
 }
 
