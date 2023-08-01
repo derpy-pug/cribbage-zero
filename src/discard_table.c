@@ -286,8 +286,7 @@ char min_max_stats(int cards_in_hand[5], Stats* stats, Stats* flush_stats) {
     if (cards_in_hand[0] == 11) has_jack = 1;
 
     int score = 0;
-    int key = get_hand_ranks_key(cards_in_hand);
-    score = get_hash_score(key);
+    score = score_hand_suitless(cards_in_hand);
     if (score < stats->min) {
         stats->min = score;
         flush_stats->min = score;

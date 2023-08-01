@@ -189,6 +189,10 @@ char get_hash_score(int key) {
     return hash_map_get(score_table, key);
 }
 
+char score_hand_suitless(int* cards) {
+    return get_hash_score(get_hand_ranks_key(cards));
+}
+
 // NOTE: add skip flush if it was impossible to get a flush
 char score_hand(const Hand hand, Card cut, char is_crib) {
 	char score = 0;

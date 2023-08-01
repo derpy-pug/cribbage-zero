@@ -75,6 +75,8 @@ void shuffle_deck(Card* deck);
 
 char remove_cards_from_deck(Card* deck, const Hand hand);
 
+char remove_cards_from_deck_keep_order(Card* deck, const Hand hand);
+
 // Only shuffles the cards that have been used
 // Used for faster shuffling
 // used_index is the index of the last card that has been used

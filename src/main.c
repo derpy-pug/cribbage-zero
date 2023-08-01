@@ -76,8 +76,10 @@ char score_hands_discard_stats(int num_hands) {
 int main(int argc, char** argv) {
     random_init();
     init_scoring(); 
+    //check_scoring();
+
     //load_mean_discard_tables("txt/discard_table_AI_AI_v1.0.txt");
-    generate_min_max_discard_tables();
+    //generate_min_max_discard_tables();
     /*
     Stats stats = {0};
     Stats flush_stats = {0};
@@ -111,7 +113,6 @@ int main(int argc, char** argv) {
 
     //print_cribbage_stats();
 
-    /*
     PlayerInfo player1 = {PLAYER1, AI, "Derpy Pug", 0, 0};
     PlayerInfo player2 = {PLAYER2, RANDOM, "Randy", 0, 0};
 
@@ -119,6 +120,7 @@ int main(int argc, char** argv) {
    
     play_games(10000, &player1, &player2);
     printf("Total Wins: %d - %d\n", player1.wins, player2.wins);
+    /*
     */
     free_scoring();  
     return 0;

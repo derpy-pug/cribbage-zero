@@ -176,3 +176,26 @@ char remove_cards_from_deck(Card* deck, const Hand hand) {
     }
     return num_cards_removed;
 }
+
+char remove_cards_from_deck_keep_order(Card* deck, const Hand hand) {
+    // remove cards in hand from deck
+    Card _hand_cpy[6];
+    Hand hand_cpy = {_hand_cpy, 0}; 
+    for (int i = 0; i < 6; i++) {
+        add_card_to_hand(&hand_cpy, hand.cards[i]);
+    }
+    int num_cards_removed = 0;
+    int deck_last = 51;
+    for (int i = 0; i < 52; i++) {
+        for (int j = 0; j < hand_cpy.length; j++) {
+            if (compare_card(deck[i], hand_cpy.cards[j]) == 0) {
+                if (i != deck_last) memmove(&deck[i], &deck[i + 1], sizeof(Card) * (deck_last - i));
+                remove_card_from_hand(&hand_cpy, j);
+                num_cards_removed++;
+                deck_last--;
+                break;
+            }
+        }
+    }
+    return num_cards_removed;
+}

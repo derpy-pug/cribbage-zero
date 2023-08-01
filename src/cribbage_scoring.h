@@ -7,11 +7,12 @@ char score_pile(const CardPile pile);
 
 char score_hand(const Hand hand, const Card cut, char is_crib);
 
-int get_hand_ranks_key(int hand[5]);
-
-char get_hash_score(int key);
+// Must be 5 cards
+char score_hand_suitless(int* cards);
 
 char score_15(const int ranks[5]);
+
+char score_flush(const Hand hand, const Card cut, char is_crib);
 
 char score_hand_15s_runs_pairs(int hand[5]);
 
@@ -20,6 +21,8 @@ char score_hand_15s_runs_pairs(int hand[5]);
  * This function must be called before calling score_hand.
 */ 
 void init_scoring();
+
+void check_scoring();
 
 void free_scoring();
 #endif
