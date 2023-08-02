@@ -186,10 +186,10 @@ char remove_cards_from_deck_keep_order(Card* deck, const Hand hand) {
     }
     int num_cards_removed = 0;
     int deck_last = 51;
-    for (int i = 0; i < 52; i++) {
+    for (int i = 0; i <= deck_last; i++) {
         for (int j = 0; j < hand_cpy.length; j++) {
             if (compare_card(deck[i], hand_cpy.cards[j]) == 0) {
-                if (i != deck_last) memmove(&deck[i], &deck[i + 1], sizeof(Card) * (deck_last - i));
+                memmove(&deck[i], &deck[i + 1], sizeof(Card) * (deck_last - i));
                 remove_card_from_hand(&hand_cpy, j);
                 num_cards_removed++;
                 deck_last--;
