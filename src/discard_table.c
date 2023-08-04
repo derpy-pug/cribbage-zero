@@ -302,7 +302,7 @@ char min_max_stats(int cards_in_hand[5], Stats* stats, Stats* flush_stats) {
 
 }
 
-void generate_min_max_discard_tables() {
+void generate_min_max_crib_discard_tables() {
     int cards_in_hand[5];
     for (int crib0 = 1; crib0 < 14; crib0++) {
         cards_in_hand[0] = crib0;

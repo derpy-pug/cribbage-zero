@@ -292,7 +292,7 @@ DiscardStats* all_discard_stats(const Hand hand, char is_my_crib) {
         for (int j = i + 1; j < 6; j++) {
             int index = offset + j;
             Discard discards = {i, j};
-            DiscardStats stat = discard_stats(hand, discards, is_my_crib, deck);
+            DiscardStats stat = discard_stats_combined(hand, discards, is_my_crib, deck);
             stats[index] = stat;
         }
     }

@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
     //check_scoring();
 
     //load_mean_discard_tables("txt/discard_table_AI_AI_v1.0.txt");
-    //generate_min_max_discard_tables();
+    //generate_min_max_crib_discard_tables();
     /*
     Stats stats = {0};
     Stats flush_stats = {0};
@@ -90,26 +90,6 @@ int main(int argc, char** argv) {
     */
 
     //score_hands_discard_stats(10);
-
-    /*
-    int key = get_hand_ranks_key(hand);
-    char score = get_hash_score(key);
-    printf("Score: %d\n", score);
-
-    Card _cards[50];
-    Hand hand1 = init_hand(_cards, 0);
-    for (int i = 0; i < 4; i++) {
-        Card card = init_card(hand[i], i % 4);
-        add_card_to_hand(&hand1, card);
-    }
-    Card cut = init_card(hand[4], 0);
-    score = score_hand(hand1, cut, 0);
-    printf("Score: %d\n", score);
-    score = score_hand_15s_runs_pairs(hand);
-    printf("Score: %d\n", score);
-    score = score_15(hand);
-    printf("Score: %d\n", score);
-    */
 
     //print_cribbage_stats();
 
