@@ -299,8 +299,31 @@ DiscardStats* all_discard_stats(const Hand hand, char is_my_crib) {
     return stats;
 }
 
+// Creates a length 15 size array of stats
+// Must be freed by caller
+DiscardStats* all_discard_stats_means(const Hand hand, char is_my_crib) {
+    DiscardStats* stats = malloc(sizeof(DiscardStats) * 15); 
+
+    Card deck[52];
+    init_deck(deck);
+    remove_cards_from_deck_keep_order(deck, hand);
+
+    int offset = -6;
+    for (int i = 0; i < 6; i++) {
+        offset += 5 - i;
+        for (int j = i + 1; j < 6; j++) {
+            int index = offset + j;
+            Discard discards = {i, j};
+            DiscardStats stat = discard_stats(hand, discards, is_my_crib, deck);
+            stats[index] = stat;
+        }
+    }
+    return stats;
+}
+
+
 DiscardStats best_discard(const Hand hand, char is_my_crib) {
-    DiscardStats* stats = all_discard_stats(hand, is_my_crib);
+    DiscardStats* stats = all_discard_stats_means(hand, is_my_crib);
     DiscardStats best = stats[0];
     for (int i = 1; i < 15; i++) {
         DiscardStats stat = stats[i];
@@ -311,7 +334,7 @@ DiscardStats best_discard(const Hand hand, char is_my_crib) {
 }
 
 DiscardStats worst_discard(const Hand hand, char is_my_crib) {
-    DiscardStats* stats = all_discard_stats(hand, is_my_crib);
+    DiscardStats* stats = all_discard_stats_means(hand, is_my_crib);
     DiscardStats worst = stats[0];
     for (int i = 1; i < 15; i++) {
         DiscardStats stat = stats[i];

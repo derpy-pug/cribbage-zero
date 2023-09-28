@@ -68,6 +68,8 @@ void sort_hand(Hand* hand);
 
 void print_hand(const Hand hand); 
 
+void print_hand_format(Hand hand, char is_my_crib);
+
 
 void init_deck(Card* deck);
 

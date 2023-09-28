@@ -42,14 +42,6 @@ char score_hands(int num_hands) {
     return score;
 }
 
-void print_hand_format(Hand hand, char is_my_crib) {
-    for (int i = 0; i < hand.length; i++) {
-        print_card(hand.cards[i]);
-    }   
-    printf("%c", is_my_crib ? 'Y' : 'N');
-    printf("\n");
-}
-
 char score_hands_discard_stats(int num_hands) {
     Card deck[52];
     init_deck(deck);
@@ -89,7 +81,7 @@ int main(int argc, char** argv) {
     printf("Max: %d\n", flush_stats.max);
     */
 
-    //score_hands_discard_stats(10);
+    score_hands_discard_stats(10);
 
     //print_cribbage_stats();
 
@@ -98,7 +90,7 @@ int main(int argc, char** argv) {
 
     //print_discard_tables();
    
-    play_games(10000, &player1, &player2);
+    play_games(100, &player1, &player2);
     printf("Total Wins: %d - %d\n", player1.wins, player2.wins);
     /*
     */
