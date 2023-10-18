@@ -66,14 +66,14 @@ int score_15(const Hand& hand, Card cut)
 	char interactions[32] = {0};
 	int k = 0;
 	for (auto it = hand.begin(); it != hand.end(); ++it) {
-        int rank = static_cast<int>(it->get_rank()); 
+        int value = static_cast<int>(it->get_value()); 
 		int k_temp = k;
 		for (int j = 0; j < k_temp; j++) {
-			int sum = interactions[j] + rank;
+			int sum = interactions[j] + value;
 			if (sum == 15) score += 2;
 			if (sum < 15) interactions[k++] = sum;
 		}
-		interactions[k++] = rank;
+		interactions[k++] = value;
 	}
     // Handle cut card
     for (int j = 0; j < k; j++) {
@@ -104,6 +104,7 @@ int calculate_runs_15s_pairs(const Hand& hand, Card cut)
 			mult = 0;
 			length = 1;
 		}
+        last_rank = rank;
 	}
 	if (mult == 0) mult = 1;
 	if (length >= 3) score += mult * length;
@@ -113,17 +114,24 @@ int calculate_runs_15s_pairs(const Hand& hand, Card cut)
 		score += score_pair_count(count);
 	}
 
+
 	score += score_15(hand, cut);
     return score;
 }
 
 int get_hashed_score(const Hand& hand, Card cut)
 {
+    if (hand.size() != 4) {
+        std::cerr << "Hand must have 4 cards" << std::endl;
+        return 0;
+    }
     int hand_ranks[5];
     int i = 0;
     for (auto it = hand.begin(); it != hand.end(); ++it) {
         hand_ranks[i++] = static_cast<int>(it->get_rank());
     }
+    hand_ranks[i] = static_cast<int>(cut.get_rank());
+
     int key = get_hand_ranks_key(hand_ranks);
     if (score_table.find(key) == score_table.end()) {
         score_table[key] = calculate_runs_15s_pairs(hand, cut);
@@ -133,8 +141,8 @@ int get_hashed_score(const Hand& hand, Card cut)
 
 int score_runs_15s_pairs(const Hand& hand, Card cut)
 {
-    get_hashed_score(hand, cut);
-    return 0;
+    int score = get_hashed_score(hand, cut);
+    return score;
 }
 
 int score_flush(const Hand& hand, Card cut, bool is_crib)

@@ -2,6 +2,7 @@
 
 #include "deck.h"
 #include "hand.h"
+#include "scoring.h"
 
 int main(int argc, char** argv) {
     /* if (argc != 2) { */
@@ -11,8 +12,15 @@ int main(int argc, char** argv) {
     /* std::cout << "Hello, " << argv[1] << "!" << std::endl; */
 
     Hand hand;
-    hand.sort();
     Deck deck;
     deck.shuffle();
-    std::cout << deck.deal_card() << std::endl;
+    hand.add_card(deck.deal_card());
+    hand.add_card(deck.deal_card());
+    hand.add_card(deck.deal_card());
+    hand.add_card(deck.deal_card());
+    hand.sort();
+    Card cut = deck.deal_card();
+    std::cout << "Hand: "<< hand << std::endl;
+    std::cout << "Cut: " << cut << std::endl;
+    std::cout << "Score: " << score_hand(hand, cut, false) << std::endl;
 }
