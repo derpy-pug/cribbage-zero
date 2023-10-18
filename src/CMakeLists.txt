@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 3.21.1)
 project(Cribbage 
     VERSION 0.1.0 
     LANGUAGES CXX)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../bin)
+set(CRIBBAGE_BINARY_DIR ${CMAKE_BINARY_DIR}/../bin/)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CRIBBAGE_BINARY_DIR})
+add_custom_target(run
+    COMMAND Cribbage
+    DEPENDS Cribbage
+    WORKING_DIRECTORY ${CRIBBAGE_BINARY_DIR}
+)
 #set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # include all the files in the src directory recursively
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "*.cpp")
