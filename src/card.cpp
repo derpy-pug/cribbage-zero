@@ -23,7 +23,22 @@ int Card::get_value() const
     return static_cast<int>(rank);
 }
 
-std::string Card::print() const
+bool Card::operator==(const Card& rhs) const
+{
+    return suit == rhs.suit && rank == rhs.rank;
+}
+
+bool Card::compare_rank(const Card& lhs, const Card& rhs)
+{
+    return lhs.rank < rhs.rank;
+}
+
+bool Card::compare_suit(const Card& lhs, const Card& rhs)
+{
+    return lhs.suit < rhs.suit;
+}
+
+std::string Card::to_string() const
 {
     std::string suitStr;
     switch (suit) {
@@ -89,6 +104,6 @@ std::string Card::print() const
 
 std::ostream& operator<<(std::ostream& os, const Card& card)
 {
-    os << card.print();
+    os << card.to_string();
     return os;
 }

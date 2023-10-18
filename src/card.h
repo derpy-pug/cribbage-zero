@@ -42,6 +42,11 @@ public:
      */
     int get_value() const;
 
+    bool operator==(const Card& rhs) const;
+
+    static bool compare_rank(const Card& lhs, const Card& rhs);
+    static bool compare_suit(const Card& lhs, const Card& rhs);
+
     /*
      * @brief Returns the string representation of the card
      *
@@ -50,7 +55,7 @@ public:
      *
      * @return The string representation of the card
      */
-    std::string print() const;
+    std::string to_string() const;
 
     // Print the card to the given output stream
     friend std::ostream& operator<<(std::ostream& os, const Card& card);

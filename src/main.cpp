@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "deck.h"
+#include "hand.h"
 
 int main(int argc, char** argv) {
     /* if (argc != 2) { */
@@ -9,6 +10,8 @@ int main(int argc, char** argv) {
     /* } */
     /* std::cout << "Hello, " << argv[1] << "!" << std::endl; */
 
+    Hand hand;
+    hand.sort();
     Deck deck;
     deck.shuffle();
     std::cout << deck.deal_card() << std::endl;
