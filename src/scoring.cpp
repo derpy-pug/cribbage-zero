@@ -5,6 +5,10 @@
 #include <iostream>
 #include <unordered_map>
 
+
+// Hash the score of runs, 15s, and pairs
+static std::unordered_map<int, int> score_table_cache;
+
 // Used for getting the key for the score table
 static char primes[14] = { 0, 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 };
 
@@ -16,9 +20,19 @@ int get_hand_ranks_key(int hand[5]) {
     return key;
 }
 
-// Hash the score of runs, 15s, and pairs
-static std::unordered_map<int, int> score_table;
-
+/*
+ * @brief scores a pair based on the number of cards in the pair
+ *
+ * Pairs are scored as follows:
+ * - 2 cards: 2 points
+ * - 3 cards: 6 points
+ * - 4 cards: 12 points
+ * - Everything else: 0 points
+ *
+ * @param count The number of cards in the pair
+ *
+ * @return The score of the pair
+ */
 int score_pair_count(int count)
 {
     if (count == 2) return 2;
@@ -44,8 +58,7 @@ std::vector<std::pair<int, int>> hand_set(const Hand& hand, Card cut)
 {
     std::vector<std::pair<int, int>> set;
     std::vector<int> rank_counts(14, 0);
-    for (auto it = hand.begin(); it != hand.end(); ++it) {
-        Card card = *it;
+    for (const Card& card : hand) {
         int rank = static_cast<int>(card.get_rank());
         ++rank_counts[rank];
     }
@@ -65,16 +78,18 @@ int score_15(const Hand& hand, Card cut)
     int score = 0;
 	char interactions[32] = {0};
 	int k = 0;
-	for (auto it = hand.begin(); it != hand.end(); ++it) {
-        int value = static_cast<int>(it->get_value()); 
-		int k_temp = k;
+
+    for (const Card& card : hand) {
+        int value = static_cast<int>(card.get_value());
+        int k_temp = k;
 		for (int j = 0; j < k_temp; j++) {
 			int sum = interactions[j] + value;
 			if (sum == 15) score += 2;
 			if (sum < 15) interactions[k++] = sum;
 		}
 		interactions[k++] = value;
-	}
+    }
+
     // Handle cut card
     for (int j = 0; j < k; j++) {
         int sum = interactions[j] + static_cast<int>(cut.get_rank());
@@ -127,17 +142,18 @@ int get_hashed_score(const Hand& hand, Card cut)
     }
     int hand_ranks[5];
     int i = 0;
-    for (auto it = hand.begin(); it != hand.end(); ++it) {
-        hand_ranks[i++] = static_cast<int>(it->get_rank());
+    for (const Card& card : hand) {
+        hand_ranks[i++] = static_cast<int>(card.get_rank());
     }
     hand_ranks[i] = static_cast<int>(cut.get_rank());
 
     int key = get_hand_ranks_key(hand_ranks);
-    if (score_table.find(key) == score_table.end()) {
-        score_table[key] = calculate_runs_15s_pairs(hand, cut);
+    if (score_table_cache.find(key) == score_table_cache.end()) {
+        score_table_cache[key] = calculate_runs_15s_pairs(hand, cut);
     }
-    return score_table[key];
+    return score_table_cache[key];
 }
+
 
 int score_runs_15s_pairs(const Hand& hand, Card cut)
 {
@@ -147,9 +163,8 @@ int score_runs_15s_pairs(const Hand& hand, Card cut)
 
 int score_flush(const Hand& hand, Card cut, bool is_crib)
 {
-    Suit suit = hand.begin()[0].get_suit();
-    for (auto it = hand.begin() + 1; it != hand.end(); ++it) {
-        Card card = *it;
+    Suit suit = hand[0].get_suit();
+    for (const Card& card : hand) {
         if (card.get_suit() != suit) {
             return 0;
         }
@@ -165,8 +180,7 @@ int score_flush(const Hand& hand, Card cut, bool is_crib)
 
 int score_knob(const Hand& hand, Card cut)
 {
-    for (auto it = hand.begin(); it != hand.end(); ++it) {
-        Card card = *it;
+    for (const Card& card : hand) {
         if (card.get_rank() == Rank::JACK && card.get_suit() == cut.get_suit()) {
             return 1;
         }

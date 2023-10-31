@@ -1,8 +1,6 @@
 #include <iostream>
 
-#include "deck.h"
-#include "hand.h"
-#include "scoring.h"
+#include "cribbage.h"
 
 int main(int argc, char** argv) {
     /* if (argc != 2) { */

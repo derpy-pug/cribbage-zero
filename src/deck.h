@@ -4,11 +4,13 @@
 #include <vector>
 
 #include "card.h"
+#include "card_container.h"
 
 
 /*
+ * @brief A deck of cards
  */
-class Deck
+class Deck : public CardContainer
 {
 public:
     /*
@@ -32,13 +34,6 @@ public:
      * @return The card dealt from the deck
      */
     Card deal_card();
-
-    /*
-     * @brief Returns the number of cards left in the deck
-     *
-     * @return The number of cards left in the deck
-     */
-    int cards_left() const;
 
 private:
     std::vector<Card> cards;

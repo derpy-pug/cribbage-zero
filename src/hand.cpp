@@ -7,8 +7,8 @@ Hand::Hand()
 }
 
 Hand::Hand(std::vector<Card> cards)
-    : cards(cards)
 {
+    this->cards = cards;
 }
 
 void Hand::add_card(Card card)
@@ -19,26 +19,6 @@ void Hand::add_card(Card card)
 void Hand::remove_card(Card card)
 {
     cards.erase(std::remove(cards.begin(), cards.end(), card), cards.end());
-}
-
-std::vector<Card>::const_iterator Hand::begin() const
-{
-    return cards.begin();
-}
-
-std::vector<Card>::iterator Hand::begin()
-{
-    return cards.begin();
-}
-
-std::vector<Card>::const_iterator Hand::end() const
-{
-    return cards.end();
-}
-
-std::vector<Card>::iterator Hand::end()
-{
-    return cards.end();
 }
 
 void Hand::sort()
@@ -55,11 +35,6 @@ Hand Hand::sort() const
     std::sort(cards_copy.begin(), cards_copy.end(), comparator);
     sorted.cards = cards_copy;
     return sorted;
-}
-
-int Hand::size() const
-{
-    return cards.size();
 }
 
 std::string Hand::to_string() const

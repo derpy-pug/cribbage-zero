@@ -33,8 +33,3 @@ Card Deck::deal_card()
     cards.pop_back();
     return card;
 }
-
-int Deck::cards_left() const
-{
-    return cards.size();
-}
