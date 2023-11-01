@@ -14,8 +14,15 @@ public:
     Hand& get_hand();
     void set_hand(Hand hand);
 
+    /*
+     * @brief Play a card in the pegging phase.
+     */
     virtual Card play_card() = 0;
-    virtual Card discard() = 0;
+
+    /*
+     * @brief Discard exactly 2 cards from the player's hand.
+     */
+    virtual Hand make_discards(bool is_my_crib) = 0;
 
 private:
     std::string name;
@@ -28,7 +35,7 @@ public:
     HumanPlayer(std::string name);
 
     Card play_card();
-    Card discard();
+    Hand make_discards(bool is_my_crib);
 };
 
 class RandomPlayer : public Player
@@ -37,7 +44,7 @@ public:
     RandomPlayer(std::string name);
 
     Card play_card();
-    Card discard();
+    Hand make_discards(bool is_my_crib);
 };
 
 class AIPlayer : public Player
@@ -46,12 +53,7 @@ public:
     AIPlayer(std::string name);
 
     Card play_card();
-    Card discard();
+    Hand make_discards(bool is_my_crib);
 };
-
-
-
-
-
 
 #endif // PLAYER_H

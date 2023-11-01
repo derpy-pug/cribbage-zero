@@ -35,7 +35,6 @@ class CardContainer
     bool empty() const { return cards.empty(); }
 
 
-
     std::vector<Card>::iterator begin() { return cards.begin(); }
     std::vector<Card>::iterator end() { return cards.end(); }
     std::vector<Card>::const_iterator begin() const { return cards.begin(); }

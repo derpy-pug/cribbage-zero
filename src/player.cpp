@@ -1,8 +1,9 @@
 #include "player.h"
 
 #include <iostream>
-#include <random>
 #include <algorithm>
+
+#include "util/cribbage_random.h"
 
 Player::Player(std::string name)
     : name(name)
@@ -38,13 +39,22 @@ Card HumanPlayer::play_card()
     return get_hand().begin()[i];
 }
 
-Card HumanPlayer::discard()
+Hand HumanPlayer::make_discards(bool is_my_crib)
 {
+    if (is_my_crib) {
+        std::cout << "Your crib" << std::endl;
+    } else {
+        std::cout << "Opponent's crib" << std::endl;
+    }
     std::cout << "Your hand: " << get_hand() << std::endl;
-    std::cout << "Discard a card: ";
-    int i;
+    std::cout << "Discard two cards: ";
+    int i, j;
     std::cin >> i;
-    return get_hand().begin()[i];
+    std::cin >> j;
+    Hand discards;
+    discards.add_card(get_hand()[i]);
+    discards.add_card(get_hand()[j]);
+    return discards;
 }
 
 RandomPlayer::RandomPlayer(std::string name)
@@ -52,21 +62,21 @@ RandomPlayer::RandomPlayer(std::string name)
 {
 }
 
-static std::random_device rd;
-static std::mt19937 gen(rd());
-
 Card RandomPlayer::play_card()
 {
-    std::uniform_int_distribution<> dis(0, get_hand().size() - 1);
-    int i = dis(gen);
+    int i = CribbageRandom::get_instance()->get_random_int(0, get_hand().size());
     return get_hand().begin()[i];
 }
 
-Card RandomPlayer::discard()
+Hand RandomPlayer::make_discards(bool is_my_crib)
 {
-    std::uniform_int_distribution<> dis(0, get_hand().size() - 1);
-    int i = dis(gen);
-    return get_hand().begin()[i];
+    Hand discards;
+    int i = CribbageRandom::get_instance()->get_random_int(0, get_hand().size());
+    int j = CribbageRandom::get_instance()->get_random_int(0, get_hand().size() - 1);
+    if (j == i) j = get_hand().size() - 1;
+    discards.add_card(get_hand()[i]);
+    discards.add_card(get_hand()[j]);
+    return discards;
 }
 
 AIPlayer::AIPlayer(std::string name)
@@ -80,8 +90,11 @@ Card AIPlayer::play_card()
     return get_hand().begin()[0];
 }
 
-Card AIPlayer::discard()
+Hand AIPlayer::make_discards(bool is_my_crib)
 {
     //TODO: Implement AI
-    return get_hand().begin()[0];
+    Hand discards;
+    discards.add_card(get_hand()[0]);
+    discards.add_card(get_hand()[1]);
+    return discards;
 }

@@ -188,6 +188,11 @@ int score_knob(const Hand& hand, Card cut)
     return 0;
 }
 
+int score_hand_suitless(const Hand& hand, Card cut)
+{
+    return score_runs_15s_pairs(hand, cut);
+}
+
 int score_hand(const Hand& hand, Card cut, bool is_crib)
 {
     char score = 0;

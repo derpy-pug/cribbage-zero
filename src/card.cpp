@@ -15,6 +15,11 @@ Rank Card::get_rank() const
     return rank;
 }
 
+int Card::get_rank_int() const
+{
+    return static_cast<int>(rank);
+}
+
 int Card::get_value() const
 {
     if (static_cast<int>(rank) >= 10) {

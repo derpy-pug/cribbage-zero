@@ -3,7 +3,5 @@
 
 #include "core.h"
 
-// Class or Namespace?
-
 
 #endif // CRIBBAGE_H

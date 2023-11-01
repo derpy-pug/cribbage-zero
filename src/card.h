@@ -32,6 +32,16 @@ public:
      */
     Rank get_rank() const;
 
+    /* 
+     * @brief Returns the rank of the card as an integer
+     *
+     * Aces are 1, twos are 2, ..., Ten is 10, Jack is 11, Queen is 12, and
+     * King is 13.
+     *
+     * @return The rank of the card as an integer
+     */
+    int get_rank_int() const;
+
     /*
      * @brief Returns the cribbage value of the card between 1 and 10
      *
