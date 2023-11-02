@@ -7,7 +7,7 @@ struct ScoreDistributionTable
         : dist_table()
     {
     }
-    float dist_table[29];
+    float dist_table[30]; // 0-29
 
     float& operator[](int i)
     {

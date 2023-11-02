@@ -46,5 +46,7 @@ int main(int argc, char** argv) {
     gen_stats.generate_mean_tables();
     gen_stats.save_mean_tables("mean_tables.txt");
     gen_stats.save_freq_tables("freq_tables.txt");
+    gen_stats.generate_max_min_tables();
+    gen_stats.save_max_min_tables("tables.txt");
     /* test_hand_error_deck(); */
 }
