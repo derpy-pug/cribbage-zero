@@ -92,7 +92,7 @@ int score_15(const Hand& hand, Card cut)
 
     // Handle cut card
     for (int j = 0; j < k; j++) {
-        int sum = interactions[j] + static_cast<int>(cut.get_rank());
+        int sum = interactions[j] + static_cast<int>(cut.get_value());
         if (sum == 15) score += 2;
     }
     return score;

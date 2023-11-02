@@ -36,6 +36,7 @@ void Deck::shuffleTopCardsIntoDeck(int numCards) {
         int ri = CribbageRandom::get_instance()->get_random_int(i, cards.size());
         std::swap(cards[i], cards[ri]);
     }
+    next_card_idx = 0;
 }
 
 Card Deck::deal_card()

@@ -26,6 +26,15 @@ public:
     Suit get_suit() const;
 
     /*
+     * @brief Returns the suit of the card as an integer
+     *
+     * Clubs is 0, diamonds is 1, hearts is 2, and spades is 3.
+     *
+     * @return The suit of the card as an integer
+     */
+    int get_suit_int() const;
+
+    /*
      * @brief Returns the rank of the card
      *
      * @return The rank of the card

@@ -1,15 +1,18 @@
 #ifndef STATISTICS_H
 #define STATISTICS_H
 
-struct ScoreFreqTable
-{
-    int freq_table[28];
-    int num_games;
-};
-
 struct ScoreDistributionTable
 {
-    float dist_table[28];
+    ScoreDistributionTable()
+        : dist_table()
+    {
+    }
+    float dist_table[29];
+
+    float& operator[](int i)
+    {
+        return dist_table[i];
+    }
 };
 
 #endif // STATISTICS_H
