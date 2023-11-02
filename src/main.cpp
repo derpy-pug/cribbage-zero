@@ -43,10 +43,13 @@ int main(int argc, char** argv) {
     Player* p2 = new RandomPlayer("Rando");
     
     GenerateCribStatistics gen_stats(p1, p2);
-    gen_stats.generate_mean_tables();
-    gen_stats.save_mean_tables("mean_tables.txt");
+    gen_stats.generate_all_tables();
     gen_stats.save_freq_tables("freq_tables.txt");
-    gen_stats.generate_max_min_tables();
+    gen_stats.save_mean_tables("mean_tables.txt");
     gen_stats.save_max_min_tables("tables.txt");
+    gen_stats.save_std_dev_tables("std_dev_tables.txt");
+    gen_stats.save_variance_tables("variance_tables.txt");
+    gen_stats.save_median_tables("median_tables.txt");
+
     /* test_hand_error_deck(); */
 }
