@@ -208,7 +208,7 @@ void Statistic::save_tables(std::string dirname) {
     min_table.save(dirname + "min_table.txt");
 }
 
-int Statistic::get_freq(Card card1, Card card2, bool is_dealer) {
+float Statistic::get_freq(Card card1, Card card2, bool is_dealer) {
     int index1 = card1.get_rank_int() - 1;
     int index2 = card2.get_rank_int() - 1;
     if (index1 > index2) {

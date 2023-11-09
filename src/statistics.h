@@ -3,6 +3,9 @@
 
 #include "card.h"
 #include <string>
+/*
+ * @brief Table for storing the number of times a score occurs.
+ */
 struct ScoreDistributionTable
 {
     ScoreDistributionTable()
@@ -31,6 +34,8 @@ public:
      */
     Table(std::string stats_name);
 
+    Table(Table&& other) = default;
+
     T& get_dealer_crib(int index1, int index2) { return table_dealer_crib[index1][index2]; }
     T& get_opp_crib(int index1, int index2) { return table_opp_crib[index1][index2]; }
 
@@ -50,13 +55,16 @@ class Statistic
 {
 public:
     Statistic();
+    virtual ~Statistic() = default;
+
+    Statistic(Statistic&& other) = default;
     
     virtual void generate_all_tables() = 0;
 
     virtual void load_tables(std::string dirname);
     virtual void save_tables(std::string dirname);
 
-    virtual int get_freq(Card card1, Card card2, bool is_dealer);
+    virtual float get_freq(Card card1, Card card2, bool is_dealer);
     virtual ScoreDistributionTable get_score_dist(Card card1, Card card2, bool is_dealer);
     virtual float get_mean(Card card1, Card card2, bool is_dealer);
     virtual int get_median(Card card1, Card card2, bool is_dealer);

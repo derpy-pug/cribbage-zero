@@ -56,3 +56,12 @@ Hand Deck::deal_hand(int numCards)
     }
     return hand;
 }
+
+void Deck::remove_cards(const Hand& hand)
+{
+    // This function return should be used
+    // How?
+    std::erase_if(cards, [&hand](const Card& card) {
+        return hand.contains(card);
+    });
+}

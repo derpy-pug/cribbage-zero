@@ -40,13 +40,26 @@ int main(int argc, char** argv) {
     /*     return 1; */
     /* } */
     /* std::cout << "Hello, " << argv[1] << "!" << std::endl; */
+    
+    Deck deck;
+    deck.shuffle();
+    Hand hand1 = deck.deal_hand(6);
+    hand1.sort();
+    Hand hand2 = deck.deal_hand(6);
+    hand2.sort();
 
     Player* p1 = new RandomPlayer("Randy");
+    p1->set_hand(hand1);
     Player* p2 = new RandomPlayer("Rando");
+    p2->set_hand(hand2);
     
     GenerateCribStatistics gen_stats(p1, p2);
     std::string dirname = TABLE_DIR + std::string("crib/");
     gen_stats.generate_all_tables();
     gen_stats.save_tables(dirname);
     /* test_hand_error_deck(); */
+
+    GenerateDiscardStatistics gen_discard(p1, true, &gen_stats);
+    gen_discard.generate_discard_stats();
+
 }

@@ -61,6 +61,8 @@ public:
      */
     Hand deal_hand(int numCards); 
 
+    void remove_cards(const Hand& hand);
+
 private:
     int next_card_idx;
 };

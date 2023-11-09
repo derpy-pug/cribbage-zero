@@ -21,6 +21,11 @@ void Hand::remove_card(Card card)
     cards.erase(std::remove(cards.begin(), cards.end(), card), cards.end());
 }
 
+bool Hand::contains(Card card) const
+{
+    return std::find(cards.begin(), cards.end(), card) != cards.end();
+}
+
 void Hand::sort()
 {
     auto comparator = Card::compare_rank;

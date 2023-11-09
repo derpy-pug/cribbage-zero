@@ -137,7 +137,7 @@ int calculate_runs_15s_pairs(const Hand& hand, Card cut)
 int get_hashed_score(const Hand& hand, Card cut)
 {
     if (hand.size() != 4) {
-        std::cerr << "Hand must have 4 cards" << std::endl;
+        std::cerr << "Hand must have 4 cards.\nHand: " << hand << std::endl;
         return 0;
     }
     int hand_ranks[5];

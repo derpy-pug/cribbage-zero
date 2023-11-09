@@ -21,6 +21,11 @@ public:
     void sort();
     Hand sort() const;
 
+    std::vector<Card>& get_cards() { return cards; }
+    const std::vector<Card>& get_cards() const{ return cards; }
+
+    bool contains(Card card) const;
+
     /*
      * @brief Gets the string representation of the hand
      *
