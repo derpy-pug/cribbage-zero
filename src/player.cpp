@@ -62,15 +62,15 @@ RandomPlayer::RandomPlayer(std::string name)
 
 Card RandomPlayer::play_card()
 {
-    int i = CribbageRandom::get_instance()->get_random_int(0, get_hand().size());
+    int i = CribbageRandom::get_instance()->get_int(0, get_hand().size());
     return get_hand().begin()[i];
 }
 
 std::pair<Card,Card> RandomPlayer::make_discards(bool is_my_crib, GenerateCribStatistics* gen_crib_stats)
 {
     Hand discards;
-    int i = CribbageRandom::get_instance()->get_random_int(0, get_hand().size());
-    int j = CribbageRandom::get_instance()->get_random_int(0, get_hand().size() - 1);
+    int i = CribbageRandom::get_instance()->get_int(0, get_hand().size());
+    int j = CribbageRandom::get_instance()->get_int(0, get_hand().size() - 1);
     if (j == i) j = get_hand().size() - 1;
     return {get_hand()[i], get_hand()[j]};
 }

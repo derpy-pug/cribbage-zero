@@ -25,7 +25,7 @@ class CribbageRandom
      * @param min_inclusive The minimum value to generate (inclusive)
      * @param max_exclusive The maximum value to generate (exclusive)
      */
-    int get_random_int(int min_inclusive, int max_exclusive);
+    int get_int(int min_inclusive, int max_exclusive);
 
     /*
      * @brief Constructs a random number generator
@@ -34,14 +34,14 @@ class CribbageRandom
      *
      * @param max_exclusive The maximum value to generate (exclusive)
      */
-    int get_random_int(int max_exclusive);
+    int get_int(int max_exclusive);
 
     /*
      * @brief Constructs a random boolean generator
      *
      * @return A random boolean
      */
-    bool get_random_bool();
+    bool get_bool();
 
     static CribbageRandom* get_instance();
 

@@ -345,7 +345,7 @@ DiscardStatistics::DiscardStatistics(Player* player, Card discard1, Card discard
 {
 }
 
-void DiscardStatistics::generate_all_tables()
+void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut)
 {
     Deck deck = Deck();
     deck.remove_cards(player->get_hand());
@@ -361,11 +361,19 @@ void DiscardStatistics::generate_all_tables()
     for (auto it = deck.cbegin(); it != deck.cend(); ++it) { 
         // Score for hand
         Card cut = *it;
+        if (optional_cut) {
+            cut = *optional_cut;
+        }
+
         Hand hand = player->get_hand();
         hand.remove_card(discard1);
         hand.remove_card(discard2);
         int hand_score = score_hand(hand, cut, false);
-        score_dist_hand[hand_score] += 1.0 / 46.0;
+        if (optional_cut) {
+            score_dist_hand[hand_score] += 1.0;
+        } else {
+            score_dist_hand[hand_score] += 1.0 / 46.0;
+        }
 
         // Score for combined stats
         int cards_count[13] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
@@ -428,7 +436,10 @@ void DiscardStatistics::generate_all_tables()
                     prob_knob = (float)num_jacks / (cards_count[11] + num_jacks);
                 }
 
-                float prob = 1 / 46. * gen_crib_stats->get_freq(crib[2], crib[3], is_dealer);
+                float prob = gen_crib_stats->get_freq(crib[2], crib[3], is_dealer);
+                if (!optional_cut) {
+                    prob *= 1.0 / 46;
+                }
                 int crib_score = score_hand_suitless(crib, cut);
                 int combined_score = is_dealer ? hand_score + crib_score : hand_score - crib_score;
                 score_dist_crib[crib_score] += prob * (1 - prob_flush) * (1 - prob_knob);
@@ -448,14 +459,15 @@ void DiscardStatistics::generate_all_tables()
             cards_count[i]++;
         }
         cards_count[cut.get_rank_int() - 1]++;
+        if (optional_cut) {
+            break;
+        }
     }
 
-    // Verify that the probabilities sum to 1
     float sum = 0;
     for (int i = score_dist_combined.get_possible_score_min(); i <= score_dist_combined.get_possible_score_max(); i++) {
         sum += score_dist_combined[i];
     }
-
     /* Normalize the probabilities
      * This is nessesary because some hands are skipped.
      * This normalization is not perfect and assumes
@@ -600,13 +612,13 @@ GenerateDiscardStatistics::GenerateDiscardStatistics(Player* player, bool is_dea
 {
 }
 
-void GenerateDiscardStatistics::generate_discard_stats() {
+void GenerateDiscardStatistics::generate_discard_stats(std::optional<Card> cut) {
     for (auto it = player->get_hand().cbegin(); it != player->get_hand().cend(); ++it) {
         for (auto it2 = it + 1; it2 != player->get_hand().cend(); ++it2) {
             Card discard1 = *it;
             Card discard2 = *it2;
             std::unique_ptr<DiscardStatistics> discard_stat = std::make_unique<DiscardStatistics>(player, discard1, discard2, is_dealer, gen_crib_stats);
-            discard_stat->generate_all_tables();
+            discard_stat->generate_all_tables(cut);
             discard_stats.emplace_back(std::move(discard_stat));
         }
     }
@@ -661,6 +673,21 @@ void GenerateDiscardStatistics::sort_discard_stats(ScoreType score_type, Statist
 const DiscardStatistics& GenerateDiscardStatistics::get_best_discard_stats() const
 {
     return *discard_stats[0];
+}
+
+std::string GenerateDiscardStatistics::get_discard_stats_string(int num_discard_stats) const
+{
+    std::string discard_stats_string = "";
+    for (int i = 0; i < num_discard_stats; i++) {
+        discard_stats_string += discard_stats[i]->get_discard_string();
+        discard_stats_string += "\n";
+    }
+    return discard_stats_string;
+}
+
+void GenerateDiscardStatistics::print_discard_stats(int num_discard_stats) const
+{
+    std::cout << get_discard_stats_string(num_discard_stats);
 }
 
 std::ostream& operator<<(std::ostream& os, const GenerateDiscardStatistics& gen_discard_stats)

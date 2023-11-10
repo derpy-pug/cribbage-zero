@@ -1,6 +1,7 @@
 #ifndef GENERATE_STATISTICS_H
 #define GENERATE_STATISTICS_H 
 
+#include <optional>
 #include <string>
 #include <memory>
 
@@ -50,7 +51,7 @@ public:
     DiscardStatistics(DiscardStatistics&& other) = default;
 
 
-    void generate_all_tables();
+    void generate_all_tables(std::optional<Card> cut = std::nullopt);
 
     inline Card get_discard1() const { return discard1; }
     inline Card get_discard2() const { return discard2; }
@@ -98,7 +99,7 @@ public:
     GenerateDiscardStatistics(Player* player, bool is_dealer, GenerateCribStatistics* gen_crib_stats);
     ~GenerateDiscardStatistics() = default;
 
-    void generate_discard_stats();
+    void generate_discard_stats(std::optional<Card> cut = std::nullopt);
 
     const DiscardStatistics& get_discard_stats(Card discard1, Card discard2) const;
 
@@ -113,6 +114,9 @@ public:
      * @return The best discard statistics.
      */
     const DiscardStatistics& get_best_discard_stats() const;
+
+    std::string get_discard_stats_string(int num_discard_stats = 15) const;
+    void print_discard_stats(int num_discard_stats = 15) const;
 
     friend std::ostream& operator<<(std::ostream& os, const GenerateDiscardStatistics& gen_discard_stats);
 

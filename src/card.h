@@ -19,6 +19,18 @@ public:
     Card(Suit suit, Rank rank);
 
     /*
+     * @brief Constructs a card from a string representation
+     *
+     * The string representation of a card is its rank followed by its suit.
+     * Examples:
+     *  - "AS" is the ace of spades
+     *  - "1S" is the ace of spades
+     *  - "7H" is the seven of hearts
+     *  - "TH" is the ten of hearts
+     */
+    Card(std::string card_str);
+
+    /*
      * @brief Returns the suit of the card
      *
      * @return The suit of the card

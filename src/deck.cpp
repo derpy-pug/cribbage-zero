@@ -33,7 +33,7 @@ void Deck::shuffleTopCardsIntoDeck(int numCards) {
         return;
     }
     for (int i = 0; i < numCards; ++i) {
-        int ri = CribbageRandom::get_instance()->get_random_int(i, cards.size());
+        int ri = CribbageRandom::get_instance()->get_int(i, cards.size());
         std::swap(cards[i], cards[ri]);
     }
     next_card_idx = 0;
