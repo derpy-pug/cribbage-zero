@@ -111,8 +111,6 @@ int calculate_runs_15s_pairs(const Hand& hand, Card cut)
 	for(auto pair : set) {
         int rank = pair.first;
         int count = pair.second;
-		if (count > 1) 
-            mult += count;
 		if (rank - last_rank == 1)
 			length++;
 		else { 
@@ -120,6 +118,8 @@ int calculate_runs_15s_pairs(const Hand& hand, Card cut)
 			mult = 0;
 			length = 1;
 		}
+        if (count > 1) 
+            mult += count;
         last_rank = rank;
 	}
 	if (mult == 0) mult = 1;
