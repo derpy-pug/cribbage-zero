@@ -3,21 +3,60 @@
 
 #include "card.h"
 #include <string>
+#include <vector>
+
+enum class ScoreType {
+    HAND,
+    CRIB,
+    COMBINED
+};
+
+enum class Statistic {
+    MEAN,
+    MEDIAN,
+    VARIANCE,
+    STD_DEV,
+    MAX,
+    MIN,
+};
+
 /*
  * @brief Table for storing the number of times a score occurs.
  */
-struct ScoreDistributionTable
+class ScoreDistributionTable
 {
-    ScoreDistributionTable()
-        : dist_table()
-    {
-    }
-    float dist_table[30]; // 0-29
+public:
+    ScoreDistributionTable();
+    ScoreDistributionTable(int min, int max);
+    ~ScoreDistributionTable() = default;
 
-    float& operator[](int i)
-    {
-        return dist_table[i];
-    }
+    float calc_mean() const;
+    int calc_median() const;
+    float calc_variance() const;
+    float calc_std_dev() const;
+    int calc_max() const;
+    int calc_min() const;
+
+    float prob_score(int score) const;
+    float prob_score_cummulative(int score) const;
+    float prob_score_between(int score1, int score2) const;
+
+    float& operator[](int score);
+    const float& operator[](int score) const;
+
+    int get_possible_score_min() const { return min; }
+    int get_possible_score_max() const { return max; }
+
+    void clear();
+
+private:
+    float& get_table_value(int score);
+    const float& get_table_value(int score) const;
+
+private:
+    std::vector<float> dist_table; // 0-29 for single hand, -60 through 60 for combined
+    int min;
+    int max;
 };
 
 template <typename T>
@@ -51,13 +90,13 @@ private:
 };
 
 
-class Statistic
+class StatisticTable
 {
 public:
-    Statistic();
-    virtual ~Statistic() = default;
+    StatisticTable();
+    ~StatisticTable() = default;
 
-    Statistic(Statistic&& other) = default;
+    StatisticTable(StatisticTable&& other) = default;
     
     virtual void generate_all_tables() = 0;
 

@@ -59,15 +59,16 @@ std::vector<std::pair<int, int>> hand_set(const Hand& hand, Card cut)
     std::vector<std::pair<int, int>> set;
     std::vector<int> rank_counts(14, 0);
     for (const Card& card : hand) {
-        int rank = static_cast<int>(card.get_rank());
+        int rank = card.get_rank_int();
         ++rank_counts[rank];
     }
-    int rank = static_cast<int>(cut.get_rank());
+    int rank = cut.get_rank_int();
     ++rank_counts[rank];
 
     for (int i = 0; i < 14; ++i) {
         if (rank_counts[i] > 0) {
-            set.push_back(std::make_pair(i, rank_counts[i]));
+            auto pair = std::make_pair(i, rank_counts[i]);
+            set.push_back(pair);
         }
     }
     return set;

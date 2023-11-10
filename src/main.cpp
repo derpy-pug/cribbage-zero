@@ -20,7 +20,7 @@ void test_hand_deck() {
     std::cout << "Score: " << score_hand(hand, cut, false) << std::endl;
 }
 
-void test_hand_error_deck() {
+void test_hand() {
 
     Hand hand;
     hand.add_card(Card(Suit::CLUBS, Rank::THREE));
@@ -48,18 +48,24 @@ int main(int argc, char** argv) {
     Hand hand2 = deck.deal_hand(6);
     hand2.sort();
 
-    Player* p1 = new RandomPlayer("Randy");
+    Player* p1 = new StatPlayer("Staples");
     p1->set_hand(hand1);
-    Player* p2 = new RandomPlayer("Rando");
+    Player* p2 = new StatPlayer("Stanly");
     p2->set_hand(hand2);
     
     GenerateCribStatistics gen_stats(p1, p2);
-    std::string dirname = TABLE_DIR + std::string("crib/");
+    std::string dirname = TABLE_DIR + std::string("stat_vs_stat/");
     gen_stats.generate_all_tables();
     gen_stats.save_tables(dirname);
-    /* test_hand_error_deck(); */
+    //gen_stats.load_tables(dirname);
 
-    GenerateDiscardStatistics gen_discard(p1, true, &gen_stats);
+    std::cout << "Hand: " << hand1 << std::endl;
+    GenerateDiscardStatistics gen_discard(p1, false, &gen_stats);
     gen_discard.generate_discard_stats();
+    gen_discard.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
+    const DiscardStatistics& discard_stats = gen_discard.get_best_discard_stats();
+    //std::cout << discard_stats << std::endl;
+
+    std::cout << gen_discard << std::endl;
 
 }

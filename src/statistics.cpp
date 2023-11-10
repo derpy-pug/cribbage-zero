@@ -1,8 +1,157 @@
 #include "statistics.h"
 
+#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+
+ScoreDistributionTable::ScoreDistributionTable()
+    : min(0), max(29) 
+{
+    dist_table.resize(30);
+}
+
+ScoreDistributionTable::ScoreDistributionTable(int min, int max)
+    : min(min), max(max)
+{
+    dist_table.resize(max - min + 1);
+}
+
+float& ScoreDistributionTable::get_table_value(int score) {
+    if (score < min || score > max) {
+        std::cerr << "Score out of range: " << score << std::endl;
+        exit(1);
+    }
+    int score_index = score - min;
+    return dist_table[score_index];
+}
+
+const float& ScoreDistributionTable::get_table_value(int score) const {
+    if (score < min || score > max) {
+        std::cerr << "Score out of range: " << score << std::endl;
+        exit(1);
+    }
+    int score_index = score - min;
+    return dist_table[score_index];
+}
+
+float ScoreDistributionTable::calc_mean() const {
+    float mean = 0;
+    for (int i = min; i < max; ++i)
+    {
+        mean += i * get_table_value(i);
+    }
+    return mean;
+}
+
+int ScoreDistributionTable::calc_median() const {
+    float cummulative = 0;
+    for (int i = min; i < max; ++i)
+    {
+        cummulative += get_table_value(i);
+        if (cummulative >= 0.5) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+int ScoreDistributionTable::calc_max() const {
+    for (int i = max; i >= min; --i)
+    {
+        if (get_table_value(i) > 0) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+int ScoreDistributionTable::calc_min() const {
+    for (int i = min; i < max; ++i)
+    {
+        if (get_table_value(i) > 0) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+float ScoreDistributionTable::calc_variance() const {
+    float mean = calc_mean();
+    float variance = 0;
+    for (int i = min; i < max; ++i)
+    {
+        variance += (i - mean) * (i - mean) * get_table_value(i);
+    }
+    return variance;
+}
+
+float ScoreDistributionTable::calc_std_dev() const {
+    return std::sqrt(calc_variance());
+}
+
+float ScoreDistributionTable::prob_score(int score) const {
+    if (score < min || score > max) {
+        return 0;
+    }
+    return get_table_value(score);
+}
+
+float ScoreDistributionTable::prob_score_cummulative(int score) const {
+    if (score < min) {
+        return 0;
+    }
+    if (score > max) {
+        return 1;
+    }
+    float cummulative = 0;
+    for (int i = min; i <= score; ++i)
+    {
+        cummulative += get_table_value(i);
+    }
+    return cummulative;
+}
+
+float ScoreDistributionTable::prob_score_between(int score1, int score2) const {
+    if (score1 > score2) {
+        std::swap(score1, score2);
+    }
+    if (score1 < min) {
+        score1 = min;
+    }
+    if (score2 > max) {
+        score2 = max;
+    }
+    float cummulative = 0;
+    for (int i = score1; i <= score2; ++i)
+    {
+        cummulative += get_table_value(i);
+    }
+    return cummulative;
+}
+
+float& ScoreDistributionTable::operator[](int score) {
+    if (score < min || score > max) {
+        std::cerr << "Score out of range: " << score << std::endl;
+        exit(1);
+    }
+    return get_table_value(score);
+}
+
+const float& ScoreDistributionTable::operator[](int score) const {
+    if (score < min || score > max) {
+        std::cerr << "Score out of range: " << score << std::endl;
+        exit(1);
+    }
+    return get_table_value(score);
+}
+
+void ScoreDistributionTable::clear() {
+    for (int i = 0; i < (int)dist_table.size(); ++i)
+    {
+        dist_table[i] = 0;
+    }
+}
 
 template <typename T>
 Table<T>::Table() {
@@ -174,7 +323,7 @@ void Table<T>::load(std::string filename) {
     file.close();
 }
 
-Statistic::Statistic()
+StatisticTable::StatisticTable()
     : freq_table("Frequency Table"), freq_num_games(0),
       score_dist_table("Score Distribution Table"), freq_tables_generated(false),
       mean_table("Mean Table"), mean_tables_generated(false),
@@ -186,7 +335,7 @@ Statistic::Statistic()
 {
 }
 
-void Statistic::load_tables(std::string dirname) {
+void StatisticTable::load_tables(std::string dirname) {
     freq_table.load(dirname + "freq_table.txt");
     // TODO: load score_dist_table
     mean_table.load(dirname + "mean_table.txt");
@@ -197,7 +346,7 @@ void Statistic::load_tables(std::string dirname) {
     min_table.load(dirname + "min_table.txt");
 }
 
-void Statistic::save_tables(std::string dirname) {
+void StatisticTable::save_tables(std::string dirname) {
     freq_table.save(dirname + "freq_table.txt");
     // TODO: save score_dist_table
     mean_table.save(dirname + "mean_table.txt");
@@ -208,7 +357,7 @@ void Statistic::save_tables(std::string dirname) {
     min_table.save(dirname + "min_table.txt");
 }
 
-float Statistic::get_freq(Card card1, Card card2, bool is_dealer) {
+float StatisticTable::get_freq(Card card1, Card card2, bool is_dealer) {
     int index1 = card1.get_rank_int() - 1;
     int index2 = card2.get_rank_int() - 1;
     if (index1 > index2) {
@@ -221,7 +370,7 @@ float Statistic::get_freq(Card card1, Card card2, bool is_dealer) {
     }
 }
 
-ScoreDistributionTable Statistic::get_score_dist(Card card1, Card card2, bool is_dealer) {
+ScoreDistributionTable StatisticTable::get_score_dist(Card card1, Card card2, bool is_dealer) {
     int index1 = card1.get_rank_int() - 1;
     int index2 = card2.get_rank_int() - 1;
     if (index1 > index2) {
@@ -234,7 +383,7 @@ ScoreDistributionTable Statistic::get_score_dist(Card card1, Card card2, bool is
     }
 }
 
-float Statistic::get_mean(Card card1, Card card2, bool is_dealer) {
+float StatisticTable::get_mean(Card card1, Card card2, bool is_dealer) {
     int index1 = card1.get_rank_int() - 1;
     int index2 = card2.get_rank_int() - 1;
     if (index1 > index2) {
@@ -247,7 +396,7 @@ float Statistic::get_mean(Card card1, Card card2, bool is_dealer) {
     }
 }
 
-int Statistic::get_median(Card card1, Card card2, bool is_dealer) {
+int StatisticTable::get_median(Card card1, Card card2, bool is_dealer) {
     int index1 = card1.get_rank_int() - 1;
     int index2 = card2.get_rank_int() - 1;
     if (index1 > index2) {
@@ -260,7 +409,7 @@ int Statistic::get_median(Card card1, Card card2, bool is_dealer) {
     }
 }
 
-float Statistic::get_variance(Card card1, Card card2, bool is_dealer) {
+float StatisticTable::get_variance(Card card1, Card card2, bool is_dealer) {
     int index1 = card1.get_rank_int() - 1;
     int index2 = card2.get_rank_int() - 1;
     if (index1 > index2) {
@@ -273,7 +422,7 @@ float Statistic::get_variance(Card card1, Card card2, bool is_dealer) {
     }
 }
 
-float Statistic::get_std_dev(Card card1, Card card2, bool is_dealer) {
+float StatisticTable::get_std_dev(Card card1, Card card2, bool is_dealer) {
     int index1 = card1.get_rank_int() - 1;
     int index2 = card2.get_rank_int() - 1;
     if (index1 > index2) {
@@ -286,7 +435,7 @@ float Statistic::get_std_dev(Card card1, Card card2, bool is_dealer) {
     }
 }
 
-int Statistic::get_max(Card card1, Card card2, bool is_dealer) {
+int StatisticTable::get_max(Card card1, Card card2, bool is_dealer) {
     int index1 = card1.get_rank_int() - 1;
     int index2 = card2.get_rank_int() - 1;
     if (index1 > index2) {
@@ -299,7 +448,7 @@ int Statistic::get_max(Card card1, Card card2, bool is_dealer) {
     }
 }
 
-int Statistic::get_min(Card card1, Card card2, bool is_dealer) {
+int StatisticTable::get_min(Card card1, Card card2, bool is_dealer) {
     int index1 = card1.get_rank_int() - 1;
     int index2 = card2.get_rank_int() - 1;
     if (index1 > index2) {

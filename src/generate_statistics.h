@@ -10,17 +10,18 @@
 #include "statistics.h"
 
 
-class GenerateCribStatistics : public Statistic
+class GenerateCribStatistics : public StatisticTable
 {
 public: 
     GenerateCribStatistics(Player* dealer, Player* pone);
-    ~GenerateCribStatistics() override = default;
 
     void generate_all_tables() override;
 
     float get_mean_counting_flush(Card card1, Card card2, bool is_dealer, int num_flush_cards);
 
 private:
+    void generate_all_but_freq_tables();
+
     void generate_freq_tables();
 
     void generate_max_min_tables();
@@ -54,8 +55,24 @@ public:
     inline Card get_discard1() const { return discard1; }
     inline Card get_discard2() const { return discard2; }
 
+    const ScoreDistributionTable& get_score_dist(ScoreType score_type) const;
+
+    float get_mean(ScoreType score_type) const;
+    int get_median(ScoreType score_type) const;
+    float get_variance(ScoreType score_type) const;
+    float get_std_dev(ScoreType score_type) const;
+    int get_max(ScoreType score_type) const;
+    int get_min(ScoreType score_type) const;
+
+    float get_prob(ScoreType score_type, int score) const;
+    float get_prob_cummulative(ScoreType score_type, int score) const;
+    float get_prob_between(ScoreType score_type, int score1, int score2) const;
+
+    std::string get_discard_string() const;
+    friend std::ostream& operator<<(std::ostream& os, const DiscardStatistics& discard_stats);
+
 private:
-    /* void generate_score_dist_tables(); */
+    ScoreDistributionTable& get_score_dist(ScoreType score_type);
 
 private:
     Card discard1;
@@ -65,6 +82,7 @@ private:
     GenerateCribStatistics* gen_crib_stats;
 
     ScoreDistributionTable score_dist_hand;
+    ScoreDistributionTable score_dist_crib;
     ScoreDistributionTable score_dist_combined;
 };
 
@@ -81,6 +99,22 @@ public:
     ~GenerateDiscardStatistics() = default;
 
     void generate_discard_stats();
+
+    const DiscardStatistics& get_discard_stats(Card discard1, Card discard2) const;
+
+    void sort_discard_stats(ScoreType score_type = ScoreType::COMBINED, Statistic stat = Statistic::MEAN);
+
+    /*
+     * @brief Get the best discard statistics.
+     *
+     * @important This should only be called after sort_discard_stats() has been
+     *           called.
+     *
+     * @return The best discard statistics.
+     */
+    const DiscardStatistics& get_best_discard_stats() const;
+
+    friend std::ostream& operator<<(std::ostream& os, const GenerateDiscardStatistics& gen_discard_stats);
 
 private:
     std::vector<std::unique_ptr<DiscardStatistics>> discard_stats;

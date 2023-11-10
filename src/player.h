@@ -4,6 +4,8 @@
 #include <string>
 #include "hand.h"
 
+class GenerateCribStatistics;
+
 class Player
 {
 public:
@@ -22,7 +24,7 @@ public:
     /*
      * @brief Discard exactly 2 cards from the player's hand.
      */
-    virtual Hand make_discards(bool is_my_crib) = 0;
+    virtual std::pair<Card, Card> make_discards(bool is_my_crib, GenerateCribStatistics* gen_crib_stats) = 0;
 
 private:
     std::string name;
@@ -35,7 +37,7 @@ public:
     HumanPlayer(std::string name);
 
     Card play_card();
-    Hand make_discards(bool is_my_crib);
+    std::pair<Card,Card> make_discards(bool is_my_crib, GenerateCribStatistics* gen_crib_stats);
 };
 
 class RandomPlayer : public Player
@@ -44,16 +46,16 @@ public:
     RandomPlayer(std::string name);
 
     Card play_card();
-    Hand make_discards(bool is_my_crib);
+    std::pair<Card,Card> make_discards(bool is_my_crib, GenerateCribStatistics* gen_crib_stats);
 };
 
-class AIPlayer : public Player
+class StatPlayer : public Player
 {
 public:
-    AIPlayer(std::string name);
+    StatPlayer(std::string name);
 
     Card play_card();
-    Hand make_discards(bool is_my_crib);
+    std::pair<Card,Card> make_discards(bool is_my_crib, GenerateCribStatistics* gen_crib_stats);
 };
 
 #endif // PLAYER_H

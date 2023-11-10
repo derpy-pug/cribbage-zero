@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "util/cribbage_random.h"
+#include "generate_statistics.h"
 
 Player::Player(std::string name)
     : name(name)
@@ -39,7 +40,7 @@ Card HumanPlayer::play_card()
     return get_hand().begin()[i];
 }
 
-Hand HumanPlayer::make_discards(bool is_my_crib)
+std::pair<Card,Card> HumanPlayer::make_discards(bool is_my_crib, GenerateCribStatistics* gen_crib_stats)
 {
     if (is_my_crib) {
         std::cout << "Your crib" << std::endl;
@@ -51,10 +52,7 @@ Hand HumanPlayer::make_discards(bool is_my_crib)
     int i, j;
     std::cin >> i;
     std::cin >> j;
-    Hand discards;
-    discards.add_card(get_hand()[i]);
-    discards.add_card(get_hand()[j]);
-    return discards;
+    return {get_hand()[i], get_hand()[j]};
 }
 
 RandomPlayer::RandomPlayer(std::string name)
@@ -68,33 +66,32 @@ Card RandomPlayer::play_card()
     return get_hand().begin()[i];
 }
 
-Hand RandomPlayer::make_discards(bool is_my_crib)
+std::pair<Card,Card> RandomPlayer::make_discards(bool is_my_crib, GenerateCribStatistics* gen_crib_stats)
 {
     Hand discards;
     int i = CribbageRandom::get_instance()->get_random_int(0, get_hand().size());
     int j = CribbageRandom::get_instance()->get_random_int(0, get_hand().size() - 1);
     if (j == i) j = get_hand().size() - 1;
-    discards.add_card(get_hand()[i]);
-    discards.add_card(get_hand()[j]);
-    return discards;
+    return {get_hand()[i], get_hand()[j]};
 }
 
-AIPlayer::AIPlayer(std::string name)
+StatPlayer::StatPlayer(std::string name)
     : Player(name)
 {
 }
 
-Card AIPlayer::play_card()
+Card StatPlayer::play_card()
 {
     //TODO: Implement AI
     return get_hand().begin()[0];
 }
 
-Hand AIPlayer::make_discards(bool is_my_crib)
+std::pair<Card,Card> StatPlayer::make_discards(bool is_my_crib, GenerateCribStatistics* gen_crib_stats)
 {
+    GenerateDiscardStatistics gen_discard(this, is_my_crib, gen_crib_stats);
+    gen_discard.generate_discard_stats();
+    gen_discard.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
+    const DiscardStatistics& discard_stats = gen_discard.get_best_discard_stats();
     //TODO: Implement AI
-    Hand discards;
-    discards.add_card(get_hand()[0]);
-    discards.add_card(get_hand()[1]);
-    return discards;
+    return {discard_stats.get_discard1(), discard_stats.get_discard2()};
 }
