@@ -1,10 +1,11 @@
 #include <iostream>
 #include <algorithm>
 #include <sstream>
-#include <vector>
 
 #include "cli.h"
 #include "cribbage_random.h"
+
+#include "help.h"
 
 #define TABLE_DIR std::string("../tables/")
 
@@ -148,6 +149,10 @@ std::pair<Statistic, ScoreType> string_to_sort_by(std::string sort_by_str) {
 
 ParseCommandLineArgs::ParseCommandLineArgs(int argc, char **argv) : argc(argc), argv(argv) {
     int ret = parse();
+    if (ret == 2) {
+        std::cout << help() << std::endl;
+        exit(0);
+    } else
     if (ret != 0) {
         throw std::invalid_argument("Invalid command line arguments");
     }
@@ -205,7 +210,10 @@ int ParseCommandLineArgs::parse() {
                     << std::endl;
                 return 1;
             }
-        } else {
+        } else if (arg == "--help") {
+            return 2;
+        }
+        else {
             std::cerr << "Unknown option: " << arg << std::endl;
             return 1;
         }
@@ -245,7 +253,11 @@ std::string ParseCommandLineArgs::get_table() const {
     if (!input_table) {
         return "stat_vs_stat/";
     }
-    return table_str;
+    std::string table_str_temp = table_str;
+    if (table_str.back() != '/') {
+        table_str_temp += "/";
+    }
+    return table_str_temp;
 }
 
 int ParseCommandLineArgs::get_top_discards() const {
@@ -291,6 +303,9 @@ int ParseCommandLineArgs::get_top_discards() const {
  *      TOP_DISCARDS is the number of top discards to print.
  *      Must be between 1 and 15.
  *
+ *  --help
+ *      Print this help message.
+ *
  *
  *  Examples:
  *      most used:
@@ -307,6 +322,7 @@ int ParseCommandLineArgs::get_top_discards() const {
  */
 
 int cli_main(int argc, char **argv) {
+
   ParseCommandLineArgs args(argc, argv);
   auto hand_input = args.get_hand();
   Hand hand;
@@ -331,10 +347,20 @@ int cli_main(int argc, char **argv) {
 
   Player *p1 = new StatPlayer("Staples");
   p1->set_hand(hand);
+  Player *p2 = new StatPlayer("Stanley");
 
-  GenerateCribStatistics gen_stats(p1, nullptr);
+  GenerateCribStatistics gen_stats(p1, p2);
   std::string dirname = TABLE_DIR + std::string(table);
-  gen_stats.load_tables(dirname);
+  int num_tables_loaded = gen_stats.load_tables(dirname);
+  /* if (num_tables_loaded == 0) { */
+  /*   std::cout << "No tables found. Generating tables." << std::endl; */
+  /*   gen_stats.generate_all_tables(); */
+  /*   gen_stats.save_tables(dirname); */
+  /* } */
+  if (num_tables_loaded == 0) {
+    std::cout << "No tables found. Exiting." << std::endl;
+    return 1;
+  }
 
   std::cout << "Hand: " << hand << std::endl;
   GenerateDiscardStatistics gen_discard(p1, is_dealer, &gen_stats);

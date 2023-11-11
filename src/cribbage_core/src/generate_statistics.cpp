@@ -210,7 +210,7 @@ void GenerateCribStatistics::generate_unscored_freq_tables()
     Deck deck;
     deck.shuffle();
     int total_games = 2 << 19;
-    int epochs = 8;
+    int epochs = 16;
     int num_games_in_epoch = total_games / epochs;
     for (int epoch = 0; epoch < epochs; epoch++)
     {
@@ -295,42 +295,42 @@ void GenerateCribStatistics::generate_scored_freq_tables()
                         float freq = 
                             t == 0 ? freq_table.get_dealer_crib(k, l) : freq_table.get_opp_crib(k, l);
                         for (auto it = deck.cbegin(); it != deck.cbegin() + 13; ++it) {
-                        Card cut = *it;
-                        int cut_rank_int = cut.get_rank_int() - 1;
-                        if (cut_rank_int == i && i == j && j == k && k == l) {
-                            continue;
-                        }
+                            Card cut = *it;
+                            int cut_rank_int = cut.get_rank_int() - 1;
+                            if (cut_rank_int == i && i == j && j == k && k == l) {
+                                continue;
+                            }
 
-                        int cut_num = 4;
-                        if (cut_rank_int == i) cut_num--;
-                        if (cut_rank_int == j) cut_num--;
-                        if (cut_rank_int == k) cut_num--;
-                        if (cut_rank_int == l) cut_num--;
-                        float cut_prob = cut_num / 50.0;
+                            int cut_num = 4;
+                            if (cut_rank_int == i) cut_num--;
+                            if (cut_rank_int == j) cut_num--;
+                            if (cut_rank_int == k) cut_num--;
+                            if (cut_rank_int == l) cut_num--;
+                            float cut_prob = cut_num / 50.0;
 
-                        float knob_prob = 0;
-                        if (Rank(i + 1) == Rank::JACK) {
-                            knob_prob += 12.0 / 50.0;
-                        }
-                        if (Rank(j + 1) == Rank::JACK) {
-                            knob_prob += 12.0 / 50.0;
-                        }
-                        if (Rank(k + 1) == Rank::JACK) {
-                            knob_prob += 12.0 / 50.0;
-                        }
-                        if (Rank(l + 1) == Rank::JACK) {
-                            knob_prob += 12.0 / 50.0;
-                        }
+                            float knob_prob = 0;
+                            if (Rank(i + 1) == Rank::JACK) {
+                                knob_prob += 12.0 / 50.0;
+                            }
+                            if (Rank(j + 1) == Rank::JACK) {
+                                knob_prob += 12.0 / 50.0;
+                            }
+                            if (Rank(k + 1) == Rank::JACK) {
+                                knob_prob += 12.0 / 50.0;
+                            }
+                            if (Rank(l + 1) == Rank::JACK) {
+                                knob_prob += 12.0 / 50.0;
+                            }
 
 
-                        Hand hand;
-                        hand.add_card(Card(static_cast<Suit>(0), static_cast<Rank>(i + 1)));
-                        hand.add_card(Card(static_cast<Suit>(0), static_cast<Rank>(j + 1)));
-                        hand.add_card(Card(static_cast<Suit>(0), static_cast<Rank>(k + 1)));
-                        hand.add_card(Card(static_cast<Suit>(0), static_cast<Rank>(l + 1)));
-                        int score = score_hand_suitless(hand, cut);
-                        current_score_freq_table[score] += (1 - knob_prob) * cut_prob * freq;
-                        current_score_freq_table[score + 1] += (knob_prob) * cut_prob * freq;
+                            Hand hand;
+                            hand.add_card(Card(static_cast<Suit>(0), static_cast<Rank>(i + 1)));
+                            hand.add_card(Card(static_cast<Suit>(0), static_cast<Rank>(j + 1)));
+                            hand.add_card(Card(static_cast<Suit>(0), static_cast<Rank>(k + 1)));
+                            hand.add_card(Card(static_cast<Suit>(0), static_cast<Rank>(l + 1)));
+                            int score = score_hand_suitless(hand, cut);
+                            current_score_freq_table[score] += (1 - knob_prob) * cut_prob * freq;
+                            current_score_freq_table[score + 1] += (knob_prob) * cut_prob * freq;
                         }
                     }
                 }

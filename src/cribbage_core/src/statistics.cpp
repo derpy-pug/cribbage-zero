@@ -304,8 +304,11 @@ void Table<T>::pretty_print() {
 }
 
 template <typename T>
-void Table<T>::load(std::string filename) {
+int Table<T>::load(std::string filename) {
     std::ifstream file(filename);    
+    if (!file.is_open()) {
+        return 0;
+    }
     for (int i = 0; i < 13; ++i)
     {
         for (int j = i; j < 13; ++j)
@@ -321,6 +324,7 @@ void Table<T>::load(std::string filename) {
         }
     }
     file.close();
+    return 1;
 }
 
 StatisticTable::StatisticTable()
@@ -335,15 +339,17 @@ StatisticTable::StatisticTable()
 {
 }
 
-void StatisticTable::load_tables(std::string dirname) {
-    freq_table.load(dirname + "freq_table.txt");
+int StatisticTable::load_tables(std::string dirname) {
+    int num_loaded = 0;
+    num_loaded += freq_table.load(dirname + "freq_table.txt");
     // TODO: load score_dist_table
-    mean_table.load(dirname + "mean_table.txt");
-    median_table.load(dirname + "median_table.txt");
-    variance_table.load(dirname + "variance_table.txt");
-    std_dev_table.load(dirname + "std_dev_table.txt");
-    max_table.load(dirname + "max_table.txt");
-    min_table.load(dirname + "min_table.txt");
+    num_loaded += mean_table.load(dirname + "mean_table.txt");
+    num_loaded += median_table.load(dirname + "median_table.txt");
+    num_loaded += variance_table.load(dirname + "variance_table.txt");
+    num_loaded += std_dev_table.load(dirname + "std_dev_table.txt");
+    num_loaded += max_table.load(dirname + "max_table.txt");
+    num_loaded += min_table.load(dirname + "min_table.txt");
+    return num_loaded;
 }
 
 void StatisticTable::save_tables(std::string dirname) {

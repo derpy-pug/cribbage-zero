@@ -81,7 +81,7 @@ public:
     void pretty_print();
 
     void save(std::string filename);
-    void load(std::string filename);
+    int load(std::string filename);
 
 private:
     std::string stats_name;
@@ -100,7 +100,7 @@ public:
     
     virtual void generate_all_tables() = 0;
 
-    virtual void load_tables(std::string dirname);
+    virtual int load_tables(std::string dirname);
     virtual void save_tables(std::string dirname);
 
     virtual float get_freq(Card card1, Card card2, bool is_dealer);
