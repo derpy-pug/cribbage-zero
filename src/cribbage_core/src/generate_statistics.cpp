@@ -372,11 +372,11 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
         }
 
         // Score for combined stats
-        int cards_count[13] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+        int cards_count[14] = {-1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
         for (int i = 0; i < 6; i++) {
-            cards_count[hand[i].get_rank_int() - 1]--;
+            cards_count[hand[i].get_rank_int()]--;
         }
-        cards_count[cut.get_rank_int() - 1]--;
+        cards_count[cut.get_rank_int()]--;
 
         bool possible_flush = discard1.get_suit() == discard2.get_suit() &&
                               discard1.get_suit() == cut.get_suit();
