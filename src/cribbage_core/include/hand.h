@@ -1,17 +1,14 @@
 #ifndef HAND_H
 #define HAND_H
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "card.h"
 #include "card_container.h"
 
-
-
-class Hand : public CardContainer
-{
-public:
+class Hand : public CardContainer {
+  public:
     Hand();
     Hand(std::vector<Card> cards);
 
@@ -22,7 +19,7 @@ public:
     Hand sort() const;
 
     std::vector<Card>& get_cards() { return cards; }
-    const std::vector<Card>& get_cards() const{ return cards; }
+    const std::vector<Card>& get_cards() const { return cards; }
 
     bool contains(Card card) const;
 
@@ -37,4 +34,4 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Hand& hand);
 };
 
-#endif // HAND_H
+#endif  // HAND_H

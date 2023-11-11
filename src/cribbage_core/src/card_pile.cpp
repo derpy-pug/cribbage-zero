@@ -4,28 +4,23 @@
 
 #include "scoring.h"
 
-CardPile::CardPile()
-    : current_sum(0), round_offset(0)
-{
-}
+CardPile::CardPile() : current_sum(0), round_offset(0) {}
 
-void CardPile::add_card(Card card)
-{
+void CardPile::add_card(Card card) {
     if (!can_add_card(card)) {
-        std::cerr << "Cannot add card " << card << " to pile " << *this << std::endl;
+        std::cerr << "Cannot add card " << card << " to pile " << *this
+                  << std::endl;
         return;
     }
     cards.push_back(card);
     current_sum += card.get_value();
 }
 
-bool CardPile::can_add_card(Card card) const
-{
+bool CardPile::can_add_card(Card card) const {
     return current_sum + card.get_value() <= 31;
 }
 
-int CardPile::score_pile_run() const 
-{
+int CardPile::score_pile_run() const {
     char min;
     char max;
     int length = cards.size() - round_offset;
@@ -34,8 +29,10 @@ int CardPile::score_pile_run() const
         max = static_cast<int>(cards[i].get_rank());
         for (int j = i + 1; j < length; j++) {
             char rank = static_cast<int>(cards[j].get_rank());
-            if (rank < min) min = rank;
-            if (rank > max) max = rank;
+            if (rank < min)
+                min = rank;
+            if (rank > max)
+                max = rank;
         }
         if (max - min == length - i - 1) {
             return max - min;
@@ -44,8 +41,7 @@ int CardPile::score_pile_run() const
     return 0;
 }
 
-int CardPile::score_pile() const
-{
+int CardPile::score_pile() const {
     int score = 0;
 
     // Score 31
@@ -62,18 +58,19 @@ int CardPile::score_pile() const
         if (cards[i].get_rank() == cards[i - 1].get_rank()) {
             pairs++;
         } else {
-            score += score_pair_count(pairs); 
+            score += score_pair_count(pairs);
             break;
         }
     }
     // Score runs
     score += score_pile_run();
-    return score;}
+    return score;
+}
 
-int CardPile::score_pile(Card another_card) 
-{
+int CardPile::score_pile(Card another_card) {
     if (!can_add_card(another_card)) {
-        std::cerr << "Cannot add card " << another_card << " to pile " << *this << std::endl;
+        std::cerr << "Cannot add card " << another_card << " to pile " << *this
+                  << std::endl;
         return 0;
     }
     add_card(another_card);
@@ -82,14 +79,12 @@ int CardPile::score_pile(Card another_card)
     return score;
 }
 
-void CardPile::next_round()
-{
+void CardPile::next_round() {
     round_offset += cards.size();
     current_sum = 0;
 }
 
-std::string CardPile::to_string() const
-{
+std::string CardPile::to_string() const {
     std::string result;
     int i = 0;
     for (auto card : cards) {
@@ -102,8 +97,7 @@ std::string CardPile::to_string() const
     return result;
 }
 
-std::ostream& operator<<(std::ostream& os, const CardPile& pile)
-{
+std::ostream& operator<<(std::ostream& os, const CardPile& pile) {
     os << pile.to_string();
     return os;
 }

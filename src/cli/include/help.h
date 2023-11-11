@@ -1,7 +1,7 @@
 #include <string>
 
 inline std::string help() {
-  return R"(
+    return R"(
 Command line arguments:
 -h, --hand=HAND
   HAND is "AH 2H 3H 4H 5H 6H <Y/N>" for example.
@@ -51,4 +51,3 @@ Examples:
   ./cribbage -h "AH 2H 3H 4H 5H 6H Y" -c "7H" -d "AH 2H" -s "mean hand" -t "stat_vs_stat"
 )";
 }
-

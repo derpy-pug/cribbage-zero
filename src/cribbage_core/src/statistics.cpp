@@ -5,15 +5,12 @@
 #include <iomanip>
 #include <iostream>
 
-ScoreDistributionTable::ScoreDistributionTable()
-    : min(0), max(29) 
-{
+ScoreDistributionTable::ScoreDistributionTable() : min(0), max(29) {
     dist_table.resize(30);
 }
 
 ScoreDistributionTable::ScoreDistributionTable(int min, int max)
-    : min(min), max(max)
-{
+    : min(min), max(max) {
     dist_table.resize(max - min + 1);
 }
 
@@ -37,8 +34,7 @@ const float& ScoreDistributionTable::get_table_value(int score) const {
 
 float ScoreDistributionTable::calc_mean() const {
     float mean = 0;
-    for (int i = min; i < max; ++i)
-    {
+    for (int i = min; i < max; ++i) {
         mean += i * get_table_value(i);
     }
     return mean;
@@ -46,8 +42,7 @@ float ScoreDistributionTable::calc_mean() const {
 
 int ScoreDistributionTable::calc_median() const {
     float cummulative = 0;
-    for (int i = min; i < max; ++i)
-    {
+    for (int i = min; i < max; ++i) {
         cummulative += get_table_value(i);
         if (cummulative >= 0.5) {
             return i;
@@ -57,8 +52,7 @@ int ScoreDistributionTable::calc_median() const {
 }
 
 int ScoreDistributionTable::calc_max() const {
-    for (int i = max; i >= min; --i)
-    {
+    for (int i = max; i >= min; --i) {
         if (get_table_value(i) > 0) {
             return i;
         }
@@ -67,8 +61,7 @@ int ScoreDistributionTable::calc_max() const {
 }
 
 int ScoreDistributionTable::calc_min() const {
-    for (int i = min; i < max; ++i)
-    {
+    for (int i = min; i < max; ++i) {
         if (get_table_value(i) > 0) {
             return i;
         }
@@ -79,8 +72,7 @@ int ScoreDistributionTable::calc_min() const {
 float ScoreDistributionTable::calc_variance() const {
     float mean = calc_mean();
     float variance = 0;
-    for (int i = min; i < max; ++i)
-    {
+    for (int i = min; i < max; ++i) {
         variance += (i - mean) * (i - mean) * get_table_value(i);
     }
     return variance;
@@ -105,8 +97,7 @@ float ScoreDistributionTable::prob_score_cummulative(int score) const {
         return 1;
     }
     float cummulative = 0;
-    for (int i = min; i <= score; ++i)
-    {
+    for (int i = min; i <= score; ++i) {
         cummulative += get_table_value(i);
     }
     return cummulative;
@@ -123,8 +114,7 @@ float ScoreDistributionTable::prob_score_between(int score1, int score2) const {
         score2 = max;
     }
     float cummulative = 0;
-    for (int i = score1; i <= score2; ++i)
-    {
+    for (int i = score1; i <= score2; ++i) {
         cummulative += get_table_value(i);
     }
     return cummulative;
@@ -147,18 +137,15 @@ const float& ScoreDistributionTable::operator[](int score) const {
 }
 
 void ScoreDistributionTable::clear() {
-    for (int i = 0; i < (int)dist_table.size(); ++i)
-    {
+    for (int i = 0; i < (int)dist_table.size(); ++i) {
         dist_table[i] = 0;
     }
 }
 
 template <typename T>
 Table<T>::Table() {
-    for (int i = 0; i < 13; ++i)
-    {
-        for (int j = 0; j < 13; ++j)
-        {
+    for (int i = 0; i < 13; ++i) {
+        for (int j = 0; j < 13; ++j) {
             table_dealer_crib[i][j] = T();
             table_opp_crib[i][j] = T();
         }
@@ -166,13 +153,9 @@ Table<T>::Table() {
 }
 
 template <typename T>
-Table<T>::Table(std::string stats_name)
-    : stats_name(stats_name)
-{
-    for (int i = 0; i < 13; ++i)
-    {
-        for (int j = 0; j < 13; ++j)
-        {
+Table<T>::Table(std::string stats_name) : stats_name(stats_name) {
+    for (int i = 0; i < 13; ++i) {
+        for (int j = 0; j < 13; ++j) {
             table_dealer_crib[i][j] = T();
             table_opp_crib[i][j] = T();
         }
@@ -182,18 +165,14 @@ Table<T>::Table(std::string stats_name)
 template <typename T>
 void Table<T>::save(std::string filename) {
     std::ofstream file(filename);
-    for (int i = 0; i < 13; ++i)
-    {
-        for (int j = i; j < 13; ++j)
-        {
+    for (int i = 0; i < 13; ++i) {
+        for (int j = i; j < 13; ++j) {
             file << table_dealer_crib[i][j] << " ";
         }
         file << std::endl;
     }
-    for (int i = 0; i < 13; ++i)
-    {
-        for (int j = i; j < 13; ++j)
-        {
+    for (int i = 0; i < 13; ++i) {
+        for (int j = i; j < 13; ++j) {
             file << table_opp_crib[i][j] << " ";
         }
         file << std::endl;
@@ -253,26 +232,24 @@ void Table<T>::pretty_print() {
         width = 8;
     }
     std::cout << stats_name << std::endl;
-    std::cout << "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << std::endl;
+    std::cout << "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
+                 "=-=-=-=-=-=-=-=-=-"
+              << std::endl;
     std::cout << "My Crib" << std::endl;
     std::cout << "--------------------" << std::endl;
     std::cout << "    |";
-    for (int i = 0; i < 13; ++i)
-    {
+    for (int i = 0; i < 13; ++i) {
         std::cout << " " << std::setw(width) << i + 1;
     }
     std::cout << std::endl;
     std::cout << " ---|";
-    for (int i = 0; i < 13; ++i)
-    {
+    for (int i = 0; i < 13; ++i) {
         std::cout << "---";
     }
     std::cout << std::endl;
-    for (int i = 0; i < 13; ++i)
-    {
+    for (int i = 0; i < 13; ++i) {
         std::cout << " " << std::setw(width) << i + 1 << "  |";
-        for (int j = 0; j < 13; ++j)
-        {
+        for (int j = 0; j < 13; ++j) {
             std::cout << " " << std::setw(width) << table_dealer_crib[i][j];
         }
         std::cout << std::endl;
@@ -281,22 +258,18 @@ void Table<T>::pretty_print() {
     std::cout << "Opponent's Crib" << std::endl;
     std::cout << "--------------------" << std::endl;
     std::cout << "    |";
-    for (int i = 0; i < 13; ++i)
-    {
+    for (int i = 0; i < 13; ++i) {
         std::cout << " " << std::setw(width) << i + 1;
     }
     std::cout << std::endl;
     std::cout << " ---|";
-    for (int i = 0; i < 13; ++i)
-    {
+    for (int i = 0; i < 13; ++i) {
         std::cout << "---";
     }
     std::cout << std::endl;
-    for (int i = 0; i < 13; ++i)
-    {
+    for (int i = 0; i < 13; ++i) {
         std::cout << " " << std::setw(width) << i + 1 << "  |";
-        for (int j = 0; j < 13; ++j)
-        {
+        for (int j = 0; j < 13; ++j) {
             std::cout << " " << std::setw(width) << table_opp_crib[i][j];
         }
         std::cout << std::endl;
@@ -305,21 +278,17 @@ void Table<T>::pretty_print() {
 
 template <typename T>
 int Table<T>::load(std::string filename) {
-    std::ifstream file(filename);    
+    std::ifstream file(filename);
     if (!file.is_open()) {
         return 0;
     }
-    for (int i = 0; i < 13; ++i)
-    {
-        for (int j = i; j < 13; ++j)
-        {
+    for (int i = 0; i < 13; ++i) {
+        for (int j = i; j < 13; ++j) {
             file >> table_dealer_crib[i][j];
         }
     }
-    for (int i = 0; i < 13; ++i)
-    {
-        for (int j = i; j < 13; ++j)
-        {
+    for (int i = 0; i < 13; ++i) {
+        for (int j = i; j < 13; ++j) {
             file >> table_opp_crib[i][j];
         }
     }
@@ -328,16 +297,18 @@ int Table<T>::load(std::string filename) {
 }
 
 StatisticTable::StatisticTable()
-    : freq_table("Frequency Table"), freq_num_games(0),
-      score_dist_table("Score Distribution Table"), freq_tables_generated(false),
-      mean_table("Mean Table"), mean_tables_generated(false),
+    : freq_table("Frequency Table"),
+      freq_num_games(0),
+      score_dist_table("Score Distribution Table"),
+      freq_tables_generated(false),
+      mean_table("Mean Table"),
+      mean_tables_generated(false),
       median_table("Median Table"),
-      variance_table("Variance Table"), variance_tables_generated(false),
+      variance_table("Variance Table"),
+      variance_tables_generated(false),
       std_dev_table("Standard Deviation Table"),
       max_table("Max Table"),
-      min_table("Min Table")
-{
-}
+      min_table("Min Table") {}
 
 int StatisticTable::load_tables(std::string dirname) {
     int num_loaded = 0;
@@ -376,7 +347,8 @@ float StatisticTable::get_freq(Card card1, Card card2, bool is_dealer) {
     }
 }
 
-ScoreDistributionTable StatisticTable::get_score_dist(Card card1, Card card2, bool is_dealer) {
+ScoreDistributionTable StatisticTable::get_score_dist(Card card1, Card card2,
+                                                      bool is_dealer) {
     int index1 = card1.get_rank_int() - 1;
     int index2 = card2.get_rank_int() - 1;
     if (index1 > index2) {

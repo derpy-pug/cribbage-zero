@@ -1,19 +1,15 @@
 #include "card.h"
 
-Card::Card(Suit suit, Rank rank)
-    : suit(suit), rank(rank)
-{
-}
+Card::Card(Suit suit, Rank rank) : suit(suit), rank(rank) {}
 
-Card::Card(std::string card_str)
-{
+Card::Card(std::string card_str) {
     if (card_str.size() != 2) {
         throw std::invalid_argument("Card string must be 2 characters");
     }
 
     // Upper case the string
     char rank_char = std::toupper(card_str[0]);
-    char suit_char = std::toupper(card_str[1]); 
+    char suit_char = std::toupper(card_str[1]);
 
     switch (rank_char) {
         case 'A':
@@ -78,46 +74,38 @@ Card::Card(std::string card_str)
     }
 }
 
-Suit Card::get_suit() const
-{
+Suit Card::get_suit() const {
     return suit;
 }
 
-Rank Card::get_rank() const
-{
+Rank Card::get_rank() const {
     return rank;
 }
 
-int Card::get_rank_int() const
-{
+int Card::get_rank_int() const {
     return static_cast<int>(rank);
 }
 
-int Card::get_value() const
-{
+int Card::get_value() const {
     if (static_cast<int>(rank) >= 10) {
         return 10;
     }
     return static_cast<int>(rank);
 }
 
-bool Card::operator==(const Card& rhs) const
-{
+bool Card::operator==(const Card& rhs) const {
     return suit == rhs.suit && rank == rhs.rank;
 }
 
-bool Card::compare_rank(const Card& lhs, const Card& rhs)
-{
+bool Card::compare_rank(const Card& lhs, const Card& rhs) {
     return lhs.rank < rhs.rank;
 }
 
-bool Card::compare_suit(const Card& lhs, const Card& rhs)
-{
+bool Card::compare_suit(const Card& lhs, const Card& rhs) {
     return lhs.suit < rhs.suit;
 }
 
-std::string Card::to_string() const
-{
+std::string Card::to_string() const {
     std::string suitStr;
     switch (suit) {
         case Suit::CLUBS:
@@ -180,8 +168,7 @@ std::string Card::to_string() const
     return rankStr + suitStr;
 }
 
-std::ostream& operator<<(std::ostream& os, const Card& card)
-{
+std::ostream& operator<<(std::ostream& os, const Card& card) {
     os << card.to_string();
     return os;
 }

@@ -7,13 +7,11 @@
 #include "card_container.h"
 #include "hand.h"
 
-
 /*
  * @brief A deck of cards
  */
-class Deck : public CardContainer
-{
-public:
+class Deck : public CardContainer {
+  public:
     /*
      * @brief Constructs a deck of 52 cards
      */
@@ -59,13 +57,12 @@ public:
      * @param numCards The number of cards to deal
      * @return The hand dealt from the deck
      */
-    Hand deal_hand(int numCards); 
+    Hand deal_hand(int numCards);
 
     void remove_cards(const Hand& hand);
 
-private:
+  private:
     int next_card_idx;
 };
 
-
-#endif // DECK_H
+#endif  // DECK_H

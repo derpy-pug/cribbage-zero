@@ -1,5 +1,5 @@
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 #include <sstream>
 
 #include "cli.h"
@@ -10,57 +10,58 @@
 #define TABLE_DIR std::string("../tables/")
 
 void test_hand_deck() {
-  Hand hand;
-  Deck deck;
-  deck.shuffle();
-  hand.add_card(deck.deal_card());
-  hand.add_card(deck.deal_card());
-  hand.add_card(deck.deal_card());
-  hand.add_card(deck.deal_card());
-  hand.sort();
-  Card cut = deck.deal_card();
-  std::cout << "Hand: " << hand << std::endl;
-  std::cout << "Cut: " << cut << std::endl;
-  std::cout << "Score: " << score_hand(hand, cut, false) << std::endl;
+    Hand hand;
+    Deck deck;
+    deck.shuffle();
+    hand.add_card(deck.deal_card());
+    hand.add_card(deck.deal_card());
+    hand.add_card(deck.deal_card());
+    hand.add_card(deck.deal_card());
+    hand.sort();
+    Card cut = deck.deal_card();
+    std::cout << "Hand: " << hand << std::endl;
+    std::cout << "Cut: " << cut << std::endl;
+    std::cout << "Score: " << score_hand(hand, cut, false) << std::endl;
 }
 
 void test_hand() {
-  Hand hand;
-  hand.add_card(Card(Suit::CLUBS, Rank::THREE));
-  hand.add_card(Card(Suit::HEARTS, Rank::FOUR));
-  hand.add_card(Card(Suit::HEARTS, Rank::FIVE));
-  hand.add_card(Card(Suit::SPADES, Rank::KING));
-  hand.sort();
-  Card cut = Card(Suit::HEARTS, Rank::KING);
-  std::cout << "Hand: " << hand << std::endl;
-  std::cout << "Cut: " << cut << std::endl;
-  std::cout << "Score: " << score_hand(hand, cut, false) << std::endl;
+    Hand hand;
+    hand.add_card(Card(Suit::CLUBS, Rank::THREE));
+    hand.add_card(Card(Suit::HEARTS, Rank::FOUR));
+    hand.add_card(Card(Suit::HEARTS, Rank::FIVE));
+    hand.add_card(Card(Suit::SPADES, Rank::KING));
+    hand.sort();
+    Card cut = Card(Suit::HEARTS, Rank::KING);
+    std::cout << "Hand: " << hand << std::endl;
+    std::cout << "Cut: " << cut << std::endl;
+    std::cout << "Score: " << score_hand(hand, cut, false) << std::endl;
 }
 void test_stats() {
-  Deck deck;
-  deck.shuffle();
-  Hand hand1 = deck.deal_hand(6);
-  hand1.sort();
-  Hand hand2 = deck.deal_hand(6);
-  hand2.sort();
+    Deck deck;
+    deck.shuffle();
+    Hand hand1 = deck.deal_hand(6);
+    hand1.sort();
+    Hand hand2 = deck.deal_hand(6);
+    hand2.sort();
 
-  Player *p1 = new StatPlayer("Staples");
-  p1->set_hand(hand1);
-  Player *p2 = new StatPlayer("Stanley");
-  p2->set_hand(hand2);
+    Player* p1 = new StatPlayer("Staples");
+    p1->set_hand(hand1);
+    Player* p2 = new StatPlayer("Stanley");
+    p2->set_hand(hand2);
 
-  GenerateCribStatistics gen_stats(p1, p2);
-  std::string dirname = TABLE_DIR + std::string("stat_vs_stat/");
-  gen_stats.load_tables(dirname);
+    GenerateCribStatistics gen_stats(p1, p2);
+    std::string dirname = TABLE_DIR + std::string("stat_vs_stat/");
+    gen_stats.load_tables(dirname);
 
-  std::cout << "Hand: " << hand1 << std::endl;
-  GenerateDiscardStatistics gen_discard(p1, false, &gen_stats);
-  gen_discard.generate_discard_stats();
-  gen_discard.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
-  const DiscardStatistics &discard_stats = gen_discard.get_best_discard_stats();
-  // std::cout << discard_stats << std::endl;
+    std::cout << "Hand: " << hand1 << std::endl;
+    GenerateDiscardStatistics gen_discard(p1, false, &gen_stats);
+    gen_discard.generate_discard_stats();
+    gen_discard.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
+    const DiscardStatistics& discard_stats =
+        gen_discard.get_best_discard_stats();
+    // std::cout << discard_stats << std::endl;
 
-  // std::cout << gen_discard << std::endl;
+    // std::cout << gen_discard << std::endl;
 }
 
 /*
@@ -73,10 +74,10 @@ void test_stats() {
  */
 std::pair<Hand, bool> string_to_hand(std::string hand_str) {
     std::transform(hand_str.begin(), hand_str.end(), hand_str.begin(),
-            ::toupper);
+                   ::toupper);
     // Remove possible spaces
     hand_str.erase(std::remove(hand_str.begin(), hand_str.end(), ' '),
-            hand_str.end());
+                   hand_str.end());
     if (hand_str.size() != 13) {
         throw std::invalid_argument("Hand string must be 13 characters");
     }
@@ -94,10 +95,10 @@ std::pair<Hand, bool> string_to_hand(std::string hand_str) {
 
 std::pair<Card, Card> string_to_discards(std::string discard_str) {
     std::transform(discard_str.begin(), discard_str.end(), discard_str.begin(),
-            ::toupper);
+                   ::toupper);
     // Remove possible spaces
     discard_str.erase(std::remove(discard_str.begin(), discard_str.end(), ' '),
-            discard_str.end());
+                      discard_str.end());
     if (discard_str.size() != 4) {
         throw std::invalid_argument("Discard string must be 4 characters");
     }
@@ -110,7 +111,7 @@ std::pair<Card, Card> string_to_discards(std::string discard_str) {
 
 std::pair<Statistic, ScoreType> string_to_sort_by(std::string sort_by_str) {
     std::transform(sort_by_str.begin(), sort_by_str.end(), sort_by_str.begin(),
-            ::tolower);
+                   ::tolower);
     std::stringstream ss(sort_by_str);
     std::string stat_str;
     std::string score_type_str;
@@ -147,13 +148,13 @@ std::pair<Statistic, ScoreType> string_to_sort_by(std::string sort_by_str) {
     return {stat, score_type};
 }
 
-ParseCommandLineArgs::ParseCommandLineArgs(int argc, char **argv) : argc(argc), argv(argv) {
+ParseCommandLineArgs::ParseCommandLineArgs(int argc, char** argv)
+    : argc(argc), argv(argv) {
     int ret = parse();
     if (ret == 2) {
         std::cout << help() << std::endl;
         exit(0);
-    } else
-    if (ret != 0) {
+    } else if (ret != 0) {
         throw std::invalid_argument("Invalid command line arguments");
     }
 }
@@ -166,7 +167,8 @@ int ParseCommandLineArgs::parse() {
                 hand_str = argv[++i];
                 input_hand = true;
             } else {
-                std::cerr << "--hand option requires one argument." << std::endl;
+                std::cerr << "--hand option requires one argument."
+                          << std::endl;
                 return 1;
             }
         } else if (arg == "-c" || arg == "--cut") {
@@ -182,7 +184,8 @@ int ParseCommandLineArgs::parse() {
                 discard_str = argv[++i];
                 input_discards = true;
             } else {
-                std::cerr << "--discards option requires one argument." << std::endl;
+                std::cerr << "--discards option requires one argument."
+                          << std::endl;
                 return 1;
             }
         } else if (arg == "-s" || arg == "--sort-by") {
@@ -190,7 +193,8 @@ int ParseCommandLineArgs::parse() {
                 sort_by_str = argv[++i];
                 input_sort_by = true;
             } else {
-                std::cerr << "--sort-by option requires one argument." << std::endl;
+                std::cerr << "--sort-by option requires one argument."
+                          << std::endl;
                 return 1;
             }
         } else if (arg == "-t" || arg == "--table") {
@@ -198,7 +202,8 @@ int ParseCommandLineArgs::parse() {
                 table_str = argv[++i];
                 input_table = true;
             } else {
-                std::cerr << "--table option requires one argument." << std::endl;
+                std::cerr << "--table option requires one argument."
+                          << std::endl;
                 return 1;
             }
         } else if (arg == "--top-discards") {
@@ -207,13 +212,13 @@ int ParseCommandLineArgs::parse() {
                 input_top_discards = true;
             } else {
                 std::cerr << "--top-discards option requires one argument."
-                    << std::endl;
+                          << std::endl;
                 return 1;
             }
         } else if (arg == "--help") {
+            std::cout << help() << std::endl;
             return 2;
-        }
-        else {
+        } else {
             std::cerr << "Unknown option: " << arg << std::endl;
             return 1;
         }
@@ -235,7 +240,8 @@ std::optional<Card> ParseCommandLineArgs::get_cut() const {
     return Card(cut_str);
 }
 
-std::optional<std::pair<Card, Card>> ParseCommandLineArgs::get_discards() const {
+std::optional<std::pair<Card, Card>> ParseCommandLineArgs::get_discards()
+    const {
     if (!input_discards) {
         return std::nullopt;
     }
@@ -321,53 +327,55 @@ int ParseCommandLineArgs::get_top_discards() const {
  *
  */
 
-int cli_main(int argc, char **argv) {
+int cli_main(int argc, char** argv) {
 
-  ParseCommandLineArgs args(argc, argv);
-  auto hand_input = args.get_hand();
-  Hand hand;
-  bool is_dealer;
-  if (!hand_input) {
-    std::cout << "No hand specified. Generating random hand." << std::endl;
-    Deck deck;
-    deck.shuffle();
-    hand = deck.deal_hand(6);
-    hand.sort();
-    is_dealer = CribbageRandom::get_instance()->get_bool();
+    ParseCommandLineArgs args(argc, argv);
+    auto hand_input = args.get_hand();
+    Hand hand;
+    bool is_dealer;
+    if (!hand_input) {
+        std::cout << "No hand specified. Generating random hand." << std::endl;
+        Deck deck;
+        deck.shuffle();
+        hand = deck.deal_hand(6);
+        hand.sort();
+        is_dealer = CribbageRandom::get_instance()->get_bool();
 
-  } else {
-    hand = hand_input->first;
-    is_dealer = hand_input->second;
-  }
-  auto cut = args.get_cut();
-  auto discards = args.get_discards();
-  auto sort_by = args.get_sort_by();
-  std::string table = args.get_table();
-  int top_discards = args.get_top_discards();
+    } else {
+        hand = hand_input->first;
+        is_dealer = hand_input->second;
+    }
+    auto cut = args.get_cut();
+    auto discards = args.get_discards();
+    auto sort_by = args.get_sort_by();
+    std::string table = args.get_table();
+    int top_discards = args.get_top_discards();
 
-  Player *p1 = new StatPlayer("Staples");
-  p1->set_hand(hand);
-  Player *p2 = new StatPlayer("Stanley");
+    Player* p1 = new StatPlayer("Staples");
+    p1->set_hand(hand);
+    Player* p2 = new StatPlayer("Stanley");
 
-  GenerateCribStatistics gen_stats(p1, p2);
-  std::string dirname = TABLE_DIR + std::string(table);
-  int num_tables_loaded = gen_stats.load_tables(dirname);
-  /* if (num_tables_loaded == 0) { */
-  /*   std::cout << "No tables found. Generating tables." << std::endl; */
-  /*   gen_stats.generate_all_tables(); */
-  /*   gen_stats.save_tables(dirname); */
-  /* } */
-  if (num_tables_loaded == 0) {
-    std::cout << "No tables found. Exiting." << std::endl;
-    return 1;
-  }
+    GenerateCribStatistics gen_stats(p1, p2);
+    std::string dirname = TABLE_DIR + std::string(table);
+    int num_tables_loaded = gen_stats.load_tables(dirname);
+    /* if (num_tables_loaded == 0) { */
+    /*   std::cout << "No tables found. Generating tables." << std::endl; */
+    /*   gen_stats.generate_all_tables(); */
+    /*   gen_stats.save_tables(dirname); */
+    /* } */
+    if (num_tables_loaded == 0) {
+        std::cout << "No tables found. Exiting." << std::endl;
+        return 1;
+    }
 
-  std::cout << "Hand: " << hand << std::endl;
-  GenerateDiscardStatistics gen_discard(p1, is_dealer, &gen_stats);
-  gen_discard.generate_discard_stats(cut);
-  gen_discard.sort_discard_stats(sort_by.second, sort_by.first);
-  const DiscardStatistics &discard_stats = gen_discard.get_best_discard_stats();
-  // std::cout << discard_stats << std::endl;
-  std::cout << gen_discard.get_discard_stats_string(top_discards) << std::endl;
-  return 0;
+    std::cout << "Hand: " << hand << std::endl;
+    GenerateDiscardStatistics gen_discard(p1, is_dealer, &gen_stats);
+    gen_discard.generate_discard_stats(cut);
+    gen_discard.sort_discard_stats(sort_by.second, sort_by.first);
+    const DiscardStatistics& discard_stats =
+        gen_discard.get_best_discard_stats();
+    // std::cout << discard_stats << std::endl;
+    std::cout << gen_discard.get_discard_stats_string(top_discards)
+              << std::endl;
+    return 0;
 }

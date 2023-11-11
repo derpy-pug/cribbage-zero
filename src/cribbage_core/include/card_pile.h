@@ -1,14 +1,13 @@
 #ifndef CARD_PILE_H
 #define CARD_PILE_H
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "card.h"
 
-class CardPile
-{
-public:
+class CardPile {
+  public:
     CardPile();
 
     void add_card(Card card);
@@ -48,7 +47,7 @@ public:
      *
      * @return The score of the pile with the additional card
      */
-    int score_pile(Card another_card); 
+    int score_pile(Card another_card);
 
     /*
      * @brief move to the next round of the pile
@@ -66,13 +65,13 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const CardPile& pile);
 
-private:
+  private:
     int score_pile_run() const;
 
-private:
+  private:
     int current_sum;
     std::vector<Card> cards;
     int round_offset;
 };
 
-#endif // CARD_PILE_H
+#endif  // CARD_PILE_H

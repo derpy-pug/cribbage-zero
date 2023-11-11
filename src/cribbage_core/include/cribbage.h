@@ -3,5 +3,4 @@
 
 #include "core.h"
 
-
-#endif // CRIBBAGE_H
+#endif  // CRIBBAGE_H

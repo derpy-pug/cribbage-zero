@@ -5,11 +5,24 @@
 
 enum class Suit { CLUBS = 0, DIAMONDS, HEARTS, SPADES };
 
-enum class Rank { ACE = 1, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING };
+enum class Rank {
+    ACE = 1,
+    TWO,
+    THREE,
+    FOUR,
+    FIVE,
+    SIX,
+    SEVEN,
+    EIGHT,
+    NINE,
+    TEN,
+    JACK,
+    QUEEN,
+    KING
+};
 
-class Card
-{
-public:
+class Card {
+  public:
     /*
      * @brief Constructs a card with the given suit and rank
      *
@@ -91,9 +104,9 @@ public:
     // Print the card to the given output stream
     friend std::ostream& operator<<(std::ostream& os, const Card& card);
 
-private:
+  private:
     Suit suit;
     Rank rank;
 };
 
-#endif // CARD_H
+#endif  // CARD_H

@@ -1,15 +1,11 @@
 #ifndef STATISTICS_H
 #define STATISTICS_H
 
-#include "card.h"
 #include <string>
 #include <vector>
+#include "card.h"
 
-enum class ScoreType {
-    HAND,
-    CRIB,
-    COMBINED
-};
+enum class ScoreType { HAND, CRIB, COMBINED };
 
 enum class Statistic {
     MEAN,
@@ -23,9 +19,8 @@ enum class Statistic {
 /*
  * @brief Table for storing the number of times a score occurs.
  */
-class ScoreDistributionTable
-{
-public:
+class ScoreDistributionTable {
+  public:
     ScoreDistributionTable();
     ScoreDistributionTable(int min, int max);
     ~ScoreDistributionTable() = default;
@@ -49,20 +44,20 @@ public:
 
     void clear();
 
-private:
+  private:
     float& get_table_value(int score);
     const float& get_table_value(int score) const;
 
-private:
-    std::vector<float> dist_table; // 0-29 for single hand, -60 through 60 for combined
+  private:
+    std::vector<float>
+        dist_table;  // 0-29 for single hand, -60 through 60 for combined
     int min;
     int max;
 };
 
 template <typename T>
-class Table
-{
-public:
+class Table {
+  public:
     /*
      * @brief Default constructor.
      */
@@ -75,36 +70,39 @@ public:
 
     Table(Table&& other) = default;
 
-    T& get_dealer_crib(int index1, int index2) { return table_dealer_crib[index1][index2]; }
-    T& get_opp_crib(int index1, int index2) { return table_opp_crib[index1][index2]; }
+    T& get_dealer_crib(int index1, int index2) {
+        return table_dealer_crib[index1][index2];
+    }
+    T& get_opp_crib(int index1, int index2) {
+        return table_opp_crib[index1][index2];
+    }
 
     void pretty_print();
 
     void save(std::string filename);
     int load(std::string filename);
 
-private:
+  private:
     std::string stats_name;
     T table_dealer_crib[13][13];
     T table_opp_crib[13][13];
 };
 
-
-class StatisticTable
-{
-public:
+class StatisticTable {
+  public:
     StatisticTable();
     ~StatisticTable() = default;
 
     StatisticTable(StatisticTable&& other) = default;
-    
+
     virtual void generate_all_tables() = 0;
 
     virtual int load_tables(std::string dirname);
     virtual void save_tables(std::string dirname);
 
     virtual float get_freq(Card card1, Card card2, bool is_dealer);
-    virtual ScoreDistributionTable get_score_dist(Card card1, Card card2, bool is_dealer);
+    virtual ScoreDistributionTable get_score_dist(Card card1, Card card2,
+                                                  bool is_dealer);
     virtual float get_mean(Card card1, Card card2, bool is_dealer);
     virtual int get_median(Card card1, Card card2, bool is_dealer);
     virtual float get_variance(Card card1, Card card2, bool is_dealer);
@@ -112,8 +110,7 @@ public:
     virtual int get_max(Card card1, Card card2, bool is_dealer);
     virtual int get_min(Card card1, Card card2, bool is_dealer);
 
-
-protected:
+  protected:
     Table<float> freq_table;
     int freq_num_games;
 
@@ -134,4 +131,4 @@ protected:
     Table<int> min_table;
 };
 
-#endif // STATISTICS_H
+#endif  // STATISTICS_H

@@ -1,8 +1,8 @@
 #ifndef SCORING_H
 #define SCORING_H
 
-#include "hand.h"
 #include "card_pile.h"
+#include "hand.h"
 
 int score_pile(const CardPile& pile);
 
@@ -12,4 +12,4 @@ int score_hand_suitless(const Hand& hand, Card cut);
 
 int score_pair_count(int count);
 
-#endif // SCORING_H
+#endif  // SCORING_H

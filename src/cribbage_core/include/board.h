@@ -10,9 +10,8 @@ enum class Player { ONE = 1, TWO };
  *
  * A cribbage board is 121 holes long, with 2 pegs for each player.
  */
-class Board
-{
-public:
+class Board {
+  public:
     Board();
 
     /*
@@ -47,23 +46,22 @@ public:
      * @return The winner of the game, if there is one
      *        std::nullopt if there is no winner
      */
-    std::optional<Player> get_winner() const; 
+    std::optional<Player> get_winner() const;
 
-private:
+  private:
     struct peg_pair {
         int front;
         int back;
     };
 
-private:
-    peg_pair& get_pegs(Player player); 
+  private:
+    peg_pair& get_pegs(Player player);
 
     const peg_pair& get_pegs(Player player) const;
 
-private:
+  private:
     peg_pair player1;
     peg_pair player2;
-
 };
 
-#endif // BOARD_H
+#endif  // BOARD_H
