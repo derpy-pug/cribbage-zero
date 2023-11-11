@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 project(Cribbage)
 
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(random)

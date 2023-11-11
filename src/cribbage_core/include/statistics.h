@@ -23,7 +23,7 @@ class ScoreDistributionTable {
   public:
     ScoreDistributionTable();
     ScoreDistributionTable(int min, int max);
-    ~ScoreDistributionTable() = default;
+    //~ScoreDistributionTable() = default;
 
     float calc_mean() const;
     int calc_median() const;
@@ -91,7 +91,7 @@ class Table {
 class StatisticTable {
   public:
     StatisticTable();
-    ~StatisticTable() = default;
+    //~StatisticTable() = default;
 
     StatisticTable(StatisticTable&& other) = default;
 
