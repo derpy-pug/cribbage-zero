@@ -3,7 +3,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "util/cribbage_random.h"
+#include "cribbage_random.h"
 #include "generate_statistics.h"
 
 Player::Player(std::string name)

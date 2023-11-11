@@ -1,7 +1,7 @@
 #include "deck.h"
 
 #include <algorithm>
-#include "util/cribbage_random.h"
+#include "cribbage_random.h"
 
 Deck::Deck()
     : next_card_idx(0)
