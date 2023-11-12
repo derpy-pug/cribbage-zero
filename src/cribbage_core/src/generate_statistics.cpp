@@ -219,7 +219,7 @@ void GenerateCribStatistics::generate_unscored_freq_tables() {
 
             // TODO: Keep track of suits??
 
-            deck.shuffleTopCardsIntoDeck(12);
+            deck.shuffleTopCardsIntoDeck();
             Hand dealer_hand = deck.deal_hand(6);
             dealer->set_hand(dealer_hand);
             auto [dealer_discard1, dealer_discard2] =
@@ -352,6 +352,10 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
     crib.add_card(Card(Suit::SPADES, Rank::ACE));  // Doesn't matter
     crib.add_card(Card(Suit::SPADES, Rank::ACE));  // Doesn't matter
 
+    Hand hand = player->get_hand();
+    hand.remove_card(discard1);
+    hand.remove_card(discard2);
+
     int num_skipped = 0;
     // TODO: Try to make this more efficient by iterating only over A-K of Spades
     for (auto it = deck.cbegin(); it != deck.cend(); ++it) {
@@ -361,9 +365,6 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
             cut = *optional_cut;
         }
 
-        Hand hand = player->get_hand();
-        hand.remove_card(discard1);
-        hand.remove_card(discard2);
         int hand_score = score_hand(hand, cut, false);
         if (optional_cut) {
             score_dist_hand[hand_score] += 1.0;
@@ -505,6 +506,124 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
     /* std::cout << std::endl; */
 }
 
+void DiscardStatistics::generate_all_tables_simulated(Player* opponent,
+                                                      std::optional<Card> cut) {
+    bool opponent_is_nullptr = opponent == nullptr;
+    if (opponent_is_nullptr) {
+        opponent = new StatPlayer("Opponent");
+    }
+    Deck deck = Deck();
+    deck.remove_cards(player->get_hand());
+    if (cut) {
+        deck.remove_card(*cut);
+    }
+    deck.shuffle();
+
+    Hand hand = player->get_hand();
+    hand.remove_card(discard1);
+    hand.remove_card(discard2);
+
+    Hand crib;
+    crib.add_card(discard1);
+    crib.add_card(discard2);
+    crib.add_card(Card(Suit::SPADES, Rank::ACE));  // Doesn't matter
+    crib.add_card(Card(Suit::SPADES, Rank::ACE));  // Doesn't matter
+                                                   //
+
+    // --- ONLY RESPONSIBLE FOR ENDING SIMULATION ---
+    const int NUM_MEANS = 20;
+    float means[NUM_MEANS];
+    for (int i = 0; i < NUM_MEANS; i++) {  // Set variance to be high
+        means[i] = i;
+    }
+    int current_mean_idx = 0;
+    float mean_of_means = 10;
+
+    float variance = 10;
+    // --- END ONLY RESPONSIBLE FOR ENDING SIMULATION ---
+
+    int i = 0;
+    const int MAX_ITERATIONS = 3000;
+    while (variance > 0.27 && i <= MAX_ITERATIONS) {
+        for (int round = 0; round < 50; round++) {
+            deck.shuffleTopCardsIntoDeck();
+            // Score for hand
+            Card cut_card = Card(Suit::SPADES, Rank::ACE);
+            if (cut) {
+                cut_card = *cut;
+            } else {
+                cut_card = deck.deal_card();
+            }
+
+            int hand_score = score_hand(hand, cut_card, false);
+            score_dist_hand[hand_score] += 1.0;
+
+            // Score for crib
+            Hand crib_temp = deck.deal_hand(6);
+            opponent->set_hand(crib_temp);
+            auto [d1, d2] = opponent->make_discards(false, gen_crib_stats);
+            crib[2] = d1;
+            crib[3] = d2;
+            int crib_score = score_hand(crib, cut_card, true);
+            score_dist_crib[crib_score] += 1.0;
+
+            // Score for combined stats
+            int combined_score =
+                is_dealer ? hand_score + crib_score : hand_score - crib_score;
+            score_dist_combined[combined_score] += 1.0;
+
+            i++;
+        }
+        std::cout << "\r" << i << " iterations";
+        std::cout << " Variance: " << variance;
+        std::cout.flush();
+
+        // --- ONLY RESPONSIBLE FOR ENDING SIMULATION ---
+        for (int j = score_dist_combined.get_possible_score_min();
+             j <= score_dist_combined.get_possible_score_max(); j++) {
+            score_dist_combined[j] /= i;
+        }
+        mean_of_means *= NUM_MEANS;
+        mean_of_means -= means[current_mean_idx];
+        means[current_mean_idx] = score_dist_combined.calc_mean();
+        mean_of_means += means[current_mean_idx];
+        mean_of_means /= NUM_MEANS;
+        for (int j = score_dist_combined.get_possible_score_min();
+             j <= score_dist_combined.get_possible_score_max(); j++) {
+            score_dist_combined[j] *= i;
+        }
+
+        // Calc variance
+        variance = 0;
+        for (int i = 0; i < NUM_MEANS; i++) {
+            variance += (means[i] - mean_of_means) * (means[i] - mean_of_means);
+        }
+        variance /= NUM_MEANS - 1;
+
+        current_mean_idx = (current_mean_idx + 1) % NUM_MEANS;
+
+        // --- END ONLY RESPONSIBLE FOR ENDING SIMULATION ---
+    }
+
+    // Make probabilities (They were counts before)
+    for (int j = score_dist_combined.get_possible_score_min();
+         j <= score_dist_combined.get_possible_score_max(); j++) {
+        score_dist_combined[j] /= i;
+    }
+    for (int j = score_dist_hand.get_possible_score_min();
+         j <= score_dist_hand.get_possible_score_max(); j++) {
+        score_dist_hand[j] /= i;
+    }
+    for (int j = score_dist_crib.get_possible_score_min();
+         j <= score_dist_crib.get_possible_score_max(); j++) {
+        score_dist_crib[j] /= i;
+    }
+
+    if (opponent_is_nullptr) {
+        delete opponent;
+    }
+}
+
 ScoreDistributionTable& DiscardStatistics::get_score_dist(
     ScoreType score_type) {
     switch (score_type) {
@@ -627,8 +746,9 @@ GenerateDiscardStatistics::GenerateDiscardStatistics(
       is_dealer(is_dealer),
       gen_crib_stats(gen_crib_stats) {}
 
-void GenerateDiscardStatistics::generate_discard_stats(
-    std::optional<Card> cut) {
+void GenerateDiscardStatistics::generate_discard_stats(std::optional<Card> cut,
+                                                       bool use_simulated,
+                                                       Player* opponent) {
     for (auto it = player->get_hand().cbegin(); it != player->get_hand().cend();
          ++it) {
         for (auto it2 = it + 1; it2 != player->get_hand().cend(); ++it2) {
@@ -637,10 +757,26 @@ void GenerateDiscardStatistics::generate_discard_stats(
             std::unique_ptr<DiscardStatistics> discard_stat =
                 std::make_unique<DiscardStatistics>(player, discard1, discard2,
                                                     is_dealer, gen_crib_stats);
-            discard_stat->generate_all_tables(cut);
+            if (use_simulated) {
+                discard_stat->generate_all_tables_simulated(opponent, cut);
+            } else {
+                discard_stat->generate_all_tables(cut);
+            }
             discard_stats.emplace_back(std::move(discard_stat));
         }
     }
+}
+
+const DiscardStatistics& GenerateDiscardStatistics::get_discard_stats(
+    Card discard1, Card discard2) const {
+    for (auto it = discard_stats.cbegin(); it != discard_stats.cend(); ++it) {
+        if ((*it)->get_discard1() == discard1 &&
+            (*it)->get_discard2() == discard2) {
+            return **it;
+        }
+    }
+    std::cerr << "Error: Discard statistics not found" << std::endl;
+    throw std::exception();
 }
 
 void GenerateDiscardStatistics::sort_discard_stats(ScoreType score_type,

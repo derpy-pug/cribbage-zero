@@ -7,7 +7,7 @@
 
 #include "help.h"
 
-#define TABLE_DIR std::string("../tables/")
+#define TABLE_DIR std::string("tables/")
 
 void test_hand_deck() {
     Hand hand;
@@ -372,10 +372,30 @@ int cli_main(int argc, char** argv) {
     GenerateDiscardStatistics gen_discard(p1, is_dealer, &gen_stats);
     gen_discard.generate_discard_stats(cut);
     gen_discard.sort_discard_stats(sort_by.second, sort_by.first);
-    const DiscardStatistics& discard_stats =
-        gen_discard.get_best_discard_stats();
-    // std::cout << discard_stats << std::endl;
-    std::cout << gen_discard.get_discard_stats_string(top_discards)
-              << std::endl;
+
+    /* const DiscardStatistics& discard_stats_best = */
+    /*     gen_discard.get_best_discard_stats(); */
+    if (discards) {
+        const DiscardStatistics& discard_stats =
+            gen_discard.get_discard_stats(discards->first, discards->second);
+        std::cout << discard_stats << std::endl;
+    } else {
+        std::cout << gen_discard.get_discard_stats_string(top_discards)
+                  << std::endl;
+    }
+    GenerateDiscardStatistics gen_discard_sim(p1, is_dealer, &gen_stats);
+    gen_discard_sim.generate_discard_stats(cut, true, p2);
+    gen_discard_sim.sort_discard_stats(sort_by.second, sort_by.first);
+
+    if (discards) {
+        const DiscardStatistics& discard_stats =
+            gen_discard_sim.get_discard_stats(discards->first,
+                                              discards->second);
+        std::cout << discard_stats << std::endl;
+    } else {
+        std::cout << gen_discard_sim.get_discard_stats_string(top_discards)
+                  << std::endl;
+    }
+
     return 0;
 }

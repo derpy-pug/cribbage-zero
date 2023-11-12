@@ -9,6 +9,7 @@ class GenerateCribStatistics;
 class Player {
   public:
     Player(std::string name);
+    virtual ~Player() = default;
 
     std::string get_name() const;
 
