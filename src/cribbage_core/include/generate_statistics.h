@@ -16,7 +16,7 @@ class GenerateCribStatistics : public StatisticTable {
 
     void generate_all_tables() override;
 
-    float get_mean_counting_flush(Card card1, Card card2, bool is_dealer,
+    [[deprecated]]  float get_mean_counting_flush(Card card1, Card card2, bool is_dealer,
                                   int num_flush_cards);
 
   private:

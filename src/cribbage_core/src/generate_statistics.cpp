@@ -372,7 +372,7 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
             score_dist_hand[hand_score] += 1.0 / 46.0;
         }
 
-        // Score for combined stats
+        // Score for crib and combined stats
         int cards_count[14] = {-1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
         for (int i = 0; i < 6; i++) {
             cards_count[hand[i].get_rank_int()]--;
@@ -381,10 +381,8 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
 
         bool possible_flush = discard1.get_suit() == discard2.get_suit() &&
                               discard1.get_suit() == cut.get_suit();
-        bool has_knob = (discard1.get_rank() == Rank::JACK &&
-                         cut.get_suit() == discard1.get_suit()) ||
-                        (discard2.get_rank() == Rank::JACK &&
-                         cut.get_suit() == discard2.get_suit());
+        bool has_knob = discard1 == Card(cut.get_suit(), Rank::JACK) ||
+                        discard2 == Card(cut.get_suit(), Rank::JACK);
         for (int i = 1; i < 14; i++) {
             if (cards_count[i] == 0) {
                 num_skipped++;
@@ -419,14 +417,8 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
                 }
                 float prob_flush = 0;
                 if (is_flush) {
-                    if (!hand.contains(
-                            Card(cut.get_suit(), static_cast<Rank>(i)))) {
-                        prob_flush = 1.0 / (cards_count[i] + 1);
-                    }
-                    if (!hand.contains(
-                            Card(cut.get_suit(), static_cast<Rank>(j)))) {
-                        prob_flush *= 1.0 / (cards_count[j] + 1);
-                    }
+                    prob_flush = 1.0 / (cards_count[i] + 1);
+                    prob_flush *= 1.0 / (cards_count[j] + 1);
                 }
 
                 float prob_knob = has_knob;
@@ -443,7 +435,7 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
                 }
 
                 float prob =
-                    gen_crib_stats->get_freq(crib[2], crib[3], is_dealer);
+                    gen_crib_stats->get_freq(crib[2], crib[3], !is_dealer);
                 if (!optional_cut) {
                     prob *= 1.0 / 46;
                 }
@@ -454,16 +446,25 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
                     prob * (1 - prob_flush) * (1 - prob_knob);
                 score_dist_combined[combined_score] +=
                     prob * (1 - prob_flush) * (1 - prob_knob);
+
                 crib_score += possible_knob;
+                combined_score = is_dealer ? hand_score + crib_score
+                                           : hand_score - crib_score;
                 score_dist_crib[crib_score] +=
                     prob * (1 - prob_flush) * prob_knob;
                 score_dist_combined[combined_score] +=
                     prob * (1 - prob_flush) * prob_knob;
+
                 crib_score += is_flush ? 5 : 0;
+                combined_score = is_dealer ? hand_score + crib_score
+                                           : hand_score - crib_score;
                 score_dist_crib[crib_score] += prob * prob_flush * prob_knob;
                 score_dist_combined[combined_score] +=
                     prob * prob_flush * prob_knob;
+
                 crib_score -= possible_knob;
+                combined_score = is_dealer ? hand_score + crib_score
+                                           : hand_score - crib_score;
                 score_dist_crib[crib_score] +=
                     prob * prob_flush * (1 - prob_knob);
                 score_dist_combined[combined_score] +=
@@ -489,6 +490,7 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
      * This normalization is not perfect and assumes
      * that the skipped hands prob is distributed evenly.
      */
+
     sum = 1 / sum;
     for (int i = score_dist_combined.get_possible_score_min();
          i <= score_dist_combined.get_possible_score_max(); i++) {
