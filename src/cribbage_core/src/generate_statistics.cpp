@@ -186,12 +186,12 @@ void GenerateCribStatistics::generate_max_min_tables() {
 
 void GenerateCribStatistics::generate_freq_tables() {
     generate_unscored_freq_tables();
+    is_freq_table_loaded = false;
     generate_scored_freq_tables();
     freq_tables_generated = true;
 }
 
 void GenerateCribStatistics::generate_unscored_freq_tables() {
-    freq_tables_generated = true;
     std::cout << "Generating Tables..." << std::endl;
     Deck deck;
     deck.shuffle();
@@ -251,8 +251,6 @@ void GenerateCribStatistics::generate_unscored_freq_tables() {
                 freq_table.get_opp_crib(i, j) /= freq_num_games;
             }
         }
-        generate_scored_freq_tables();
-        generate_all_but_freq_tables();
     }
 }
 
@@ -510,8 +508,8 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
 
 void DiscardStatistics::generate_all_tables_simulated(Player* opponent,
                                                       std::optional<Card> cut) {
-    bool opponent_is_nullptr = opponent == nullptr;
-    if (opponent_is_nullptr) {
+    bool is_opponent_nullptr = opponent == nullptr;
+    if (is_opponent_nullptr) {
         opponent = new StatPlayer("Opponent");
     }
     Deck deck = Deck();
@@ -621,7 +619,7 @@ void DiscardStatistics::generate_all_tables_simulated(Player* opponent,
         score_dist_crib[j] /= i;
     }
 
-    if (opponent_is_nullptr) {
+    if (is_opponent_nullptr) {
         delete opponent;
     }
 }

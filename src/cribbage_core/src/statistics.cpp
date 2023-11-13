@@ -297,7 +297,9 @@ int Table<T>::load(std::string filename) {
 }
 
 StatisticTable::StatisticTable()
-    : freq_table("Frequency Table"),
+    : freq_table_loaded("Loaded Frequency Table"), 
+      is_freq_table_loaded(false), 
+      freq_table("Frequency Table"),
       freq_num_games(0),
       score_dist_table("Score Distribution Table"),
       freq_tables_generated(false),
@@ -311,9 +313,13 @@ StatisticTable::StatisticTable()
       min_table("Min Table") {}
 
 int StatisticTable::load_tables(std::string dirname) {
+    // TODO: If no dirname, then load default tables
     int num_loaded = 0;
+    num_loaded += freq_table_loaded.load(dirname + "freq_table.txt");
+    if (num_loaded > 0) {
+        is_freq_table_loaded = true;
+    }
     num_loaded += freq_table.load(dirname + "freq_table.txt");
-    // TODO: load score_dist_table
     num_loaded += mean_table.load(dirname + "mean_table.txt");
     num_loaded += median_table.load(dirname + "median_table.txt");
     num_loaded += variance_table.load(dirname + "variance_table.txt");
@@ -340,10 +346,18 @@ float StatisticTable::get_freq(Card card1, Card card2, bool is_dealer) {
     if (index1 > index2) {
         std::swap(index1, index2);
     }
-    if (is_dealer) {
-        return freq_table.get_dealer_crib(index1, index2);
+    if (is_freq_table_loaded) {
+        if (is_dealer) {
+            return freq_table_loaded.get_dealer_crib(index1, index2);
+        } else {
+            return freq_table_loaded.get_opp_crib(index1, index2);
+        }
     } else {
-        return freq_table.get_opp_crib(index1, index2);
+        if (is_dealer) {
+            return freq_table.get_dealer_crib(index1, index2);
+        } else {
+            return freq_table.get_opp_crib(index1, index2);
+        }
     }
 }
 

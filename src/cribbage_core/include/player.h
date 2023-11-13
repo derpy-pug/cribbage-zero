@@ -25,7 +25,7 @@ class Player {
      * @brief Discard exactly 2 cards from the player's hand.
      */
     virtual std::pair<Card, Card> make_discards(
-        bool is_my_crib, GenerateCribStatistics* gen_crib_stats) = 0;
+        bool is_dealer, GenerateCribStatistics* gen_crib_stats) = 0;
 
   private:
     std::string name;
@@ -37,7 +37,7 @@ class HumanPlayer : public Player {
     HumanPlayer(std::string name);
 
     Card play_card();
-    std::pair<Card, Card> make_discards(bool is_my_crib,
+    std::pair<Card, Card> make_discards(bool is_dealer,
                                         GenerateCribStatistics* gen_crib_stats);
 };
 
@@ -46,7 +46,7 @@ class RandomPlayer : public Player {
     RandomPlayer(std::string name);
 
     Card play_card();
-    std::pair<Card, Card> make_discards(bool is_my_crib,
+    std::pair<Card, Card> make_discards(bool is_dealer,
                                         GenerateCribStatistics* gen_crib_stats);
 };
 
@@ -55,7 +55,7 @@ class StatPlayer : public Player {
     StatPlayer(std::string name);
 
     Card play_card();
-    std::pair<Card, Card> make_discards(bool is_my_crib,
+    std::pair<Card, Card> make_discards(bool is_dealer,
                                         GenerateCribStatistics* gen_crib_stats);
 };
 

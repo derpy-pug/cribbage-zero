@@ -69,6 +69,9 @@ class Table {
     Table(std::string stats_name);
 
     Table(Table&& other) = default;
+    Table(const Table& other) = delete;
+
+    Table& operator=(const Table& other) = delete;
 
     T& get_dealer_crib(int index1, int index2) {
         return table_dealer_crib[index1][index2];
@@ -111,6 +114,8 @@ class StatisticTable {
     virtual int get_min(Card card1, Card card2, bool is_dealer);
 
   protected:
+    Table<float> freq_table_loaded;
+    bool is_freq_table_loaded;
     Table<float> freq_table;
     int freq_num_games;
 
