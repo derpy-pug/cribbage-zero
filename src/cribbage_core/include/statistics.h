@@ -113,6 +113,9 @@ class StatisticTable {
     virtual int get_max(Card card1, Card card2, bool is_dealer);
     virtual int get_min(Card card1, Card card2, bool is_dealer);
 
+  private:
+    void load_default_tables();
+
   protected:
     Table<float> freq_table_loaded;
     bool is_freq_table_loaded;

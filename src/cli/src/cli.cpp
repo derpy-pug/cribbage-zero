@@ -257,7 +257,7 @@ std::pair<Statistic, ScoreType> ParseCommandLineArgs::get_sort_by() const {
 
 std::string ParseCommandLineArgs::get_table() const {
     if (!input_table) {
-        return "stat_vs_stat/";
+        return "";
     }
     std::string table_str_temp = table_str;
     if (table_str.back() != '/') {
@@ -355,7 +355,10 @@ int cli_main(int argc, char** argv) {
     Player* p2 = new StatPlayer("Stanley");
 
     GenerateCribStatistics gen_stats(p1, p2);
-    std::string dirname = TABLE_DIR + std::string(table);
+    std::string dirname;
+    if (!table.empty()) {
+        dirname = TABLE_DIR + table;
+    }
     int num_tables_loaded = gen_stats.load_tables(dirname);
     /* if (num_tables_loaded == 0) { */
     /*   std::cout << "No tables found. Generating tables." << std::endl; */
