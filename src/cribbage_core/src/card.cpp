@@ -1,5 +1,7 @@
 #include "card.h"
 
+namespace cribbage {
+
 Card::Card(Suit suit, Rank rank) : suit(suit), rank(rank) {}
 
 Card::Card(std::string card_str) {
@@ -172,3 +174,5 @@ std::ostream& operator<<(std::ostream& os, const Card& card) {
     os << card.to_string();
     return os;
 }
+
+}  // namespace cribbage

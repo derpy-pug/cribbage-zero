@@ -6,6 +6,8 @@
 #include "cribbage_random.h"
 #include "generate_statistics.h"
 
+namespace cribbage {
+
 Player::Player(std::string name) : name(name) {}
 
 std::string Player::get_name() const {
@@ -78,3 +80,5 @@ std::pair<Card, Card> StatPlayer::make_discards(
         gen_discard.get_best_discard_stats();
     return {discard_stats.get_discard1(), discard_stats.get_discard2()};
 }
+
+}  // namespace cribbage

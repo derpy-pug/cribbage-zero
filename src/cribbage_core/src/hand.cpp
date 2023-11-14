@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+namespace cribbage {
+
 Hand::Hand() {}
 
 Hand::Hand(std::vector<Card> cards) {
@@ -46,3 +48,5 @@ std::ostream& operator<<(std::ostream& os, const Hand& hand) {
     os << hand.to_string();
     return os;
 }
+
+}  // namespace cribbage

@@ -4,6 +4,8 @@
 #include <string>
 #include "hand.h"
 
+namespace cribbage {
+
 class GenerateCribStatistics;
 
 class Player {
@@ -58,5 +60,7 @@ class StatPlayer : public Player {
     std::pair<Card, Card> make_discards(bool is_dealer,
                                         GenerateCribStatistics* gen_crib_stats);
 };
+
+}  // namespace cribbage
 
 #endif  // PLAYER_H

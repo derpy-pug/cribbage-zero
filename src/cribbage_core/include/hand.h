@@ -7,6 +7,8 @@
 #include "card.h"
 #include "card_container.h"
 
+namespace cribbage {
+
 class Hand : public CardContainer {
   public:
     Hand();
@@ -33,5 +35,7 @@ class Hand : public CardContainer {
     // Print the hand to the given output stream
     friend std::ostream& operator<<(std::ostream& os, const Hand& hand);
 };
+
+}  // namespace cribbage
 
 #endif  // HAND_H

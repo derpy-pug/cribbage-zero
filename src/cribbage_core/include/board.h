@@ -3,6 +3,8 @@
 
 #include <optional>
 
+namespace cribbage {
+
 enum class Player { ONE = 1, TWO };
 
 /*
@@ -63,5 +65,7 @@ class Board {
     peg_pair player1;
     peg_pair player2;
 };
+
+}  // namespace cribbage
 
 #endif  // BOARD_H

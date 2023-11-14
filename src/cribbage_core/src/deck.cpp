@@ -3,6 +3,8 @@
 #include <algorithm>
 #include "cribbage_random.h"
 
+namespace cribbage {
+
 Deck::Deck() : next_card_idx(51) {
     cards.reserve(52);
     make_deck();
@@ -89,3 +91,5 @@ bool Deck::remove_card(const Card& card) {
     --next_card_idx;
     return true;
 }
+
+}  // namespace cribbage

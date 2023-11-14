@@ -7,6 +7,8 @@
 #include "card_container.h"
 #include "hand.h"
 
+namespace cribbage {
+
 /*
  * @brief A deck of cards
  */
@@ -100,7 +102,7 @@ class Deck : public CardContainer {
      * @return The number of cards removed from the deck
      */
     int remove_cards(const Hand& hand);
-    
+
     /*
      * @brief Removes the card from the deck
      *
@@ -108,10 +110,10 @@ class Deck : public CardContainer {
      */
     bool remove_card(const Card& card);
 
-    
-
   private:
     int next_card_idx;
 };
+
+}  // namespace cribbage
 
 #endif  // DECK_H

@@ -9,6 +9,8 @@
 
 #define TABLE_DIR std::string("tables/")
 
+using namespace cribbage;
+
 void test_hand_deck() {
     Hand hand;
     Deck deck;

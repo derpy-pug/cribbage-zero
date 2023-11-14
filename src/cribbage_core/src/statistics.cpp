@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <iostream>
 
+namespace cribbage {
+
 float default_stat_vs_stat_my_crib[13][13] = {
     {0.013979, 0.0284529, 0.0315924, 0.0317945, 0.00486279, 0.00565147,
      0.00692844, 0.00679111, 0.00712204, 0.00541401, 0.00761318, 0.00885773,
@@ -373,24 +375,26 @@ void StatisticTable::load_default_tables() {
     is_freq_table_loaded = true;
 }
 
-int StatisticTable::load_tables(std::string dirname) {
+int StatisticTable::load_tables(std::optional<std::string> dirname) {
     // TODO: If no dirname, then load default tables
-    if (dirname == "") {
+    if (!dirname) {
         load_default_tables();
         return 1;
     }
+    std::string dirname_string = dirname.value();
+
     int num_loaded = 0;
-    num_loaded += freq_table_loaded.load(dirname + "freq_table.txt");
+    num_loaded += freq_table_loaded.load(dirname_string + "freq_table.txt");
     if (num_loaded > 0) {
         is_freq_table_loaded = true;
     }
-    num_loaded += freq_table.load(dirname + "freq_table.txt");
-    num_loaded += mean_table.load(dirname + "mean_table.txt");
-    num_loaded += median_table.load(dirname + "median_table.txt");
-    num_loaded += variance_table.load(dirname + "variance_table.txt");
-    num_loaded += std_dev_table.load(dirname + "std_dev_table.txt");
-    num_loaded += max_table.load(dirname + "max_table.txt");
-    num_loaded += min_table.load(dirname + "min_table.txt");
+    num_loaded += freq_table.load(dirname_string + "freq_table.txt");
+    num_loaded += mean_table.load(dirname_string + "mean_table.txt");
+    num_loaded += median_table.load(dirname_string + "median_table.txt");
+    num_loaded += variance_table.load(dirname_string + "variance_table.txt");
+    num_loaded += std_dev_table.load(dirname_string + "std_dev_table.txt");
+    num_loaded += max_table.load(dirname_string + "max_table.txt");
+    num_loaded += min_table.load(dirname_string + "min_table.txt");
     return num_loaded;
 }
 
@@ -517,3 +521,5 @@ int StatisticTable::get_min(Card card1, Card card2, bool is_dealer) {
         return min_table.get_opp_crib(index1, index2);
     }
 }
+
+} // namespace cribbage

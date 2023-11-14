@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <iostream>
 
+namespace cribbage {
+
 Board::Board() : player1({0, 0}), player2({0, 0}) {}
 
 Board::peg_pair& Board::get_pegs(Player player) {
@@ -51,3 +53,5 @@ std::optional<Player> Board::get_winner() const {
     }
     return std::nullopt;
 }
+
+}  // namespace cribbage

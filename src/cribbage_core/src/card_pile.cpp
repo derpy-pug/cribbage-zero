@@ -4,6 +4,8 @@
 
 #include "scoring.h"
 
+namespace cribbage {
+
 CardPile::CardPile() : current_sum(0), round_offset(0) {}
 
 void CardPile::add_card(Card card) {
@@ -101,3 +103,5 @@ std::ostream& operator<<(std::ostream& os, const CardPile& pile) {
     os << pile.to_string();
     return os;
 }
+
+}  // namespace cribbage

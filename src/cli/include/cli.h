@@ -14,13 +14,13 @@ class ParseCommandLineArgs {
 
     int parse();
 
-    std::optional<std::pair<Hand, bool>> get_hand() const;
+    std::optional<std::pair<cribbage::Hand, bool>> get_hand() const;
 
-    std::optional<Card> get_cut() const;
+    std::optional<cribbage::Card> get_cut() const;
 
-    std::optional<std::pair<Card, Card>> get_discards() const;
+    std::optional<std::pair<cribbage::Card, cribbage::Card>> get_discards() const;
 
-    std::pair<Statistic, ScoreType> get_sort_by() const;
+    std::pair<cribbage::Statistic, cribbage::ScoreType> get_sort_by() const;
 
     std::string get_table() const;
 

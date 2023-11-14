@@ -6,6 +6,8 @@
 
 #include "card.h"
 
+namespace cribbage {
+
 class CardContainer {
   public:
     /*
@@ -59,5 +61,7 @@ class CardContainer {
   protected:
     std::vector<Card> cards;
 };
+
+}  // namespace cribbage
 
 #endif  // CARD_CONTAINER_H

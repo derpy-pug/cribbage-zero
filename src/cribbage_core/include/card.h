@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+namespace cribbage {
+
 enum class Suit { CLUBS = 0, DIAMONDS, HEARTS, SPADES };
 
 enum class Rank {
@@ -108,5 +110,7 @@ class Card {
     Suit suit;
     Rank rank;
 };
+
+}  // namespace cribbage
 
 #endif  // CARD_H

@@ -10,14 +10,17 @@
 #include "player.h"
 #include "statistics.h"
 
+namespace cribbage {
+
 class GenerateCribStatistics : public StatisticTable {
   public:
     GenerateCribStatistics(Player* dealer, Player* pone);
 
     void generate_all_tables() override;
 
-    [[deprecated]]  float get_mean_counting_flush(Card card1, Card card2, bool is_dealer,
-                                  int num_flush_cards);
+    [[deprecated]] float get_mean_counting_flush(Card card1, Card card2,
+                                                 bool is_dealer,
+                                                 int num_flush_cards);
 
   private:
     void generate_all_but_freq_tables();
@@ -155,7 +158,7 @@ class GenerateDiscardStatistics {
     void print_discard_stats(int num_discard_stats = 15) const;
 
     friend std::ostream& operator<<(
-        std::ostream& os, const GenerateDiscardStatistics& gen_discard_stats);
+      std::ostream& os, const GenerateDiscardStatistics& gen_discard_stats);
 
   private:
     std::vector<std::unique_ptr<DiscardStatistics>> discard_stats;
@@ -163,5 +166,7 @@ class GenerateDiscardStatistics {
     bool is_dealer;
     GenerateCribStatistics* gen_crib_stats;
 };
+
+}  // namespace cribbage
 
 #endif  // GENERATE_STATISTICS_H

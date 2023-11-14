@@ -6,6 +6,8 @@
 
 #include "scoring.h"
 
+namespace cribbage {
+
 GenerateCribStatistics::GenerateCribStatistics(Player* dealer, Player* pone)
     : dealer(dealer), pone(pone) {}
 
@@ -867,3 +869,5 @@ std::ostream& operator<<(std::ostream& os,
     }
     return os;
 }
+
+}  // namespace cribbage

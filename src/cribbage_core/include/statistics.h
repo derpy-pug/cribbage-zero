@@ -1,9 +1,12 @@
 #ifndef STATISTICS_H
 #define STATISTICS_H
 
+#include <optional>
 #include <string>
 #include <vector>
 #include "card.h"
+
+namespace cribbage {
 
 enum class ScoreType { HAND, CRIB, COMBINED };
 
@@ -100,7 +103,7 @@ class StatisticTable {
 
     virtual void generate_all_tables() = 0;
 
-    virtual int load_tables(std::string dirname);
+    virtual int load_tables(std::optional<std::string> dirname = std::nullopt);
     virtual void save_tables(std::string dirname);
 
     virtual float get_freq(Card card1, Card card2, bool is_dealer);
@@ -138,5 +141,7 @@ class StatisticTable {
     Table<int> max_table;
     Table<int> min_table;
 };
+
+}  // namespace cribbage
 
 #endif  // STATISTICS_H

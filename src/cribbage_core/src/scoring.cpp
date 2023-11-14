@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
+namespace cribbage {
+
 // Hash the score of runs, 15s, and pairs
 static std::unordered_map<int, int> score_table_cache;
 
@@ -196,3 +198,5 @@ int score_hand(const Hand& hand, Card cut, bool is_crib) {
     score += score_knob(hand, cut);
     return score;
 }
+
+}  // namespace cribbage

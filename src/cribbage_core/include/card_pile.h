@@ -6,6 +6,8 @@
 
 #include "card.h"
 
+namespace cribbage {
+
 class CardPile {
   public:
     CardPile();
@@ -73,5 +75,7 @@ class CardPile {
     std::vector<Card> cards;
     int round_offset;
 };
+
+}  // namespace cribbage
 
 #endif  // CARD_PILE_H
