@@ -88,7 +88,7 @@ std::string Card::to_string() const {
             rankStr = "9";
             break;
         case Rank::TEN:
-            rankStr = "10";
+            rankStr = "T";
             break;
         case Rank::JACK:
             rankStr = "J";
