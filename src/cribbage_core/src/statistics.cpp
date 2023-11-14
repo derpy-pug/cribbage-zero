@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <iostream>
 
+#define TABLE_DIR "tables/"
+
 namespace cribbage {
 
 float default_stat_vs_stat_my_crib[13][13] = {
@@ -375,13 +377,13 @@ void StatisticTable::load_default_tables() {
     is_freq_table_loaded = true;
 }
 
-int StatisticTable::load_tables(std::optional<std::string> dirname) {
+int StatisticTable::load_tables(std::optional<std::string> table) {
     // TODO: If no dirname, then load default tables
-    if (!dirname) {
+    if (!table) {
         load_default_tables();
         return 1;
     }
-    std::string dirname_string = dirname.value();
+    std::string dirname_string = TABLE_DIR + table.value();
 
     int num_loaded = 0;
     num_loaded += freq_table_loaded.load(dirname_string + "freq_table.txt");
@@ -398,15 +400,15 @@ int StatisticTable::load_tables(std::optional<std::string> dirname) {
     return num_loaded;
 }
 
-void StatisticTable::save_tables(std::string dirname) {
-    freq_table.save(dirname + "freq_table.txt");
+void StatisticTable::save_tables(std::string table) {
+    freq_table.save(table + "freq_table.txt");
     // TODO: save score_dist_table
-    mean_table.save(dirname + "mean_table.txt");
-    median_table.save(dirname + "median_table.txt");
-    variance_table.save(dirname + "variance_table.txt");
-    std_dev_table.save(dirname + "std_dev_table.txt");
-    max_table.save(dirname + "max_table.txt");
-    min_table.save(dirname + "min_table.txt");
+    mean_table.save(table + "mean_table.txt");
+    median_table.save(table + "median_table.txt");
+    variance_table.save(table + "variance_table.txt");
+    std_dev_table.save(table + "std_dev_table.txt");
+    max_table.save(table + "max_table.txt");
+    min_table.save(table + "min_table.txt");
 }
 
 float StatisticTable::get_freq(Card card1, Card card2, bool is_dealer) {

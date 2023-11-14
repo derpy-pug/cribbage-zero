@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <iostream>
-#include <sstream>
 
 #include "cli.h"
 #include "cribbage_random.h"
@@ -66,90 +65,6 @@ void test_stats() {
     // std::cout << gen_discard << std::endl;
 }
 
-/*
- * @breif Parse a string into a Hand and a is_dealer bool
- *
- * @param hand_str A string of cards possibly separated by spaces
- *              and ending with a Y or N.
- *
- * @return A pair of a Hand and a bool.
- */
-std::pair<Hand, bool> string_to_hand(std::string hand_str) {
-    std::transform(hand_str.begin(), hand_str.end(), hand_str.begin(),
-                   ::toupper);
-    // Remove possible spaces
-    hand_str.erase(std::remove(hand_str.begin(), hand_str.end(), ' '),
-                   hand_str.end());
-    if (hand_str.size() != 13) {
-        throw std::invalid_argument("Hand string must be 13 characters");
-    }
-    std::stringstream ss(hand_str);
-    std::string card_str;
-    Hand hand;
-    // every two characters is a card
-    for (int i = 0; i < 6; i++) {
-        card_str = hand_str.substr(i * 2, 2);
-        hand.add_card(Card(card_str));
-    }
-    bool is_dealer = hand_str[12] == 'Y';
-    return {hand, is_dealer};
-}
-
-std::pair<Card, Card> string_to_discards(std::string discard_str) {
-    std::transform(discard_str.begin(), discard_str.end(), discard_str.begin(),
-                   ::toupper);
-    // Remove possible spaces
-    discard_str.erase(std::remove(discard_str.begin(), discard_str.end(), ' '),
-                      discard_str.end());
-    if (discard_str.size() != 4) {
-        throw std::invalid_argument("Discard string must be 4 characters");
-    }
-    std::stringstream ss(discard_str);
-    std::string card_str;
-    Card card1 = Card(discard_str.substr(0, 2));
-    Card card2 = Card(discard_str.substr(2, 2));
-    return {card1, card2};
-}
-
-std::pair<Statistic, ScoreType> string_to_sort_by(std::string sort_by_str) {
-    std::transform(sort_by_str.begin(), sort_by_str.end(), sort_by_str.begin(),
-                   ::tolower);
-    std::stringstream ss(sort_by_str);
-    std::string stat_str;
-    std::string score_type_str;
-    ss >> stat_str;
-    ss >> score_type_str;
-    Statistic stat;
-    ScoreType score_type;
-    if (stat_str == "max") {
-        stat = Statistic::MAX;
-    } else if (stat_str == "min") {
-        stat = Statistic::MIN;
-    } else if (stat_str == "mean") {
-        stat = Statistic::MEAN;
-    } else if (stat_str == "median") {
-        stat = Statistic::MEDIAN;
-    } else if (stat_str == "variance") {
-        stat = Statistic::VARIANCE;
-    } else if (stat_str == "std_dev") {
-        stat = Statistic::STD_DEV;
-    } else {
-        throw std::invalid_argument("Invalid statistic");
-    }
-
-    if (score_type_str == "hand") {
-        score_type = ScoreType::HAND;
-    } else if (score_type_str == "crib") {
-        score_type = ScoreType::CRIB;
-    } else if (score_type_str == "combined") {
-        score_type = ScoreType::COMBINED;
-    } else {
-        throw std::invalid_argument("Invalid score type");
-    }
-
-    return {stat, score_type};
-}
-
 ParseCommandLineArgs::ParseCommandLineArgs(int argc, char** argv)
     : argc(argc), argv(argv) {
     int ret = parse();
@@ -170,6 +85,32 @@ int ParseCommandLineArgs::parse() {
                 input_hand = true;
             } else {
                 std::cerr << "--hand option requires one argument."
+                          << std::endl;
+                return 1;
+            }
+        } else if (arg == "--dealer") {
+            if (i + 1 < argc) {
+                std::string dealer_str = argv[++i];
+                // Lower case
+                std::transform(dealer_str.begin(), dealer_str.end(),
+                               dealer_str.begin(), ::tolower);
+                if (dealer_str == "1" || dealer_str == "true" ||
+                    dealer_str == "t" || dealer_str == "yes" ||
+                    dealer_str == "y") {
+                    input_is_dealer = true;
+                    is_dealer = true;
+                } else if (dealer_str == "0" || dealer_str == "false" ||
+                           dealer_str == "f" || dealer_str == "no" ||
+                           dealer_str == "n") {
+                    input_is_dealer = true;
+                    is_dealer = false;
+                } else {
+                    std::cerr << "Invalid dealer value: " << dealer_str
+                              << std::endl;
+                    return 1;
+                }
+            } else {
+                std::cerr << "--dealer option requires one argument."
                           << std::endl;
                 return 1;
             }
@@ -228,11 +169,18 @@ int ParseCommandLineArgs::parse() {
     return 0;
 }
 
-std::optional<std::pair<Hand, bool>> ParseCommandLineArgs::get_hand() const {
+std::optional<Hand> ParseCommandLineArgs::get_hand() const {
     if (!input_hand) {
         return std::nullopt;
     }
     return string_to_hand(hand_str);
+}
+
+std::optional<bool> ParseCommandLineArgs::get_is_dealer() const {
+    if (!input_is_dealer) {
+        return std::nullopt;
+    }
+    return is_dealer;
 }
 
 std::optional<Card> ParseCommandLineArgs::get_cut() const {
@@ -257,15 +205,11 @@ std::pair<Statistic, ScoreType> ParseCommandLineArgs::get_sort_by() const {
     return string_to_sort_by(sort_by_str);
 }
 
-std::string ParseCommandLineArgs::get_table() const {
+std::optional<std::string> ParseCommandLineArgs::get_table() const {
     if (!input_table) {
-        return "";
+        return std::nullopt;
     }
-    std::string table_str_temp = table_str;
-    if (table_str.back() != '/') {
-        table_str_temp += "/";
-    }
-    return table_str_temp;
+    return table_str;
 }
 
 int ParseCommandLineArgs::get_top_discards() const {
@@ -277,37 +221,41 @@ int ParseCommandLineArgs::get_top_discards() const {
 
 /*
  * Command line arguments:
- *  -h, --hand=HAND
- *      HAND is "AH 2H 3H 4H 5H 6H <Y/N>" for example.
- *      6 cards, not necessarily separated by spaces, and a Y/N.
+ *  -h, --hand HAND
+ *      HAND is "AH 2H 3H 4H 5H 6H" for example.
+ *      6 cards, not necessarily separated by spaces.
  *      Each card is a rank followed by a suit (S, C, D, H)
  *      Rank: A, 1, 2, 3, 4, 5, 6, 7, 8, 9, T, J, Q, K
  *      Examples: 1H, AH, 2H, TH, TH, JH, QH, KH
  *      A and 1 is the same thing.
- *      The last character signifies whether you are the dealer or not.
- *      Leave it blank for a random hand and dealer.
+ *      Leave it blank for a random hand.
  *
- *  -c, --cut=CUT
+ *  --dealer DEALER
+ *      DEALER is a truthy value (1, true, True, T, t, yes, Yes, Y, y)
+ *      or a falsey value (0, false, False, F, f, no, No, N, n)
+ *      If you don't specify a dealer, it will be random.
+ *
+ *  -c, --cut CUT
  *      If you know the cut card, you can specify it here.
  *      CUT is a rank followed by a suit (S, C, D, H)
  *
- *  -d, --discards=DISCARDS
+ *  -d, --discards DISCARDS
  *      DISCARDS is two cards like "AH 2H"
  *      Can ONLY be used if you specify the hand
  *
- *  -s, --sort-by=SORT_BY
+ *  -s, --sort-by SORT_BY
  *      SORT_BY is the following:
  *       - "<statistic> <score_type>"
  *       - <statistic> is one of "max", "min", "mean", "median", "variance",
  * "std_dev"
  *       - <score_type> is one of "hand", "crib", "combined"
  *
- *  -t, --table=TABLE
+ *  -t, --table TABLE
  *    TABLE is the name of the table to load.
  *    If you don't specify a table, it will look in the default directory.
  *    If it doesn't find a table, it will generate one.
  *
- *  --top-discards=TOP_DISCARDS
+ *  --top-discards TOP_DISCARDS
  *      TOP_DISCARDS is the number of top discards to print.
  *      Must be between 1 and 15.
  *
@@ -317,14 +265,14 @@ int ParseCommandLineArgs::get_top_discards() const {
  *
  *  Examples:
  *      most used:
- *      ./cribbage -h "AH 2H 3H 4H 5H 6H Y"
- *      ./cribbage -h "AH 2H 3H 4H 5H 6H Y" -c --top-discards=3
- *      ./cribbage -h "AH 2H 3H 4H 5H 6H Y" -d "AH 2H"
+ *      ./cribbage -h "AH 2H 3H 4H 5H 6H" --dealer Y
+ *      ./cribbage -h "AH 2H 3H 4H 5H 6H" --dealer 0 -c --top-discards=3
+ *      ./cribbage -h "AH 2H 3H 4H 5H 6H" --dealer N -d "AH 2H"
  *
  *      other:
- *      ./cribbage -h "AH 2H 3H 4H 5H 6H Y" -c "7H" -d "AH 2H" -s "median
+ *      ./cribbage -h "AH 2H 3H 4H 5H 6H" --dealer 1 -c "7H" -d "AH 2H" -s "median
  * combined"
- *      ./cribbage -h "AH 2H 3H 4H 5H 6H Y" -c "7H" -d "AH 2H" -s "mean hand" -t
+ *      ./cribbage -h "AH 2H 3H 4H 5H 6H" -c "7H" -d "AH 2H" -s "mean hand" -t
  * "stat_vs_stat"
  *
  */
@@ -333,6 +281,7 @@ int cli_main(int argc, char** argv) {
 
     ParseCommandLineArgs args(argc, argv);
     auto hand_input = args.get_hand();
+    auto is_dealer_input = args.get_is_dealer();
     Hand hand;
     bool is_dealer;
     if (!hand_input) {
@@ -341,27 +290,27 @@ int cli_main(int argc, char** argv) {
         deck.shuffle();
         hand = deck.deal_hand(6);
         hand.sort();
-        is_dealer = CribbageRandom::get_instance()->get_bool();
-
     } else {
-        hand = hand_input->first;
-        is_dealer = hand_input->second;
+        hand = hand_input.value();
+    }
+    if (!is_dealer_input) {
+        std::cout << "No dealer specified. Generating random dealer."
+                  << std::endl;
+        is_dealer = CribbageRandom::get_instance()->get_bool();
+    } else {
+        is_dealer = is_dealer_input.value();
     }
     auto cut = args.get_cut();
     auto discards = args.get_discards();
     auto sort_by = args.get_sort_by();
-    std::string table = args.get_table();
+    auto table = args.get_table();
     int top_discards = args.get_top_discards();
 
     Player* p1 = new StatPlayer("Staples");
     Player* p2 = new StatPlayer("Stanley");
 
     GenerateCribStatistics gen_stats(p1, p2);
-    std::string dirname;
-    if (!table.empty()) {
-        dirname = TABLE_DIR + table;
-    }
-    int num_tables_loaded = gen_stats.load_tables(dirname);
+    int num_tables_loaded = gen_stats.load_tables(table);
     /* if (num_tables_loaded == 0) { */
     /*   std::cout << "No tables found. Generating tables." << std::endl; */
     /*   gen_stats.generate_all_tables(); */
@@ -374,12 +323,16 @@ int cli_main(int argc, char** argv) {
 
     p1->set_hand(hand);
     std::cout << "Hand: " << hand << std::endl;
+    std::cout << "Your Crib: " << (is_dealer ? "Yes" : "No") << std::endl;
+    std::cout << std::endl;
+
     GenerateDiscardStatistics gen_discard(p1, is_dealer, &gen_stats);
     gen_discard.generate_discard_stats(cut);
     gen_discard.sort_discard_stats(sort_by.second, sort_by.first);
 
     /* const DiscardStatistics& discard_stats_best = */
     /*     gen_discard.get_best_discard_stats(); */
+
     if (discards) {
         const DiscardStatistics& discard_stats =
             gen_discard.get_discard_stats(discards->first, discards->second);

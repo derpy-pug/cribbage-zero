@@ -12,6 +12,7 @@ namespace cribbage {
 class Hand : public CardContainer {
   public:
     Hand();
+    ~Hand() = default;
     Hand(std::vector<Card> cards);
 
     void add_card(Card card);

@@ -10,6 +10,9 @@ namespace cribbage {
 
 class CardContainer {
   public:
+
+   virtual ~CardContainer() = default; 
+
     /*
      * @brief Gets the string representation of the hand
      *

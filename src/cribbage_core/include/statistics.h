@@ -103,8 +103,8 @@ class StatisticTable {
 
     virtual void generate_all_tables() = 0;
 
-    virtual int load_tables(std::optional<std::string> dirname = std::nullopt);
-    virtual void save_tables(std::string dirname);
+    virtual int load_tables(std::optional<std::string> table = std::nullopt);
+    virtual void save_tables(std::string table);
 
     virtual float get_freq(Card card1, Card card2, bool is_dealer);
     virtual ScoreDistributionTable get_score_dist(Card card1, Card card2,
