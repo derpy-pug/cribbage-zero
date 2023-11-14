@@ -92,23 +92,8 @@ int ParseCommandLineArgs::parse() {
             if (i + 1 < argc) {
                 std::string dealer_str = argv[++i];
                 // Lower case
-                std::transform(dealer_str.begin(), dealer_str.end(),
-                               dealer_str.begin(), ::tolower);
-                if (dealer_str == "1" || dealer_str == "true" ||
-                    dealer_str == "t" || dealer_str == "yes" ||
-                    dealer_str == "y") {
-                    input_is_dealer = true;
-                    is_dealer = true;
-                } else if (dealer_str == "0" || dealer_str == "false" ||
-                           dealer_str == "f" || dealer_str == "no" ||
-                           dealer_str == "n") {
-                    input_is_dealer = true;
-                    is_dealer = false;
-                } else {
-                    std::cerr << "Invalid dealer value: " << dealer_str
-                              << std::endl;
-                    return 1;
-                }
+                bool b = parse_is_dealer(dealer_str);
+                input_is_dealer = true;
             } else {
                 std::cerr << "--dealer option requires one argument."
                           << std::endl;
@@ -173,7 +158,7 @@ std::optional<Hand> ParseCommandLineArgs::get_hand() const {
     if (!input_hand) {
         return std::nullopt;
     }
-    return string_to_hand(hand_str);
+    return parse_hand(hand_str);
 }
 
 std::optional<bool> ParseCommandLineArgs::get_is_dealer() const {
@@ -195,14 +180,14 @@ std::optional<std::pair<Card, Card>> ParseCommandLineArgs::get_discards()
     if (!input_discards) {
         return std::nullopt;
     }
-    return string_to_discards(discard_str);
+    return parse_discards(discard_str);
 }
 
 std::pair<Statistic, ScoreType> ParseCommandLineArgs::get_sort_by() const {
     if (!input_sort_by) {
         return {Statistic::MEAN, ScoreType::COMBINED};
     }
-    return string_to_sort_by(sort_by_str);
+    return parse_sort_by(sort_by_str);
 }
 
 std::optional<std::string> ParseCommandLineArgs::get_table() const {

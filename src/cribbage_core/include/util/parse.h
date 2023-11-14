@@ -8,10 +8,12 @@
 
 namespace cribbage {
 
-Hand string_to_hand(std::string hand_str);
+Hand parse_hand(std::string hand_str) noexcept(false);
 
-std::pair<Card, Card> string_to_discards(std::string discard_str);
+bool parse_is_dealer(std::string is_dealer_str) noexcept(false);
 
-std::pair<Statistic, ScoreType> string_to_sort_by(std::string sort_by_str);
+std::pair<Card, Card> parse_discards(std::string discard_str) noexcept(false);
+
+std::pair<Statistic, ScoreType> parse_sort_by(std::string sort_by_str) noexcept(false);
 
 }  // namespace cribbage

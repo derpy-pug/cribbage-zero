@@ -12,7 +12,7 @@ namespace cribbage {
  *
  * @return A pair of a Hand and a bool.
  */
-Hand string_to_hand(std::string hand_str) {
+Hand parse_hand(std::string hand_str) {
     std::transform(hand_str.begin(), hand_str.end(), hand_str.begin(),
                    ::toupper);
     // Remove possible spaces
@@ -31,58 +31,74 @@ Hand string_to_hand(std::string hand_str) {
     return hand;
 }
 
-std::pair<Card, Card> string_to_discards(std::string discard_str) {
-    std::transform(discard_str.begin(), discard_str.end(), discard_str.begin(),
-                   ::toupper);
-    // Remove possible spaces
-    discard_str.erase(std::remove(discard_str.begin(), discard_str.end(), ' '),
-                      discard_str.end());
-    if (discard_str.size() != 4) {
-        throw std::invalid_argument("Discard string must be 4 characters");
+bool parse_is_dealer(std::string is_dealer_str) {
+    std::transform(is_dealer_str.begin(), is_dealer_str.end(),
+            is_dealer_str.begin(), ::tolower);
+    if (is_dealer_str == "1" || is_dealer_str == "true" ||
+            is_dealer_str == "t" || is_dealer_str == "yes" ||
+            is_dealer_str == "y") {
+        return true;
+    } else if (is_dealer_str == "0" || is_dealer_str == "false" ||
+            is_dealer_str == "f" || is_dealer_str == "no" ||
+            is_dealer_str == "n") {
+        return false;
+    } else {
+        throw std::invalid_argument("Invalid is_dealer string");
     }
-    std::string card_str;
-    Card card1 = Card(discard_str.substr(0, 2));
-    Card card2 = Card(discard_str.substr(2, 2));
-    return {card1, card2};
 }
 
-std::pair<Statistic, ScoreType> string_to_sort_by(std::string sort_by_str) {
-    std::transform(sort_by_str.begin(), sort_by_str.end(), sort_by_str.begin(),
-                   ::tolower);
-    std::stringstream ss(sort_by_str);
-    std::string stat_str;
-    std::string score_type_str;
-    ss >> stat_str;
-    ss >> score_type_str;
-    Statistic stat;
-    ScoreType score_type;
-    if (stat_str == "max") {
-        stat = Statistic::MAX;
-    } else if (stat_str == "min") {
-        stat = Statistic::MIN;
-    } else if (stat_str == "mean") {
-        stat = Statistic::MEAN;
-    } else if (stat_str == "median") {
-        stat = Statistic::MEDIAN;
-    } else if (stat_str == "variance") {
-        stat = Statistic::VARIANCE;
-    } else if (stat_str == "std_dev") {
-        stat = Statistic::STD_DEV;
-    } else {
-        throw std::invalid_argument("Invalid statistic");
+    std::pair<Card, Card> parse_discards(std::string discard_str) {
+        std::transform(discard_str.begin(), discard_str.end(), discard_str.begin(),
+                ::toupper);
+        // Remove possible spaces
+        discard_str.erase(std::remove(discard_str.begin(), discard_str.end(), ' '),
+                discard_str.end());
+        if (discard_str.size() != 4) {
+            throw std::invalid_argument("Discard string must be 4 characters");
+        }
+        std::string card_str;
+        Card card1 = Card(discard_str.substr(0, 2));
+        Card card2 = Card(discard_str.substr(2, 2));
+        return {card1, card2};
     }
 
-    if (score_type_str == "hand") {
-        score_type = ScoreType::HAND;
-    } else if (score_type_str == "crib") {
-        score_type = ScoreType::CRIB;
-    } else if (score_type_str == "combined") {
-        score_type = ScoreType::COMBINED;
-    } else {
-        throw std::invalid_argument("Invalid score type");
-    }
+    std::pair<Statistic, ScoreType> parse_sort_by(std::string sort_by_str) {
+        std::transform(sort_by_str.begin(), sort_by_str.end(), sort_by_str.begin(),
+                ::tolower);
+        std::stringstream ss(sort_by_str);
+        std::string stat_str;
+        std::string score_type_str;
+        ss >> stat_str;
+        ss >> score_type_str;
+        Statistic stat;
+        ScoreType score_type;
+        if (stat_str == "max") {
+            stat = Statistic::MAX;
+        } else if (stat_str == "min") {
+            stat = Statistic::MIN;
+        } else if (stat_str == "mean") {
+            stat = Statistic::MEAN;
+        } else if (stat_str == "median") {
+            stat = Statistic::MEDIAN;
+        } else if (stat_str == "variance") {
+            stat = Statistic::VARIANCE;
+        } else if (stat_str == "std_dev") {
+            stat = Statistic::STD_DEV;
+        } else {
+            throw std::invalid_argument("Invalid statistic");
+        }
 
-    return {stat, score_type};
-}
+        if (score_type_str == "hand") {
+            score_type = ScoreType::HAND;
+        } else if (score_type_str == "crib") {
+            score_type = ScoreType::CRIB;
+        } else if (score_type_str == "combined") {
+            score_type = ScoreType::COMBINED;
+        } else {
+            throw std::invalid_argument("Invalid score type");
+        }
+
+        return {stat, score_type};
+    }
 
 }  // namespace cribbage
