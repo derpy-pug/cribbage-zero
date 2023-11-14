@@ -8,6 +8,8 @@
 
 namespace cribbage {
 
+Card parse_card(std::string card_str) noexcept(false);
+
 Hand parse_hand(std::string hand_str) noexcept(false);
 
 bool parse_is_dealer(std::string is_dealer_str) noexcept(false);

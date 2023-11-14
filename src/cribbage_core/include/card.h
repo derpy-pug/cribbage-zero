@@ -43,7 +43,7 @@ class Card {
      *  - "7H" is the seven of hearts
      *  - "TH" is the ten of hearts
      */
-    Card(std::string card_str);
+    Card(std::string card_str) noexcept(false);
 
     /*
      * @brief Returns the suit of the card
