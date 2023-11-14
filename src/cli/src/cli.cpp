@@ -92,7 +92,7 @@ int ParseCommandLineArgs::parse() {
             if (i + 1 < argc) {
                 std::string dealer_str = argv[++i];
                 // Lower case
-                bool b = parse_is_dealer(dealer_str);
+                is_dealer = parse_is_dealer(dealer_str);
                 input_is_dealer = true;
             } else {
                 std::cerr << "--dealer option requires one argument."
@@ -165,7 +165,7 @@ std::optional<bool> ParseCommandLineArgs::get_is_dealer() const {
     if (!input_is_dealer) {
         return std::nullopt;
     }
-    return is_dealer;
+    return std::optional<bool>(is_dealer);
 }
 
 std::optional<Card> ParseCommandLineArgs::get_cut() const {
@@ -268,7 +268,6 @@ int cli_main(int argc, char** argv) {
     auto hand_input = args.get_hand();
     auto is_dealer_input = args.get_is_dealer();
     Hand hand;
-    bool is_dealer;
     if (!hand_input) {
         std::cout << "No hand specified. Generating random hand." << std::endl;
         Deck deck;
@@ -278,6 +277,7 @@ int cli_main(int argc, char** argv) {
     } else {
         hand = hand_input.value();
     }
+    bool is_dealer;
     if (!is_dealer_input) {
         std::cout << "No dealer specified. Generating random dealer."
                   << std::endl;
