@@ -67,10 +67,10 @@ std::vector<std::pair<int, int>> hand_set(const Hand& hand, Card cut) {
     int rank = cut.get_rank_int();
     ++rank_counts[rank];
 
-    for (int i = 0; i < 14; ++i) {
+    for (int i = 1; i < 14; ++i) {
         if (rank_counts[i] > 0) {
             auto pair = std::make_pair(i, rank_counts[i]);
-            set.push_back(pair);
+            set.emplace_back(pair);
         }
     }
     return set;

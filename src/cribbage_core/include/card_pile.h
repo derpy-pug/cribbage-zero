@@ -12,6 +12,15 @@ class CardPile {
   public:
     CardPile();
 
+    /*
+     * @brief add a card to the pile
+     *
+     * @param card The card to add
+     *
+     * If can_add_card(card) is false, then next_round() is called, and
+     * then the card is added.
+     *
+     */
     void add_card(Card card);
 
     /*
@@ -51,12 +60,6 @@ class CardPile {
      */
     int score_pile(Card another_card);
 
-    /*
-     * @brief move to the next round of the pile
-     *
-     * Resets the current sum and updates the round offset
-     */
-    void next_round();
 
     /*
      * @brief Gets the string representation of the pile
@@ -68,12 +71,20 @@ class CardPile {
     friend std::ostream& operator<<(std::ostream& os, const CardPile& pile);
 
   private:
+    /*
+     * @brief move to the next round of the pile
+     *
+     * Resets the current sum and updates the round offset
+     */
+    void next_round();
+
     int score_pile_run() const;
 
   private:
     int current_sum;
     std::vector<Card> cards;
-    int round_offset;
+    int current_round_offset;
+    int previous_round_offset;
 };
 
 }  // namespace cribbage

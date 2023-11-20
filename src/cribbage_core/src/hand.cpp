@@ -4,7 +4,9 @@
 
 namespace cribbage {
 
-Hand::Hand() {}
+Hand::Hand() {
+    cards.reserve(6);
+}
 
 Hand::Hand(std::vector<Card> cards) {
     this->cards = cards;
