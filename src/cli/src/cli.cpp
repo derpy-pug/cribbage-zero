@@ -291,11 +291,11 @@ int cli_main(int argc, char** argv) {
     auto table = args.get_table();
     int top_discards = args.get_top_discards();
 
-    Player* p1 = new StatPlayer("Staples");
-    Player* p2 = new StatPlayer("Stanley");
+    std::unique_ptr<Player> p1 = std::make_unique<StatPlayer>("Staples");
+    std::unique_ptr<Player> p2 = std::make_unique<StatPlayer>("Stanley");
 
-    GenerateCribStatistics gen_stats(p1, p2);
-    int num_tables_loaded = gen_stats.load_tables(table);
+    std::unique_ptr<GenerateCribStatistics> gen_stats = std::make_unique<GenerateCribStatistics>(p1.get(), p2.get());
+    int num_tables_loaded = gen_stats->load_tables(table);
     /* if (num_tables_loaded == 0) { */
     /*   std::cout << "No tables found. Generating tables." << std::endl; */
     /*   gen_stats.generate_all_tables(); */
@@ -311,7 +311,7 @@ int cli_main(int argc, char** argv) {
     std::cout << "Your Crib: " << (is_dealer ? "Yes" : "No") << std::endl;
     std::cout << std::endl;
 
-    GenerateDiscardStatistics gen_discard(p1, is_dealer, &gen_stats);
+    GenerateDiscardStatistics gen_discard(p1.get(), is_dealer, gen_stats.get());
     gen_discard.generate_discard_stats(cut);
     gen_discard.sort_discard_stats(sort_by.second, sort_by.first);
 

@@ -103,18 +103,18 @@ class StatisticTable {
 
     virtual void generate_all_tables() = 0;
 
-    virtual int load_tables(std::optional<std::string> table = std::nullopt);
-    virtual void save_tables(std::string table);
+    int load_tables(std::optional<std::string> table = std::nullopt);
+    void save_tables(std::string table);
 
-    virtual float get_freq(Card card1, Card card2, bool is_dealer);
-    virtual ScoreDistributionTable get_score_dist(Card card1, Card card2,
+    float get_freq(Card card1, Card card2, bool is_dealer);
+    ScoreDistributionTable get_score_dist(Card card1, Card card2,
                                                   bool is_dealer);
-    virtual float get_mean(Card card1, Card card2, bool is_dealer);
-    virtual int get_median(Card card1, Card card2, bool is_dealer);
-    virtual float get_variance(Card card1, Card card2, bool is_dealer);
-    virtual float get_std_dev(Card card1, Card card2, bool is_dealer);
-    virtual int get_max(Card card1, Card card2, bool is_dealer);
-    virtual int get_min(Card card1, Card card2, bool is_dealer);
+    float get_mean(Card card1, Card card2, bool is_dealer);
+    int get_median(Card card1, Card card2, bool is_dealer);
+    float get_variance(Card card1, Card card2, bool is_dealer);
+    float get_std_dev(Card card1, Card card2, bool is_dealer);
+    int get_max(Card card1, Card card2, bool is_dealer);
+    int get_min(Card card1, Card card2, bool is_dealer);
 
   private:
     void load_default_tables();
