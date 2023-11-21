@@ -5,9 +5,10 @@
 
 namespace cribbage {
 
-enum class Suit { CLUBS = 0, DIAMONDS, HEARTS, SPADES };
+enum class Suit { NONE = -1, CLUBS = 0, DIAMONDS, HEARTS, SPADES };
 
 enum class Rank {
+    NONE = -1,
     ACE = 1,
     TWO,
     THREE,
@@ -25,6 +26,8 @@ enum class Rank {
 
 class Card {
   public:
+    Card();
+
     /*
      * @brief Constructs a card with the given suit and rank
      *

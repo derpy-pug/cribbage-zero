@@ -4,6 +4,8 @@
 
 namespace cribbage {
 
+Card::Card() : suit(Suit::NONE), rank(Rank::NONE) {}
+
 Card::Card(Suit suit, Rank rank) : suit(suit), rank(rank) {}
 
 Card::Card(std::string card_str) {
@@ -56,6 +58,9 @@ std::string Card::to_string() const {
         case Suit::SPADES:
             suitStr = "S";
             break;
+        case Suit::NONE:
+            suitStr = "N";
+            break;
     }
 
     std::string rankStr;
@@ -98,6 +103,9 @@ std::string Card::to_string() const {
             break;
         case Rank::KING:
             rankStr = "K";
+            break;
+        case Rank::NONE:
+            rankStr = "N";
             break;
     }
 
