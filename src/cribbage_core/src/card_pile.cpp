@@ -21,24 +21,26 @@ bool CardPile::can_play_card(Card card) const {
 }
 
 int CardPile::score_pile_run() const {
-    char min;
-    char max;
-    int length = cards.size() - current_round_offset;
-    for (int i = 0; i < length; i++) {
-        min = static_cast<int>(cards[i].get_rank());
-        max = static_cast<int>(cards[i].get_rank());
-        for (int j = i + 1; j < length; j++) {
-            char rank = static_cast<int>(cards[j].get_rank());
-            if (rank < min)
-                min = rank;
-            if (rank > max)
-                max = rank;
-        }
-        if (max - min == length - i - 1) {
-            return max - min;
+    int score = 0;
+    int min = 99;
+    int max = 0;
+    int length = 0;
+    bool double_card[14] = {false};
+    for (auto it = cards.rbegin(); it != cards.rend() - current_round_offset;
+         it++) {
+        // If we have a double card, then we can't have a run
+        if (double_card[it->get_rank_int()])
+            break;
+        double_card[it->get_rank_int()] = true;
+
+        length++;
+        min = std::min(min, it->get_rank_int());
+        max = std::max(max, it->get_rank_int());
+        if (length >= 3 && max - min == length - 1) {
+            score = length;
         }
     }
-    return 0;
+    return score;
 }
 
 int CardPile::score_pile() const {
@@ -81,7 +83,7 @@ int CardPile::score_pile(Card another_card) {
 
 void CardPile::next_round() {
     previous_round_offset = current_round_offset;
-    current_round_offset += cards.size();
+    current_round_offset = cards.size();
     current_sum = 0;
 }
 

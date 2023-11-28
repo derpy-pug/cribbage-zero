@@ -415,6 +415,9 @@ std::string GamePgn::make_pgn() const {
         if (round.cut) {
             pgn << "  ";
             pgn << "C " << *round.cut;
+            if (round.cut_score) {
+                pgn << " SC " << *round.cut_score;
+            }
             pgn << "\n";
         }
 
@@ -427,8 +430,8 @@ std::string GamePgn::make_pgn() const {
 
         if (round.pegging_scores) {
             pgn << "  ";
-            pgn << "S ";
-            for (int score : *round.pegging_scores) {
+            pgn << "SP ";
+            for (int score : round.pegging_scores.value()) {
                 pgn << score << " ";
             }
             pgn << "\n";

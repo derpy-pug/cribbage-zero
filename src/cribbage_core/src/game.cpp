@@ -3,7 +3,8 @@
 
 namespace cribbage {
 
-Game::Game(Player* player1, Player* player2, GenerateCribStatistics* gen_crib_stats)
+Game::Game(Player* player1, Player* player2,
+           GenerateCribStatistics* gen_crib_stats)
     : player1(player1),
       player2(player2),
       gen_crib_stats(gen_crib_stats),
@@ -43,12 +44,19 @@ bool Game::play_game() {
 
 void Game::play_round() {
     round_number++;
+    round = GamePgn::Round();
 
     deal();
     discard();
 
     Card cut = deck.deal_card();
     round.cut = cut;
+    if (cut.get_rank() == Rank::JACK) {
+        board.move(is_player1_dealer() ? WhichPlayer::FIRST_DEALER
+                                       : WhichPlayer::FIRST_PONE,
+                   2);
+        round.cut_score = 2;
+    }
 
     bool winner = pegging();
     if (winner) {
@@ -64,6 +72,9 @@ void Game::deal() {
 
     Hand hand1 = deck.deal_hand(6);
     Hand hand2 = deck.deal_hand(6);
+
+    hand1.sort();
+    hand2.sort();
 
     round.hand1 = hand1;
     round.hand2 = hand2;
@@ -96,7 +107,8 @@ bool Game::pegging() {
         if (!can_play_any_card(hand, pegging_cards)) {
             if (go) {
                 // Double go (both players cannot play a card)
-                bool winner = score_pegging(is_player1_turn, pegging_cards, true);
+                bool winner =
+                  score_pegging(is_player1_turn, pegging_cards, true);
                 if (winner) {
                     return true;
                 }
@@ -110,11 +122,11 @@ bool Game::pegging() {
             go = false;
 
             // Play a card
-            Card card = play_card(is_player1_turn ? player1 : player2,
-                                  is_player1_turn ? round.hand1.value()
-                                                  : round.hand2.value(),
-                                  cut,
-                                  pegging_cards);
+            const Hand& dealt_hand =
+              is_player1_turn ? round.hand1.value() : round.hand2.value();
+            Player* player = is_player1_turn ? player1 : player2;
+            Card card = player->play_card(pegging_cards, dealt_hand, cut);
+
             pegging_cards.add_card(card);
             bool winner = score_pegging(is_player1_turn, pegging_cards);
             if (winner) {
@@ -124,15 +136,16 @@ bool Game::pegging() {
 
         is_player1_turn = !is_player1_turn;
         are_cards_left =
-          player1->get_hand().size() > 0 && player2->get_hand().size() > 0;
+          player1->get_hand().size() > 0 || player2->get_hand().size() > 0;
     }
+    round.pegging_cards = pegging_cards;
+
     // Last card
     bool winner = score_pegging(!is_player1_turn, pegging_cards, true);
     if (winner) {
         return true;
     }
 
-    round.pegging_cards = pegging_cards;
     return false;
 }
 
@@ -146,32 +159,28 @@ bool Game::can_play_any_card(const Hand& hand,
     return false;
 }
 
-Card Game::play_card(Player* player, const Hand& dealt_hand, Card cut,
-                     const CardPile& pegging_cards) {
-    Card card = player->play_card(pegging_cards, dealt_hand, cut);
-    player->get_hand().remove_card(card);
-    return card;
-}
-
-bool Game::score_pegging(bool is_player1_turn, const CardPile& pegging_cards, bool is_go) {
+bool Game::score_pegging(bool is_player1_turn, const CardPile& pegging_cards,
+                         bool is_go) {
     if (is_go) {
-        if (is_player1_turn) {
-            board.move(WhichPlayer::FIRST_DEALER, 1);
-        } else {
-            board.move(WhichPlayer::FIRST_PONE, 1);
-        }
+        round.pegging_scores->back() += 1;
+        WhichPlayer player =
+          is_player1_turn ? WhichPlayer::FIRST_DEALER : WhichPlayer::FIRST_PONE;
+        board.move(player, 1);
         return board.get_winner().has_value();
     }
 
+    if (!round.pegging_scores.has_value()) {
+        round.pegging_scores = std::vector<int>();
+        round.pegging_scores->reserve(8);
+    }
     int score = pegging_cards.score_pile();
+    round.pegging_scores->push_back(score);
     if (is_player1_turn) {
         board.move(WhichPlayer::FIRST_DEALER, score);
-        /* round.pegging_scores.value().push_back(score); */
-        /* round.pegging_player.push_back(true); */
+        round.pegging_player.push_back(true);
     } else {
         board.move(WhichPlayer::FIRST_PONE, score);
-        /* round.pegging_scores.value().push_back(score); */
-        /* round.pegging_player.push_back(false); */
+        round.pegging_player.push_back(false);
     }
     return board.get_winner().has_value();
 }
@@ -183,21 +192,20 @@ void Game::score() {
     hand1.remove_card(round.discards1.value().second);
     int score = score_hand(hand1, cut, false);
     board.move(WhichPlayer::FIRST_DEALER, score);
+    round.hand1_score = score;
     if (board.get_winner().has_value()) {
         return;
     }
-    /* round.hand1_score = score; */
-
 
     Hand hand2 = round.hand2.value();
     hand2.remove_card(round.discards2.value().first);
     hand2.remove_card(round.discards2.value().second);
     score = score_hand(hand2, cut, false);
     board.move(WhichPlayer::FIRST_PONE, score);
+    round.hand2_score = score;
     if (board.get_winner().has_value()) {
         return;
     }
-    /* round.hand2_score = score; */
 
     Hand crib;
     crib.add_card(round.discards1.value().first);
@@ -206,7 +214,7 @@ void Game::score() {
     crib.add_card(round.discards2.value().second);
     score = score_hand(crib, cut, true);
     board.move(WhichPlayer::FIRST_DEALER, score);
-    /* round.crib_score = score; */
+    round.crib_score = score;
 }
 
 }  // namespace cribbage

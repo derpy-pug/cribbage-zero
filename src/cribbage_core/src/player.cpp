@@ -38,6 +38,7 @@ Card HumanPlayer::play_card(const CardPile& pile, const Hand& dealt_hand, Card c
         std::cout << "Sum over 31, can't play that card" << std::endl;
         return play_card(pile, dealt_hand, cut);
     }
+    get_hand().remove_card(get_hand()[i]);
     return get_hand()[i];
 }
 
@@ -96,8 +97,20 @@ StatPlayer::StatPlayer(std::string name) : Player(name) {}
 Card StatPlayer::play_card(const CardPile& pile, const Hand& dealt_hand, Card cut) {
     //TODO: Implement AI
 
-    // Make sure to remove the card from the player's hand
-    return get_hand()[0];
+    std::vector<Card> playable_cards;
+    for (unsigned int i = 0; i < get_hand().size(); i++) {
+        if (pile.can_play_card(get_hand()[i])) {
+            playable_cards.push_back(get_hand()[i]);
+        }
+    }
+    if (playable_cards.size() == 0) {
+        std::cerr << "No playable cards, this should not happen." << std::endl;
+        throw std::runtime_error("No playable cards");
+    }
+    int i = CribbageRandom::get_instance()->get_int(0, playable_cards.size());
+    Card card = playable_cards[i];
+    get_hand().remove_card(card);
+    return card;
 }
 
 std::pair<Card, Card> StatPlayer::make_discards(
