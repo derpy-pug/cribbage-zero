@@ -204,6 +204,102 @@ int ParseCommandLineArgs::get_top_discards() const {
     return top_discards;
 }
 
+int cli_game(const ParseCommandLineArgs& args) {
+    std::unique_ptr<Player> p1 = std::make_unique<StatPlayer>("Staples");
+    std::unique_ptr<Player> p2 = std::make_unique<StatPlayer>("Stanley");
+
+    GenerateCribStatistics gen_stats(p1.get(), p2.get());
+    gen_stats.load_tables(args.get_table());
+
+    Game game(p1.get(), p2.get(), &gen_stats);
+    game.play_game();
+
+    std::cout << game.get_pgn() << std::endl;
+
+    return 0;
+}
+
+int cli_discard_stats(const ParseCommandLineArgs& args) {
+    auto hand_input = args.get_hand();
+    auto is_dealer_input = args.get_is_dealer();
+    Hand hand;
+    if (!hand_input) {
+        std::cout << "No hand specified. Generating random hand." << std::endl;
+        Deck deck;
+        deck.shuffle();
+        hand = deck.deal_hand(6);
+        hand.sort();
+    } else {
+        hand = hand_input.value();
+    }
+    bool is_dealer;
+    if (!is_dealer_input) {
+        std::cout << "No dealer specified. Generating random dealer."
+                  << std::endl;
+        is_dealer = CribbageRandom::get_instance()->get_bool();
+    } else {
+        is_dealer = is_dealer_input.value();
+    }
+    auto cut = args.get_cut();
+    auto discards = args.get_discards();
+    auto sort_by = args.get_sort_by();
+    auto table = args.get_table();
+    int top_discards = args.get_top_discards();
+
+    std::unique_ptr<Player> p1 = std::make_unique<StatPlayer>("Staples");
+    std::unique_ptr<Player> p2 = std::make_unique<StatPlayer>("Stanley");
+
+    GenerateCribStatistics gen_stats(p1.get(), p2.get());
+    int num_tables_loaded = gen_stats.load_tables(table);
+    /* if (num_tables_loaded == 0) { */
+    /*   std::cout << "No tables found. Generating tables." << std::endl; */
+    /*   gen_stats.generate_all_tables(); */
+    /*   gen_stats.save_tables(dirname); */
+    /* } */
+    if (num_tables_loaded == 0) {
+        std::cout << "No tables found. Exiting." << std::endl;
+        return 1;
+    }
+
+    p1->set_hand(hand);
+    std::cout << "Hand: " << hand << std::endl;
+    std::cout << "Your Crib: " << (is_dealer ? "Yes" : "No") << std::endl;
+    std::cout << std::endl;
+
+    GenerateDiscardStatistics gen_discard(p1.get(), is_dealer, &gen_stats);
+    gen_discard.generate_discard_stats(cut);
+    gen_discard.sort_discard_stats(sort_by.second, sort_by.first);
+
+    /* const DiscardStatistics& discard_stats_best = */
+    /*     gen_discard.get_best_discard_stats(); */
+
+    if (discards) {
+        const DiscardStatistics& discard_stats =
+            gen_discard.get_discard_stats(discards->first, discards->second);
+        std::cout << discard_stats << std::endl;
+    } else {
+        std::cout << gen_discard.get_discard_stats_string(top_discards)
+                  << std::endl;
+    }
+
+    // Simulate discards
+    /* GenerateDiscardStatistics gen_discard_sim(p1, is_dealer, &gen_stats); */
+    /* gen_discard_sim.generate_discard_stats(cut, true, p2); */
+    /* gen_discard_sim.sort_discard_stats(sort_by.second, sort_by.first); */
+
+    /* if (discards) { */
+    /*     const DiscardStatistics& discard_stats = */
+    /*         gen_discard_sim.get_discard_stats(discards->first, */
+    /*                                           discards->second); */
+    /*     std::cout << discard_stats << std::endl; */
+    /* } else { */
+    /*     std::cout << gen_discard_sim.get_discard_stats_string(top_discards) */
+    /*               << std::endl; */
+    /* } */
+
+    return 0;
+}
+
 /*
  * Command line arguments:
  *  -h, --hand HAND
@@ -265,82 +361,9 @@ int ParseCommandLineArgs::get_top_discards() const {
 int cli_main(int argc, char** argv) {
 
     ParseCommandLineArgs args(argc, argv);
-    auto hand_input = args.get_hand();
-    auto is_dealer_input = args.get_is_dealer();
-    Hand hand;
-    if (!hand_input) {
-        std::cout << "No hand specified. Generating random hand." << std::endl;
-        Deck deck;
-        deck.shuffle();
-        hand = deck.deal_hand(6);
-        hand.sort();
-    } else {
-        hand = hand_input.value();
-    }
-    bool is_dealer;
-    if (!is_dealer_input) {
-        std::cout << "No dealer specified. Generating random dealer."
-                  << std::endl;
-        is_dealer = CribbageRandom::get_instance()->get_bool();
-    } else {
-        is_dealer = is_dealer_input.value();
-    }
-    auto cut = args.get_cut();
-    auto discards = args.get_discards();
-    auto sort_by = args.get_sort_by();
-    auto table = args.get_table();
-    int top_discards = args.get_top_discards();
 
-    std::unique_ptr<Player> p1 = std::make_unique<StatPlayer>("Staples");
-    std::unique_ptr<Player> p2 = std::make_unique<StatPlayer>("Stanley");
+    /* int ret = cli_discard_stats(args); */
+    int ret = cli_game(args);
 
-    std::unique_ptr<GenerateCribStatistics> gen_stats = std::make_unique<GenerateCribStatistics>(p1.get(), p2.get());
-    int num_tables_loaded = gen_stats->load_tables(table);
-    /* if (num_tables_loaded == 0) { */
-    /*   std::cout << "No tables found. Generating tables." << std::endl; */
-    /*   gen_stats.generate_all_tables(); */
-    /*   gen_stats.save_tables(dirname); */
-    /* } */
-    if (num_tables_loaded == 0) {
-        std::cout << "No tables found. Exiting." << std::endl;
-        return 1;
-    }
-
-    p1->set_hand(hand);
-    std::cout << "Hand: " << hand << std::endl;
-    std::cout << "Your Crib: " << (is_dealer ? "Yes" : "No") << std::endl;
-    std::cout << std::endl;
-
-    GenerateDiscardStatistics gen_discard(p1.get(), is_dealer, gen_stats.get());
-    gen_discard.generate_discard_stats(cut);
-    gen_discard.sort_discard_stats(sort_by.second, sort_by.first);
-
-    /* const DiscardStatistics& discard_stats_best = */
-    /*     gen_discard.get_best_discard_stats(); */
-
-    if (discards) {
-        const DiscardStatistics& discard_stats =
-            gen_discard.get_discard_stats(discards->first, discards->second);
-        std::cout << discard_stats << std::endl;
-    } else {
-        std::cout << gen_discard.get_discard_stats_string(top_discards)
-                  << std::endl;
-    }
-
-    // Simulate discards
-    /* GenerateDiscardStatistics gen_discard_sim(p1, is_dealer, &gen_stats); */
-    /* gen_discard_sim.generate_discard_stats(cut, true, p2); */
-    /* gen_discard_sim.sort_discard_stats(sort_by.second, sort_by.first); */
-
-    /* if (discards) { */
-    /*     const DiscardStatistics& discard_stats = */
-    /*         gen_discard_sim.get_discard_stats(discards->first, */
-    /*                                           discards->second); */
-    /*     std::cout << discard_stats << std::endl; */
-    /* } else { */
-    /*     std::cout << gen_discard_sim.get_discard_stats_string(top_discards) */
-    /*               << std::endl; */
-    /* } */
-
-    return 0;
+    return ret;
 }

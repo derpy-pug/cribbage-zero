@@ -7,5 +7,6 @@
 #include "hand.h"
 #include "player.h"
 #include "scoring.h"
+#include "game.h"
 
 #endif  // CORE_H

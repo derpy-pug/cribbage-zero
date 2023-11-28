@@ -9,14 +9,14 @@ namespace cribbage {
 CardPile::CardPile() : current_sum(0), current_round_offset(0) {}
 
 void CardPile::add_card(Card card) {
-    if (!can_add_card(card)) {
+    if (!can_play_card(card)) {
         next_round();
     }
     cards.push_back(card);
     current_sum += card.get_value();
 }
 
-bool CardPile::can_add_card(Card card) const {
+bool CardPile::can_play_card(Card card) const {
     return current_sum + card.get_value() <= 31;
 }
 
@@ -68,7 +68,7 @@ int CardPile::score_pile() const {
 }
 
 int CardPile::score_pile(Card another_card) {
-    if (!can_add_card(another_card)) {
+    if (!can_play_card(another_card)) {
         std::cerr << "Cannot add card " << another_card << " to pile " << *this
                   << std::endl;
         return 0;
@@ -89,7 +89,9 @@ std::string CardPile::to_string() const {
     std::string result;
     int i = 0;
     for (auto card : cards) {
-        bool is_next_round = i == current_round_offset || (i == previous_round_offset && i != 0);
+        bool is_next_round =
+          current_round_offset != 0 &&  // Don't add | at the beginning
+          (i == current_round_offset || (i == previous_round_offset && i != 0));
         if (is_next_round) {
             result += "| ";
         }

@@ -48,7 +48,7 @@ class Deck : public CardContainer {
      *
      * @return The card dealt from the deck
      */
-    Card deal_card();
+    [[nodiscard]] Card deal_card();
 
     /*
      * @brief Deals a card from the deck and removes it from the deck
@@ -62,7 +62,7 @@ class Deck : public CardContainer {
      *
      * @return The card dealt from the deck
      */
-    Card deal_card_and_remove();
+    [[nodiscard]] Card deal_card_and_remove();
 
     /*
      * @brief Deals a hand from the deck
@@ -73,7 +73,7 @@ class Deck : public CardContainer {
      * @param numCards The number of cards to deal
      * @return The hand dealt from the deck
      */
-    Hand deal_hand(int numCards);
+    [[nodiscard]] Hand deal_hand(int numCards);
 
     /*
      * @brief Deals a hand from the deck and removes it from the deck
@@ -94,7 +94,7 @@ class Deck : public CardContainer {
      * @param numCards The number of cards to deal
      * @return The hand dealt from the deck
      */
-    Hand deal_hand_and_remove(int numCards);
+    [[nodiscard]] Hand deal_hand_and_remove(int numCards);
 
     /*
      * @brief Removes the cards from the deck in the hand

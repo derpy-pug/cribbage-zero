@@ -24,6 +24,13 @@ class CardPile {
     void add_card(Card card);
 
     /*
+     * @brief move to the next round of the pile
+     *
+     * Resets the current sum and updates the round offset
+     */
+    void next_round();
+
+    /*
      * @brief check if the pile can add the given card
      *
      * A pile can add a card if the sum of the cards in the pile is <= 31
@@ -33,7 +40,7 @@ class CardPile {
      * @return true if the pile can add the given card
      *        false otherwise
      */
-    bool can_add_card(Card card) const;
+    bool can_play_card(Card card) const;
 
     /*
      * @brief score the pile
@@ -71,12 +78,6 @@ class CardPile {
     friend std::ostream& operator<<(std::ostream& os, const CardPile& pile);
 
   private:
-    /*
-     * @brief move to the next round of the pile
-     *
-     * Resets the current sum and updates the round offset
-     */
-    void next_round();
 
     int score_pile_run() const;
 

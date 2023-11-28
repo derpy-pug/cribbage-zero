@@ -93,9 +93,9 @@ GamePgn GamePgn::load(std::istream pgn) {
             std::string result;
             ss >> result;
             if (value == "1-0") {
-                game_info.result = GameResult::WIN;
+                game_info.result = GameResult::FIRST_DEALER;
             } else if (value == "0-1") {
-                game_info.result = GameResult::LOSS;
+                game_info.result = GameResult::FIRST_PONE;
             } else {
                 game_info.result = GameResult::NONE;
             }
@@ -347,14 +347,36 @@ std::string GamePgn::make_pgn() const {
     if (game_info.first_dealer_name != "") {
         pgn << "[FirstDealer \"" + game_info.first_dealer_name + "\"]\n";
     }
+    if (game_info.first_dealer_type != Player::PlayerType::NONE) {
+        pgn << "[FirstDealerType \"";
+        if (game_info.first_dealer_type == Player::PlayerType::HUMAN) {
+            pgn << "Human";
+        } else if (game_info.first_dealer_type == Player::PlayerType::RANDOM) {
+            pgn << "Random";
+        } else if (game_info.first_dealer_type == Player::PlayerType::STAT) {
+            pgn << "Stat";
+        }
+        pgn << "\"]\n";
+    }
     if (game_info.first_pone_name != "") {
         pgn << "[FirstPone \"" + game_info.first_pone_name + "\"]\n";
     }
+    if (game_info.first_pone_type != Player::PlayerType::NONE) {
+        pgn << "[FirstPoneType \"";
+        if (game_info.first_pone_type == Player::PlayerType::HUMAN) {
+            pgn << "Human";
+        } else if (game_info.first_pone_type == Player::PlayerType::RANDOM) {
+            pgn << "Random";
+        } else if (game_info.first_pone_type == Player::PlayerType::STAT) {
+            pgn << "Stat";
+        }
+        pgn << "\"]\n";
+    }
     if (game_info.result != GameResult::NONE) {
         pgn << "[Result \"";
-        if (game_info.result == GameResult::WIN) {
+        if (game_info.result == GameResult::FIRST_DEALER) {
             pgn << "1-0";
-        } else if (game_info.result == GameResult::LOSS) {
+        } else if (game_info.result == GameResult::FIRST_PONE) {
             pgn << "0-1";
         }
         pgn << "\"]\n";
@@ -368,7 +390,7 @@ std::string GamePgn::make_pgn() const {
             pgn << "  ";
             pgn << "H1 " << *round.hand1;
             if (round.discards1) {
-                pgn << " D1 " << round.discards1->first << " "
+                pgn << "D1 " << round.discards1->first << " "
                     << round.discards1->second;
             }
             if (round.hand1_score) {
@@ -381,7 +403,7 @@ std::string GamePgn::make_pgn() const {
             pgn << "  ";
             pgn << "H2 " << *round.hand2;
             if (round.discards2) {
-                pgn << " D2 " << round.discards2->first << " "
+                pgn << "D2 " << round.discards2->first << " "
                     << round.discards2->second;
             }
             if (round.hand2_score) {

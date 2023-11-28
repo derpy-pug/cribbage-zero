@@ -13,7 +13,7 @@ namespace cribbage {
  */
 class GamePgn {
   public:
-    enum class GameResult { NONE = 0, WIN, LOSS };
+    enum class GameResult { NONE = 0, FIRST_DEALER, FIRST_PONE };
 
     struct GameInfo {
         std::string event;
@@ -75,6 +75,8 @@ class GamePgn {
 
     void add_round(Round&& round);
     void add_round(const Round& round);
+
+    void set_game_info(GameInfo game_info) { this->game_info = game_info; }
 
     std::string make_pgn() const noexcept(false);
     friend std::ostream& operator<<(std::ostream& os, const GamePgn& game_pgn);
