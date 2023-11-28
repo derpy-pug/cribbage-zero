@@ -214,7 +214,8 @@ int cli_game(const ParseCommandLineArgs& args) {
     Game game(p1.get(), p2.get(), &gen_stats);
     game.play_game();
 
-    std::cout << game.get_pgn() << std::endl;
+    /* std::cout << game.get_pgn() << std::endl; */
+    /* game.get_pgn().save("game.pgn"); */
 
     return 0;
 }

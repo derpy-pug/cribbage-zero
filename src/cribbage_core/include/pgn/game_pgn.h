@@ -70,7 +70,7 @@ class GamePgn {
     GamePgn(GameInfo game_info);
     //~GamePgn() = default;
 
-    bool save(std::string filename);
+    bool save(std::string filename) const;
     static GamePgn load(std::istream pgn);
 
     void add_round(Round&& round);

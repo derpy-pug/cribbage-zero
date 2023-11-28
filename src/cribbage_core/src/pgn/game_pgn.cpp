@@ -11,6 +11,21 @@
 static const std::array<std::string, 7> INFO_TAGS = {
   "event", "site", "date", "round", "firstdealer", "firstpone", "result"};
 
+
+/*
+ * List of possible round tags.
+ *  H1: Hand of player 1/first dealer
+ *  H2: Hand of player 2/first pone
+ *  D1: Discards of player 1/first dealer
+ *  D2: Discards of player 2/first pone
+ *  C: Cut card
+ *  P: Pegging cards
+ *  S1: Score of player 1/first dealer's hand
+ *  S2: Score of player 2/first pone's hand
+ *  SC: Score of crib
+ *  SP: Scores of pegging
+ *  SH: Score of cut card (his heels if cut card is a jack)
+ */
 static const std::array<std::string, 11> ROUND_TAGS = {
   "H1", "H2", "D1", "D2", "C", "P", "S1", "S2", "SC", "SP", "SH"};
 
@@ -37,7 +52,7 @@ GamePgn::GamePgn(GameInfo game_info) : game_info(game_info) {}
  *
  * Append the game to the end of the file.
  */
-bool GamePgn::save(std::string filename) {
+bool GamePgn::save(std::string filename) const {
     std::ofstream pgn_file;
     pgn_file.open(PGN_DIR + filename, std::ios_base::app);
     if (!pgn_file.is_open()) {
@@ -158,7 +173,7 @@ GamePgn GamePgn::load(std::istream pgn) {
             round.round_number = round_number;
         }
 
-        // Read the round
+        // Read the rounds
         std::string value;
         Hand hand;
         CardPile pegging_cards;
@@ -296,12 +311,132 @@ void GamePgn::add_round(const Round& round) {
     rounds.emplace_back(round);
 }
 
-std::string pegging_cards_string(std::vector<Card> pegging_cards) {
+static std::string pegging_cards_string(std::vector<Card> pegging_cards) {
     std::stringstream ss;
     for (const Card& card : pegging_cards) {
         ss << card << " ";
     }
     return ss.str();
+}
+
+static std::stringstream make_pgn_info_tags(const GamePgn::GameInfo& game_info) {
+    std::stringstream ss;
+    if (game_info.event != "") {
+        ss << "[Event \"" + game_info.event + "\"]\n";
+    }
+    if (game_info.site != "") {
+        ss << "[Site \"" + game_info.site + "\"]\n";
+    }
+    if (game_info.date != "") {
+        ss << "[Date \"" + game_info.date + "\"]\n";
+    }
+    if (game_info.round != "") {
+        ss << "[Round \"" + game_info.round + "\"]\n";
+    }
+    if (game_info.first_dealer_name != "") {
+        ss << "[FirstDealer \"" + game_info.first_dealer_name + "\"]\n";
+    }
+    if (game_info.first_dealer_type != Player::PlayerType::NONE) {
+        ss << "[FirstDealerType \"";
+        if (game_info.first_dealer_type == Player::PlayerType::HUMAN) {
+            ss << "Human";
+        } else if (game_info.first_dealer_type == Player::PlayerType::RANDOM) {
+            ss << "Random";
+        } else if (game_info.first_dealer_type == Player::PlayerType::STAT) {
+            ss << "Stat";
+        }
+        ss << "\"]\n";
+    }
+    if (game_info.first_pone_name != "") {
+        ss << "[FirstPone \"" + game_info.first_pone_name + "\"]\n";
+    }
+    if (game_info.first_pone_type != Player::PlayerType::NONE) {
+        ss << "[FirstPoneType \"";
+        if (game_info.first_pone_type == Player::PlayerType::HUMAN) {
+            ss << "Human";
+        } else if (game_info.first_pone_type == Player::PlayerType::RANDOM) {
+            ss << "Random";
+        } else if (game_info.first_pone_type == Player::PlayerType::STAT) {
+            ss << "Stat";
+        }
+        ss << "\"]\n";
+    }
+    if (game_info.result != GamePgn::GameResult::NONE) {
+        ss << "[Result \"";
+        if (game_info.result == GamePgn::GameResult::FIRST_DEALER) {
+            ss << "1-0";
+        } else if (game_info.result == GamePgn::GameResult::FIRST_PONE) {
+            ss << "0-1";
+        }
+        ss << "\"]\n"; 
+    }
+    return ss;
+}
+
+static std::stringstream make_pgn_round_tags(const GamePgn::Round& round) {
+    const std::string PGN_INDENT = "  ";  // Round tags indent
+    const std::string PGN_SPACING = "  ";  // Spacing between tag and value groups
+    std::stringstream ss;
+    if (round.hand1) {
+        ss << PGN_INDENT;
+        ss << "H1 " << round.hand1->to_string();
+        if (round.discards1) {
+            ss << PGN_SPACING << "D1 " << round.discards1->first << " "
+                << round.discards1->second;
+        }
+        if (round.hand1_score) {
+            ss << PGN_SPACING << "S1 " << *round.hand1_score;
+        }
+    }
+    if (round.hand2) {
+        ss << "\n" << PGN_INDENT;
+        ss << "H2 " << round.hand2->to_string();
+        if (round.discards2) {
+            ss << PGN_SPACING << "D2 " << round.discards2->first << " "
+                << round.discards2->second;
+        }
+        if (round.hand2_score) {
+            ss << PGN_SPACING << "S2 " << *round.hand2_score;
+        }
+    }
+    if (round.crib_score) {
+        ss << "\n" << PGN_INDENT;
+        ss << "SC " << *round.crib_score;
+    }
+    if (round.cut) {
+        ss << "\n" << PGN_INDENT;
+        ss << "C " << *round.cut;
+        if (round.cut_score) {
+            ss << PGN_SPACING << "SH " << *round.cut_score;
+        }
+    }
+    if (round.pegging_cards) {
+        ss << "\n" << PGN_INDENT;
+        ss << "P " << round.pegging_cards->to_string();
+    }
+    if (round.pegging_scores) {
+        ss << "\n" << PGN_INDENT;
+        ss << "SP ";
+        for (int score : round.pegging_scores.value()) {
+            ss << score << " ";
+        }
+    }
+    return ss;
+}
+
+static std::stringstream make_pgn_rounds(const std::vector<GamePgn::Round>& rounds) {
+    std::stringstream ss;
+    unsigned int round_idx = 1;
+    for (const GamePgn::Round& round : rounds) {
+        ss << round_idx << ".\n";
+        ss << make_pgn_round_tags(round).str();
+        if (round_idx != rounds.size()) {
+            ss << "\n\n";
+        }
+
+        round_idx++;
+    }
+    return ss;
 }
 
 /*
@@ -331,114 +466,15 @@ std::string pegging_cards_string(std::vector<Card> pegging_cards) {
  *
  */
 std::string GamePgn::make_pgn() const {
+    // TODO: Colorize the PGN
     std::stringstream pgn;
-    if (game_info.event != "") {
-        pgn << "[Event \"" + game_info.event + "\"]\n";
-    }
-    if (game_info.site != "") {
-        pgn << "[Site \"" + game_info.site + "\"]\n";
-    }
-    if (game_info.date != "") {
-        pgn << "[Date \"" + game_info.date + "\"]\n";
-    }
-    if (game_info.round != "") {
-        pgn << "[Round \"" + game_info.round + "\"]\n";
-    }
-    if (game_info.first_dealer_name != "") {
-        pgn << "[FirstDealer \"" + game_info.first_dealer_name + "\"]\n";
-    }
-    if (game_info.first_dealer_type != Player::PlayerType::NONE) {
-        pgn << "[FirstDealerType \"";
-        if (game_info.first_dealer_type == Player::PlayerType::HUMAN) {
-            pgn << "Human";
-        } else if (game_info.first_dealer_type == Player::PlayerType::RANDOM) {
-            pgn << "Random";
-        } else if (game_info.first_dealer_type == Player::PlayerType::STAT) {
-            pgn << "Stat";
-        }
-        pgn << "\"]\n";
-    }
-    if (game_info.first_pone_name != "") {
-        pgn << "[FirstPone \"" + game_info.first_pone_name + "\"]\n";
-    }
-    if (game_info.first_pone_type != Player::PlayerType::NONE) {
-        pgn << "[FirstPoneType \"";
-        if (game_info.first_pone_type == Player::PlayerType::HUMAN) {
-            pgn << "Human";
-        } else if (game_info.first_pone_type == Player::PlayerType::RANDOM) {
-            pgn << "Random";
-        } else if (game_info.first_pone_type == Player::PlayerType::STAT) {
-            pgn << "Stat";
-        }
-        pgn << "\"]\n";
-    }
-    if (game_info.result != GameResult::NONE) {
-        pgn << "[Result \"";
-        if (game_info.result == GameResult::FIRST_DEALER) {
-            pgn << "1-0";
-        } else if (game_info.result == GameResult::FIRST_PONE) {
-            pgn << "0-1";
-        }
-        pgn << "\"]\n";
-    }
+    pgn << make_pgn_info_tags(game_info).str();
 
-    int round_idx = 1;
-    for (const Round& round : rounds) {
-        pgn << round_idx << ".\n";
+    pgn << "\n";
 
-        if (round.hand1) {
-            pgn << "  ";
-            pgn << "H1 " << *round.hand1;
-            if (round.discards1) {
-                pgn << "D1 " << round.discards1->first << " "
-                    << round.discards1->second;
-            }
-            if (round.hand1_score) {
-                pgn << " S1 " << *round.hand1_score;
-            }
-            pgn << "\n";
-        }
+    pgn << make_pgn_rounds(rounds).str();
 
-        if (round.hand2) {
-            pgn << "  ";
-            pgn << "H2 " << *round.hand2;
-            if (round.discards2) {
-                pgn << "D2 " << round.discards2->first << " "
-                    << round.discards2->second;
-            }
-            if (round.hand2_score) {
-                pgn << " S2 " << *round.hand2_score;
-            }
-            pgn << "\n";
-        }
-
-        if (round.cut) {
-            pgn << "  ";
-            pgn << "C " << *round.cut;
-            if (round.cut_score) {
-                pgn << " SC " << *round.cut_score;
-            }
-            pgn << "\n";
-        }
-
-        if (round.pegging_cards) {
-            pgn << "  ";
-            pgn << "P ";
-            pgn << round.pegging_cards->to_string();
-            pgn << "\n";
-        }
-
-        if (round.pegging_scores) {
-            pgn << "  ";
-            pgn << "SP ";
-            for (int score : round.pegging_scores.value()) {
-                pgn << score << " ";
-            }
-            pgn << "\n";
-        }
-
-        round_idx++;
-    }
+    pgn << "\n";
 
     return pgn.str();
 }

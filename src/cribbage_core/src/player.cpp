@@ -67,7 +67,7 @@ std::pair<Card, Card> HumanPlayer::make_discards(
 RandomPlayer::RandomPlayer(std::string name) : Player(name) {}
 
 Card RandomPlayer::play_card(const CardPile& pile, const Hand& dealt_hand, Card cut) {
-    std::vector<Card> playable_cards(get_hand().size());
+    std::vector<Card> playable_cards;
     for (unsigned int i = 0; i < get_hand().size(); i++) {
         if (pile.can_play_card(get_hand()[i])) {
             playable_cards.push_back(get_hand()[i]);
@@ -78,8 +78,9 @@ Card RandomPlayer::play_card(const CardPile& pile, const Hand& dealt_hand, Card 
         throw std::runtime_error("No playable cards");
     }
     int i = CribbageRandom::get_instance()->get_int(0, playable_cards.size());
-    get_hand().remove_card(get_hand()[i]);
-    return get_hand()[i];
+    Card card = playable_cards[i];
+    get_hand().remove_card(card);
+    return card;
 }
 
 std::pair<Card, Card> RandomPlayer::make_discards(
@@ -88,8 +89,10 @@ std::pair<Card, Card> RandomPlayer::make_discards(
     int j = CribbageRandom::get_instance()->get_int(0, get_hand().size() - 1);
     if (j == i)
         j = get_hand().size() - 1;
+    std::pair<Card, Card> pair = {get_hand()[i], get_hand()[j]};
     get_hand().remove_card(get_hand()[i]);
-    return {get_hand()[i], get_hand()[j]};
+    get_hand().remove_card(get_hand()[j]);
+    return pair;
 }
 
 StatPlayer::StatPlayer(std::string name) : Player(name) {}

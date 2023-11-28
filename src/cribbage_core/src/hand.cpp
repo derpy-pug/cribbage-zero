@@ -40,9 +40,11 @@ Hand Hand::sort() const {
 
 std::string Hand::to_string() const {
     std::string str;
+    str.reserve(3 * cards.size());
     for (const Card& card : cards) {
         str += card.to_string() + " ";
     }
+    str.pop_back();
     return str;
 }
 
