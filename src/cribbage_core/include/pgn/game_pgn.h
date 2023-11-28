@@ -1,5 +1,6 @@
 #pragma once
 
+#include <istream>
 #include <optional>
 #include "card_pile.h"
 #include "hand.h"
@@ -12,14 +13,18 @@ namespace cribbage {
  */
 class GamePgn {
   public:
+    enum class GameResult { NONE = 0, WIN, LOSS };
+
     struct GameInfo {
         std::string event;
         std::string site;
         std::string date;
         std::string round;
-        std::string first_dealer;
-        std::string first_pone;
-        std::string result;
+        std::string first_dealer_name;
+        Player::PlayerType first_dealer_type;
+        std::string first_pone_name;
+        Player::PlayerType first_pone_type;
+        GameResult result;
     };
 
   public:
@@ -32,11 +37,17 @@ class GamePgn {
     class Round {
       public:
         Round() = default;
+        Round(const Round& other) = default;
+        Round(Round&& other) = default;
+        Round& operator=(const Round& other) = default;
+        Round& operator=(Round&& other) = default;
 
         void add_pegging_card(Card card);
         void add_pegging_score(int score);
 
       public:
+        int round_number;
+
         std::optional<Hand> hand1;
         std::optional<Hand> hand2;
         std::optional<int> hand1_score;
@@ -55,18 +66,18 @@ class GamePgn {
     };
 
   public:
-    GamePgn(Player* player1, Player* player2, GameInfo game_info);
+    GamePgn() = default;
+    GamePgn(GameInfo game_info);
     //~GamePgn() = default;
 
-    bool save();
-    bool load();
+    bool save(std::string filename);
+    static GamePgn load(std::istream pgn);
 
     void add_round(Round&& round);
     void add_round(const Round& round);
 
-    std::string make_pgn() const;
+    std::string make_pgn() const noexcept(false);
     friend std::ostream& operator<<(std::ostream& os, const GamePgn& game_pgn);
-
 
   private:
     Player* player1;
