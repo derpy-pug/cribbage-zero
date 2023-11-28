@@ -5,7 +5,7 @@
 
 namespace cribbage {
 
-enum class Player { ONE = 1, TWO };
+enum class WhichPlayer { FIRST_DEALER = 1, FIRST_PONE };
 
 /*
  * @brief Represents a cribbage board
@@ -22,7 +22,7 @@ class Board {
      * @param player The player whose peg to move
      * @param holes The number of holes to move the peg
      */
-    void move(Player player, int holes);
+    void move(WhichPlayer player, int holes);
 
     /*
      * @brief Returns the number of holes the given player's peg is from the end
@@ -31,7 +31,7 @@ class Board {
      *
      * @return The number of holes the given player's peg is from the end
      */
-    int get_holes_from_end(Player player) const;
+    int get_holes_from_end(WhichPlayer player) const;
 
     /*
      * @brief Returns the number of holes the given player's peg is from the start
@@ -40,7 +40,7 @@ class Board {
      *
      * @return The number of holes the given player's peg is from the start
      */
-    int get_holes_from_start(Player player) const;
+    int get_holes_from_start(WhichPlayer player) const;
 
     /*
      * @brief Gets the winner of the game, if there is one
@@ -48,7 +48,7 @@ class Board {
      * @return The winner of the game, if there is one
      *        std::nullopt if there is no winner
      */
-    std::optional<Player> get_winner() const;
+    std::optional<WhichPlayer> get_winner() const;
 
   private:
     struct peg_pair {
@@ -57,9 +57,9 @@ class Board {
     };
 
   private:
-    peg_pair& get_pegs(Player player);
+    peg_pair& get_pegs(WhichPlayer player);
 
-    const peg_pair& get_pegs(Player player) const;
+    const peg_pair& get_pegs(WhichPlayer player) const;
 
   private:
     peg_pair player1;

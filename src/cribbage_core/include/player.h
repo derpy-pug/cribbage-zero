@@ -29,6 +29,8 @@ class Player {
     virtual std::pair<Card, Card> make_discards(
         bool is_dealer, GenerateCribStatistics* gen_crib_stats) = 0;
 
+  public:
+    enum class PlayerType { NONE = 0, HUMAN, RANDOM, STAT };
   private:
     std::string name;
     Hand hand;
