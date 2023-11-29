@@ -5,12 +5,12 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include "util/parse.h"
 
 #define PGN_DIR "pgn/"
 
 static const std::array<std::string, 7> INFO_TAGS = {
   "event", "site", "date", "round", "firstdealer", "firstpone", "result"};
-
 
 /*
  * List of possible round tags.
@@ -64,6 +64,32 @@ bool GamePgn::save(std::string filename) const {
 }
 
 /*
+ * @brief Checks if the line is a tag.
+ *
+ * @param line The line to check.
+ *
+ * @return 0 if not a line number or the line number if it is.
+ */
+static int get_round_number(const std::string& line) {
+    // if tag is of the form "{number}.", then it is a round number
+    if (line.size() > 1 && line.back() == '.') {
+        for (unsigned int i = 0; i < line.size() - 1; i++) {
+            if (!isdigit(line[i])) {
+                return 0;
+            }
+        }
+        int line_number = std::stoi(line.substr(0, line.size() - 1));
+        if (line_number <= 0) {
+            std::cerr << "Error parsing round number on line " << line_number
+                      << std::endl;
+            throw std::invalid_argument("Invalid round number");
+        }
+        return line_number;
+    }
+    return 0;
+}
+
+/*
  * @brief Loads the game from PGN format.
  *
  * @param pgn The PGN file to load the game from.
@@ -74,51 +100,100 @@ bool GamePgn::save(std::string filename) const {
  *
  * @return The game loaded from the PGN file.
  */
-GamePgn GamePgn::load(std::istream pgn) {
+void GamePgn::load(std::stringstream& pgn) {
     std::string line;
     int line_number = 0;
 
-    GameInfo game_info;
+    GameInfo new_game_info;
     // Read the game info
     while (std::getline(pgn, line)) {
         line_number++;
         std::stringstream ss(line);
         std::string tag;
-        std::string value;
-        ss >> tag;
-        while (ss >> value) {
-            tag += " " + value;
+        if (!(ss >> tag)) {
+            continue;
         }
-        if (value.back() == ']' && value.size() > 1) {
+        // lower case the tag
+        std::transform(tag.begin(), tag.end(), tag.begin(), ::tolower);
+
+        std::string value;
+        std::string temp;
+        while (ss >> temp) {
+            if (temp == "]") {
+                break;
+            }
+            if (value.empty()) {
+                value = temp;
+            } else {
+                value += " " + temp;
+            }
+        }
+        if (value.size() > 1 && value.back() == ']') {
             value.pop_back();
         }
-        if (tag == "[Event") {
-            game_info.event = value;
-        } else if (tag == "[Site") {
-            game_info.site = value;
-        } else if (tag == "[Date") {
-            game_info.date = value;
-        } else if (tag == "[Round") {
-            game_info.round = value;
-        } else if (tag == "[FirstDealer") {
-            game_info.first_dealer_name = value;
-        } else if (tag == "[FirstPone") {
-            game_info.first_pone_name = value;
-        } else if (tag == "[Result") {
+        if (value.size() >= 2) {
+            if (value.front() == '"') {
+                value.erase(0, 1);
+            }
+            if (value.back() == '"') {
+                value.pop_back();
+            }
+        }
+
+        if (tag == "[event") {
+            new_game_info.event = value;
+        } else if (tag == "[site") {
+            new_game_info.site = value;
+        } else if (tag == "[date") {
+            new_game_info.date = value;
+        } else if (tag == "[round") {
+            new_game_info.round = value;
+        } else if (tag == "[firstdealer") {
+            new_game_info.first_dealer_name = value;
+        } else if (tag == "[firstdealertype") {
+            std::transform(value.begin(), value.end(), value.begin(),
+                           ::tolower);
+            if (value == "human") {
+                new_game_info.first_dealer_type = Player::PlayerType::HUMAN;
+            } else if (value == "random") {
+                new_game_info.first_dealer_type = Player::PlayerType::RANDOM;
+            } else if (value == "stat") {
+                new_game_info.first_dealer_type = Player::PlayerType::STAT;
+            } else {
+                std::cerr << "Error parsing first dealer type (" << value
+                          << ") on line " << line_number << std::endl;
+                new_game_info.first_dealer_type = Player::PlayerType::NONE;
+            }
+        } else if (tag == "[firstpone") {
+            new_game_info.first_pone_name = value;
+        } else if (tag == "[firstponetype") {
+            std::transform(value.begin(), value.end(), value.begin(),
+                           ::tolower);
+            if (value == "human") {
+                new_game_info.first_pone_type = Player::PlayerType::HUMAN;
+            } else if (value == "random") {
+                new_game_info.first_pone_type = Player::PlayerType::RANDOM;
+            } else if (value == "stat") {
+                new_game_info.first_pone_type = Player::PlayerType::STAT;
+            } else {
+                std::cerr << "Error parsing first pone type (" << value
+                          << ") on line " << line_number << std::endl;
+                new_game_info.first_pone_type = Player::PlayerType::NONE;
+            }
+        } else if (tag == "[result") {
             std::string result;
             ss >> result;
             if (value == "1-0") {
-                game_info.result = GameResult::FIRST_DEALER;
+                new_game_info.result = GameResult::FIRST_DEALER;
             } else if (value == "0-1") {
-                game_info.result = GameResult::FIRST_PONE;
+                new_game_info.result = GameResult::FIRST_PONE;
             } else {
-                game_info.result = GameResult::NONE;
+                new_game_info.result = GameResult::NONE;
             }
         } else if (tag[0] == '[') {
             // Ignore other tags
-            continue;
-        } else if (tag == "") {
-            // Ignore empty lines
+            std::cerr << "Unkown info tag " << tag << " on line " << line_number
+                      << std::endl;
             continue;
         } else {
             // Done reading game info
@@ -126,10 +201,11 @@ GamePgn GamePgn::load(std::istream pgn) {
         }
     }
 
-    GamePgn game_pgn(game_info);
+    this->game_info = new_game_info;
 
     Round round;
     int round_number = -1;
+    bool is_round_number = false;
     bool use_line = true;
     // Read the rounds
     while (use_line || std::getline(pgn, line)) {
@@ -138,56 +214,94 @@ GamePgn GamePgn::load(std::istream pgn) {
         }
         use_line = false;
         std::stringstream ss(line);
-        std::string tag;
-        ss >> tag;
 
-        // if tag is of the form "{number}.", then it is a round number
-        bool is_round_number = true;
-        if (tag.size() > 1) {
-            for (unsigned int i = 0; i < tag.size() - 1; i++) {
-                if (!isdigit(tag[i])) {
-                    is_round_number = false;
-                    break;
-                }
-            }
-            if (is_round_number && tag[tag.size() - 1] == '.') {
-                int new_round_number = std::stoi(tag.substr(0, tag.size() - 1));
-                if (round_number <= 0) {
-                    std::cerr << "Error parsing round number on line "
-                        << line_number << std::endl;
-                    throw std::invalid_argument("Invalid round number");
-                }
-                round_number = new_round_number;
+        {
+            std::stringstream ss_view(
+              line);  // Just to see if the line is a round number
+            std::string possible_round_number;
+            ss_view >> possible_round_number;
 
-            } else {
-                is_round_number = false;
+            round_number = get_round_number(possible_round_number);
+            is_round_number = round_number != 0;
+            if (is_round_number) {
+                if (round.round_number > 0) {
+                    // If this is not the first round
+                    add_round(round);
+                    round = Round();
+                }
+                round.round_number = round_number;
             }
-        } else {
-            is_round_number = false;
-        }
-        if (is_round_number) {
-            if (round.round_number != 0) { // If this is not the first round
-                game_pgn.add_round(round);
-                round = Round();
-            }
-            round.round_number = round_number;
         }
 
-        // Read the rounds
+        // Read the line
         std::string value;
         Hand hand;
         CardPile pegging_cards;
         std::vector<int> pegging_scores;
         while (ss >> value) {
+            if (is_round_number) {
+                is_round_number = false;
+                continue;
+            }
             // If the value is a tag, update the tag and update round values
             if (std::find(ROUND_TAGS.begin(), ROUND_TAGS.end(), value) !=
                 ROUND_TAGS.end()) {
                 switch (value[0]) {
                     case 'H': {
                         if (value == "H1") {
+                            std::stringstream ss_view(line);
+                            std::string temp;
+                            while (ss_view >> temp) {
+                                if (temp == "H1") {
+                                    break;
+                                }
+                            }
+                            temp.clear();
+                            while (ss_view >> value) {
+                                if (std::find(ROUND_TAGS.begin(),
+                                              ROUND_TAGS.end(),
+                                              value) != ROUND_TAGS.end()) {
+                                    break;
+                                }
+                                ss >> value;
+                                temp += value;  // No spacing necessary
+                            }
+                            try {
+                                hand = parse_hand(temp);
+                            } catch (std::invalid_argument& e) {
+                                std::cerr << "Error parsing hand " << value
+                                          << " on line " << line_number
+                                          << std::endl;
+                                throw e;
+                            }
                             round.hand1 = hand;
                             hand = Hand();
                         } else if (value == "H2") {
+                            std::stringstream ss_view(line);
+                            std::string temp;
+                            while (ss_view >> temp) {
+                                if (temp == "H2") {
+                                    break;
+                                }
+                            }
+                            temp.clear();
+                            while (ss_view >> value) {
+                                if (std::find(ROUND_TAGS.begin(),
+                                              ROUND_TAGS.end(),
+                                              value) != ROUND_TAGS.end()) {
+                                    break;
+                                }
+                                ss >> value;
+                                temp += value;  // No spacing necessary
+                            }
+                            try {
+                                hand = parse_hand(temp);
+                            } catch (std::invalid_argument& e) {
+                                std::cerr << "Error parsing hand " << value
+                                          << " on line " << line_number
+                                          << std::endl;
+                                throw e;
+                            }
                             round.hand2 = hand;
                             hand = Hand();
                         }
@@ -275,7 +389,7 @@ GamePgn GamePgn::load(std::istream pgn) {
                             int score;
                             ss >> score;
                             round.cut_score = score;
-                        } else if (value == "SP"){
+                        } else if (value == "SP") {
                             int score;
                             while (ss >> score) {
                                 pegging_scores.emplace_back(score);
@@ -286,21 +400,12 @@ GamePgn GamePgn::load(std::istream pgn) {
                     }
                 }
             } else {
-                // Otherwise, add the value to the hand
-                try {
-                    Card card = Card(value);
-                    hand.add_card(card);
-                } catch (std::invalid_argument& e) {
-                    std::cerr << "Error parsing card " << value << " on line "
-                              << line_number << std::endl;
-                    throw e;
-                }
+                std::cerr << "Error parsing line " << line_number << std::endl;
+                throw std::invalid_argument("Invalid line/tag");
             }
         }
     }
-    game_pgn.add_round(round);
-
-    return game_pgn;
+    add_round(round);
 }
 
 void GamePgn::add_round(Round&& round) {
@@ -319,7 +424,8 @@ static std::string pegging_cards_string(std::vector<Card> pegging_cards) {
     return ss.str();
 }
 
-static std::stringstream make_pgn_info_tags(const GamePgn::GameInfo& game_info) {
+static std::stringstream make_pgn_info_tags(
+  const GamePgn::GameInfo& game_info) {
     std::stringstream ss;
     if (game_info.event != "") {
         ss << "[Event \"" + game_info.event + "\"]\n";
@@ -368,21 +474,22 @@ static std::stringstream make_pgn_info_tags(const GamePgn::GameInfo& game_info) 
         } else if (game_info.result == GamePgn::GameResult::FIRST_PONE) {
             ss << "0-1";
         }
-        ss << "\"]\n"; 
+        ss << "\"]\n";
     }
     return ss;
 }
 
 static std::stringstream make_pgn_round_tags(const GamePgn::Round& round) {
     const std::string PGN_INDENT = "  ";  // Round tags indent
-    const std::string PGN_SPACING = "  ";  // Spacing between tag and value groups
+    const std::string PGN_SPACING =
+      "  ";  // Spacing between tag and value groups
     std::stringstream ss;
     if (round.hand1) {
         ss << PGN_INDENT;
         ss << "H1 " << round.hand1->to_string();
         if (round.discards1) {
             ss << PGN_SPACING << "D1 " << round.discards1->first << " "
-                << round.discards1->second;
+               << round.discards1->second;
         }
         if (round.hand1_score) {
             ss << PGN_SPACING << "S1 " << *round.hand1_score;
@@ -393,7 +500,7 @@ static std::stringstream make_pgn_round_tags(const GamePgn::Round& round) {
         ss << "H2 " << round.hand2->to_string();
         if (round.discards2) {
             ss << PGN_SPACING << "D2 " << round.discards2->first << " "
-                << round.discards2->second;
+               << round.discards2->second;
         }
         if (round.hand2_score) {
             ss << PGN_SPACING << "S2 " << *round.hand2_score;
@@ -424,7 +531,8 @@ static std::stringstream make_pgn_round_tags(const GamePgn::Round& round) {
     return ss;
 }
 
-static std::stringstream make_pgn_rounds(const std::vector<GamePgn::Round>& rounds) {
+static std::stringstream make_pgn_rounds(
+  const std::vector<GamePgn::Round>& rounds) {
     std::stringstream ss;
     unsigned int round_idx = 1;
     for (const GamePgn::Round& round : rounds) {

@@ -13,7 +13,7 @@ static std::unordered_map<int, int> score_table_cache;
 // Used for getting the key for the score table
 static char primes[14] = {0, 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37};
 
-int get_hand_ranks_key(int hand[5]) {
+int get_hand_ranks_key(const int hand[5]) {
     int key = 1;
     for (int i = 0; i < 5; i++) {
         key *= primes[hand[i]];
@@ -163,10 +163,11 @@ int score_runs_15s_pairs(const Hand& hand, Card cut) {
 
 int score_flush(const Hand& hand, Card cut, bool is_crib) {
     Suit suit = hand[0].get_suit();
-    for (const Card& card : hand) {
-        if (card.get_suit() != suit) {
-            return 0;
-        }
+    bool not_flush = std::any_of(hand.begin(), hand.end(), [suit](const Card& card) {
+        return card.get_suit() != suit;
+    });
+    if (not_flush) {
+        return 0;
     }
     if (cut.get_suit() == suit) {
         return 5;
@@ -178,13 +179,9 @@ int score_flush(const Hand& hand, Card cut, bool is_crib) {
 }
 
 int score_knob(const Hand& hand, Card cut) {
-    for (const Card& card : hand) {
-        if (card.get_rank() == Rank::JACK &&
-            card.get_suit() == cut.get_suit()) {
-            return 1;
-        }
-    }
-    return 0;
+    return std::any_of(hand.begin(), hand.end(), [cut](const Card& card) {
+        return card.get_rank() == Rank::JACK && card.get_suit() == cut.get_suit();
+    });
 }
 
 int score_hand_suitless(const Hand& hand, Card cut) {

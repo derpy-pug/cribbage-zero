@@ -16,6 +16,8 @@ class GamePgn {
     enum class GameResult { NONE = 0, FIRST_DEALER, FIRST_PONE };
 
     struct GameInfo {
+        GameInfo() = default;
+
         std::string event;
         std::string site;
         std::string date;
@@ -46,7 +48,7 @@ class GamePgn {
         void add_pegging_score(int score);
 
       public:
-        int round_number;
+        int round_number = 0;
 
         std::optional<Hand> hand1;
         std::optional<Hand> hand2;
@@ -71,7 +73,7 @@ class GamePgn {
     //~GamePgn() = default;
 
     bool save(std::string filename) const;
-    static GamePgn load(std::istream pgn);
+    void load(std::stringstream& pgn);
 
     void add_round(Round&& round);
     void add_round(const Round& round);
