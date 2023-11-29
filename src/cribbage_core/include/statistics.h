@@ -169,6 +169,37 @@ class DiscardStatistics {
     ScoreDistributionTable score_dist_combined;
 };
 
+class AllDiscardStatistics {
+  public:
+    AllDiscardStatistics();
+
+    friend class GenerateDiscardStatistics;
+
+    void sort_discard_stats(ScoreType score_type = ScoreType::COMBINED,
+                            Statistic stat = Statistic::MEAN);
+
+    /*
+     * @brief Get the best discard statistics.
+     *
+     * @important This should only be called after sort_discard_stats() has been
+     *           called.
+     *
+     * @return The best discard statistics.
+     */
+    const DiscardStatistics& get_best_discard_stats() const;
+    const DiscardStatistics& get_discard_stats(Card discard1,
+                                               Card discard2) const;
+
+    std::string get_discard_stats_string(int num_discard_stats = 15) const;
+    void print_discard_stats(int num_discard_stats = 15) const;
+
+    friend std::ostream& operator<<(
+      std::ostream& os, const AllDiscardStatistics& all_discard_stats);
+
+  private:
+    std::vector<DiscardStatistics> discard_stats;
+};
+
 class StatisticTable {
   public:
     StatisticTable();

@@ -120,9 +120,11 @@ std::pair<Card, Card> StatPlayer::make_discards(
   bool is_dealer, const CribDiscardProbabilities& crib_discard_probs) {
     GenerateDiscardStatistics gen_discard(this, is_dealer, crib_discard_probs);
     gen_discard.generate_all_discard_stats();
-    gen_discard.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
+
+    AllDiscardStatistics all_discard_stats = gen_discard.get_all_discard_stats();
+    all_discard_stats.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
     const DiscardStatistics& discard_stats =
-      gen_discard.get_best_discard_stats();
+      all_discard_stats.get_best_discard_stats();
     get_hand().remove_card(discard_stats.get_discard1());
     get_hand().remove_card(discard_stats.get_discard2());
     return {discard_stats.get_discard1(), discard_stats.get_discard2()};

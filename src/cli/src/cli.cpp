@@ -1,6 +1,6 @@
 #include <algorithm>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 #include "cli.h"
@@ -47,9 +47,11 @@ void test_stats() {
     Hand hand2 = deck.deal_hand(6);
     hand2.sort();
 
-    auto p1 = PlayerFactory::create_player(PlayerInfo{"Staples", PlayerType::STAT});
+    auto p1 =
+      PlayerFactory::create_player(PlayerInfo{"Staples", PlayerType::STAT});
     p1->set_hand(hand1);
-    auto p2 = PlayerFactory::create_player(PlayerInfo{"Stanley", PlayerType::STAT});
+    auto p2 =
+      PlayerFactory::create_player(PlayerInfo{"Stanley", PlayerType::STAT});
     p2->set_hand(hand2);
 
     GenerateCribStatistics gen_stats(p1.get(), p2.get());
@@ -61,9 +63,12 @@ void test_stats() {
     std::cout << "Hand: " << hand1 << std::endl;
     GenerateDiscardStatistics gen_discard(p1.get(), false, probs);
     gen_discard.generate_all_discard_stats();
-    gen_discard.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
+
+    AllDiscardStatistics all_discard_stats =
+      gen_discard.get_all_discard_stats();
+    all_discard_stats.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
     const DiscardStatistics& discard_stats =
-        gen_discard.get_best_discard_stats();
+      all_discard_stats.get_best_discard_stats();
     // std::cout << discard_stats << std::endl;
 
     // std::cout << gen_discard << std::endl;
@@ -180,7 +185,7 @@ std::optional<Card> ParseCommandLineArgs::get_cut() const {
 }
 
 std::optional<std::pair<Card, Card>> ParseCommandLineArgs::get_discards()
-    const {
+  const {
     if (!input_discards) {
         return std::nullopt;
     }
@@ -232,7 +237,6 @@ int cli_game(const ParseCommandLineArgs& args) {
     pgn.load(buffer);
     std::cout << pgn << std::endl;
 
-
     return 0;
 }
 
@@ -263,7 +267,6 @@ int cli_discard_stats(const ParseCommandLineArgs& args) {
     auto table = args.get_table();
     int top_discards = args.get_top_discards();
 
-    
     PlayerInfo p1_info{"Staples", PlayerType::STAT};
     PlayerInfo p2_info{"Stanley", PlayerType::STAT};
     std::unique_ptr<Player> p1 = PlayerFactory::create_player(p1_info);
@@ -289,17 +292,22 @@ int cli_discard_stats(const ParseCommandLineArgs& args) {
 
     GenerateDiscardStatistics gen_discard(p1.get(), is_dealer, probs);
     gen_discard.generate_all_discard_stats(cut);
-    gen_discard.sort_discard_stats(sort_by.second, sort_by.first);
+
+    AllDiscardStatistics all_discard_stats =
+      gen_discard.get_all_discard_stats();
+
+    all_discard_stats.sort_discard_stats(sort_by.second, sort_by.first);
 
     /* const DiscardStatistics& discard_stats_best = */
     /*     gen_discard.get_best_discard_stats(); */
 
     if (discards) {
         const DiscardStatistics& discard_stats =
-            gen_discard.get_discard_stats(discards->first, discards->second);
+          all_discard_stats.get_discard_stats(discards->first,
+                                              discards->second);
         std::cout << discard_stats << std::endl;
     } else {
-        std::cout << gen_discard.get_discard_stats_string(top_discards)
+        std::cout << all_discard_stats.get_discard_stats_string(top_discards)
                   << std::endl;
     }
 

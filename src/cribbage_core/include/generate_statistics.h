@@ -91,27 +91,9 @@ class GenerateDiscardStatistics {
                                     bool use_simulated = false,
                                     Player* opponent = nullptr);
 
-    const DiscardStatistics& get_discard_stats(Card discard1,
-                                               Card discard2) const;
-
-    void sort_discard_stats(ScoreType score_type = ScoreType::COMBINED,
-                            Statistic stat = Statistic::MEAN);
-
-    /*
-     * @brief Get the best discard statistics.
-     *
-     * @important This should only be called after sort_discard_stats() has been
-     *           called.
-     *
-     * @return The best discard statistics.
-     */
-    const DiscardStatistics& get_best_discard_stats() const;
-
-    std::string get_discard_stats_string(int num_discard_stats = 15) const;
-    void print_discard_stats(int num_discard_stats = 15) const;
-
-    friend std::ostream& operator<<(
-      std::ostream& os, const GenerateDiscardStatistics& gen_discard_stats);
+    AllDiscardStatistics get_all_discard_stats() const {
+        return all_discard_stats;
+    }
 
   private:
     /*
@@ -146,7 +128,7 @@ class GenerateDiscardStatistics {
       Player* opponent = nullptr);
 
   private:
-    std::vector<DiscardStatistics> discard_stats;
+    AllDiscardStatistics all_discard_stats;
     Player* player;
     bool is_dealer;
     const CribDiscardProbabilities& crib_discard_probs;
