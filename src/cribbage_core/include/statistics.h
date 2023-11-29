@@ -27,7 +27,6 @@ class ScoreDistributionTable {
   public:
     ScoreDistributionTable();
     ScoreDistributionTable(int min, int max);
-    //~ScoreDistributionTable() = default;
 
     ScoreDistributionTable(const ScoreDistributionTable& other) = default;
     ScoreDistributionTable(ScoreDistributionTable&& other) = default;
