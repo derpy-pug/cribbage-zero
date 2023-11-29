@@ -47,18 +47,20 @@ void test_stats() {
     Hand hand2 = deck.deal_hand(6);
     hand2.sort();
 
-    Player* p1 = new StatPlayer("Staples");
+    auto p1 = PlayerFactory::create_player(PlayerInfo{"Staples", PlayerType::STAT});
     p1->set_hand(hand1);
-    Player* p2 = new StatPlayer("Stanley");
+    auto p2 = PlayerFactory::create_player(PlayerInfo{"Stanley", PlayerType::STAT});
     p2->set_hand(hand2);
 
-    GenerateCribStatistics gen_stats(p1, p2);
-    std::string dirname = TABLE_DIR + std::string("stat_vs_stat/");
-    gen_stats.load_tables(dirname);
+    GenerateCribStatistics gen_stats(p1.get(), p2.get());
+    /* std::string dirname = TABLE_DIR + std::string("stat_vs_stat/"); */
+    gen_stats.get_stat_table().load_tables(std::nullopt);
+
+    CribDiscardProbabilities probs = gen_stats.get_crib_discard_probs();
 
     std::cout << "Hand: " << hand1 << std::endl;
-    GenerateDiscardStatistics gen_discard(p1, false, &gen_stats);
-    gen_discard.generate_discard_stats();
+    GenerateDiscardStatistics gen_discard(p1.get(), false, probs);
+    gen_discard.generate_all_discard_stats();
     gen_discard.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
     const DiscardStatistics& discard_stats =
         gen_discard.get_best_discard_stats();
@@ -207,13 +209,17 @@ int ParseCommandLineArgs::get_top_discards() const {
 }
 
 int cli_game(const ParseCommandLineArgs& args) {
-    std::unique_ptr<Player> p1 = std::make_unique<StatPlayer>("Staples");
-    std::unique_ptr<Player> p2 = std::make_unique<StatPlayer>("Stanley");
+    PlayerInfo p1_info{"Staples", PlayerType::STAT};
+    PlayerInfo p2_info{"Stanley", PlayerType::STAT};
+    std::unique_ptr<Player> p1 = PlayerFactory::create_player(p1_info);
+    std::unique_ptr<Player> p2 = PlayerFactory::create_player(p2_info);
 
     GenerateCribStatistics gen_stats(p1.get(), p2.get());
-    gen_stats.load_tables(args.get_table());
+    gen_stats.get_stat_table().load_tables(args.get_table());
 
-    Game game(p1.get(), p2.get(), &gen_stats);
+    CribDiscardProbabilities probs = gen_stats.get_crib_discard_probs();
+
+    Game game(p1.get(), p2.get(), probs);
     game.play_game();
 
     /* std::cout << game.get_pgn() << std::endl; */
@@ -257,28 +263,32 @@ int cli_discard_stats(const ParseCommandLineArgs& args) {
     auto table = args.get_table();
     int top_discards = args.get_top_discards();
 
-    std::unique_ptr<Player> p1 = std::make_unique<StatPlayer>("Staples");
-    std::unique_ptr<Player> p2 = std::make_unique<StatPlayer>("Stanley");
+    
+    PlayerInfo p1_info{"Staples", PlayerType::STAT};
+    PlayerInfo p2_info{"Stanley", PlayerType::STAT};
+    std::unique_ptr<Player> p1 = PlayerFactory::create_player(p1_info);
+    std::unique_ptr<Player> p2 = PlayerFactory::create_player(p2_info);
 
     GenerateCribStatistics gen_stats(p1.get(), p2.get());
-    int num_tables_loaded = gen_stats.load_tables(table);
+    int num_tables_loaded = gen_stats.get_stat_table().load_tables(table);
     /* if (num_tables_loaded == 0) { */
     /*   std::cout << "No tables found. Generating tables." << std::endl; */
-    /*   gen_stats.generate_all_tables(); */
+    /*   gen_stats.generate_probabilities(); */
     /*   gen_stats.save_tables(dirname); */
     /* } */
     if (num_tables_loaded == 0) {
         std::cout << "No tables found. Exiting." << std::endl;
         return 1;
     }
+    CribDiscardProbabilities probs = gen_stats.get_crib_discard_probs();
 
     p1->set_hand(hand);
     std::cout << "Hand: " << hand << std::endl;
     std::cout << "Your Crib: " << (is_dealer ? "Yes" : "No") << std::endl;
     std::cout << std::endl;
 
-    GenerateDiscardStatistics gen_discard(p1.get(), is_dealer, &gen_stats);
-    gen_discard.generate_discard_stats(cut);
+    GenerateDiscardStatistics gen_discard(p1.get(), is_dealer, probs);
+    gen_discard.generate_all_discard_stats(cut);
     gen_discard.sort_discard_stats(sort_by.second, sort_by.first);
 
     /* const DiscardStatistics& discard_stats_best = */
@@ -294,7 +304,7 @@ int cli_discard_stats(const ParseCommandLineArgs& args) {
     }
 
     // Simulate discards
-    /* GenerateDiscardStatistics gen_discard_sim(p1, is_dealer, &gen_stats); */
+    /* GenerateDiscardStatistics gen_discard_sim(p1, is_dealer, probs); */
     /* gen_discard_sim.generate_discard_stats(cut, true, p2); */
     /* gen_discard_sim.sort_discard_stats(sort_by.second, sort_by.first); */
 
@@ -373,8 +383,8 @@ int cli_main(int argc, char** argv) {
 
     ParseCommandLineArgs args(argc, argv);
 
-    /* int ret = cli_discard_stats(args); */
-    int ret = cli_game(args);
+    int ret = cli_discard_stats(args);
+    /* int ret = cli_game(args); */
 
     return ret;
 }

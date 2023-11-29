@@ -28,46 +28,44 @@ float GenerateCribStatistics::get_mean_counting_flush(Card card1, Card card2,
                                              0.018445, 0.011528};
         extra_flush = flush_probs[num_flush_cards];
     }
-    if (!mean_tables_generated) {
-        generate_mean_tables();
-    }
     if (is_dealer) {
-        return mean_table.get_dealer_crib(card1.get_rank_int() - 1,
+        return stat_table.mean_table.get_dealer_crib(card1.get_rank_int() - 1,
                                           card2.get_rank_int() - 1) +
                extra_flush;
     } else {
-        return mean_table.get_opp_crib(card1.get_rank_int() - 1,
+        return stat_table.mean_table.get_opp_crib(card1.get_rank_int() - 1,
                                        card2.get_rank_int() - 1) +
                extra_flush;
     }
 }
 
-void GenerateCribStatistics::generate_all_tables() {
-    generate_freq_tables();
-    generate_all_but_freq_tables();
+void GenerateCribStatistics::generate_probabilities() {
+    generate_discard_probabilities();
 }
 
-void GenerateCribStatistics::generate_all_but_freq_tables() {
-    generate_max_min_tables();
-    generate_mean_tables();
-    generate_median_tables();
-    generate_variance_tables();
-    generate_std_dev_tables();
+void GenerateCribStatistics::calculate_stats() {
+    calculate_discard_score_distribution();
+    calculate_other_stats();
 }
 
-void GenerateCribStatistics::generate_mean_tables() {
-    if (!freq_tables_generated) {
-        generate_freq_tables();
-    }
-    freq_tables_generated = true;
+void GenerateCribStatistics::calculate_other_stats() {
+    // Order matters
+    calculate_max_min_tables();
+    calculate_mean_tables();
+    calculate_median_tables();
+    calculate_variance_tables();
+    calculate_std_dev_tables();
+}
+
+void GenerateCribStatistics::calculate_mean_tables() {
     for (int i = 0; i < 13; i++) {
         for (int j = i; j < 13; j++) {
             for (int t = 0; t < 2; t++) {
                 const ScoreDistributionTable& current_score_dist_table_my_crib =
-                    t == 0 ? score_dist_table.get_dealer_crib(i, j)
-                           : score_dist_table.get_opp_crib(i, j);
-                float& mean = t == 0 ? mean_table.get_dealer_crib(i, j)
-                                     : mean_table.get_opp_crib(i, j);
+                  t == 0 ? stat_table.score_dist_table.get_dealer_crib(i, j)
+                         : stat_table.score_dist_table.get_opp_crib(i, j);
+                float& mean = t == 0 ? stat_table.mean_table.get_dealer_crib(i, j)
+                                     : stat_table.mean_table.get_opp_crib(i, j);
 
                 mean = 0;
                 for (int k = 0; k < 30; k++) {
@@ -78,18 +76,15 @@ void GenerateCribStatistics::generate_mean_tables() {
     }
 }
 
-void GenerateCribStatistics::generate_median_tables() {
-    if (!freq_tables_generated) {
-        generate_freq_tables();
-    }
+void GenerateCribStatistics::calculate_median_tables() {
     for (int i = 0; i < 13; i++) {
         for (int j = i; j < 13; j++) {
             for (int t = 0; t < 2; t++) {
                 const ScoreDistributionTable& current_score_dist_table_my_crib =
-                    t == 0 ? score_dist_table.get_dealer_crib(i, j)
-                           : score_dist_table.get_opp_crib(i, j);
-                int& table_median = t == 0 ? median_table.get_dealer_crib(i, j)
-                                           : median_table.get_opp_crib(i, j);
+                  t == 0 ? stat_table.score_dist_table.get_dealer_crib(i, j)
+                         : stat_table.score_dist_table.get_opp_crib(i, j);
+                int& table_median = t == 0 ? stat_table.median_table.get_dealer_crib(i, j)
+                                           : stat_table.median_table.get_opp_crib(i, j);
 
                 float median = 0;
                 float sum = 0;
@@ -106,22 +101,18 @@ void GenerateCribStatistics::generate_median_tables() {
     }
 }
 
-void GenerateCribStatistics::generate_variance_tables() {
-    if (!mean_tables_generated) {
-        generate_mean_tables();
-    }
-    variance_tables_generated = true;
+void GenerateCribStatistics::calculate_variance_tables() {
     for (int i = 0; i < 13; i++) {
         for (int j = i; j < 13; j++) {
             for (int t = 0; t < 2; t++) {
                 const ScoreDistributionTable& current_score_dist_table_my_crib =
-                    t == 0 ? score_dist_table.get_dealer_crib(i, j)
-                           : score_dist_table.get_opp_crib(i, j);
-                float& variance = t == 0 ? variance_table.get_dealer_crib(i, j)
-                                         : variance_table.get_opp_crib(i, j);
+                  t == 0 ? stat_table.score_dist_table.get_dealer_crib(i, j)
+                         : stat_table.score_dist_table.get_opp_crib(i, j);
+                float& variance = t == 0 ? stat_table.variance_table.get_dealer_crib(i, j)
+                                         : stat_table.variance_table.get_opp_crib(i, j);
 
-                float mean = i == 0 ? mean_table.get_dealer_crib(i, j)
-                                    : mean_table.get_opp_crib(i, j);
+                float mean = i == 0 ? stat_table.mean_table.get_dealer_crib(i, j)
+                                    : stat_table.mean_table.get_opp_crib(i, j);
                 variance = 0;
                 for (int k = 0; k < 30; k++) {
                     variance += (k - mean) * (k - mean) *
@@ -132,40 +123,33 @@ void GenerateCribStatistics::generate_variance_tables() {
     }
 }
 
-void GenerateCribStatistics::generate_std_dev_tables() {
-    if (!variance_tables_generated) {
-        generate_variance_tables();
-    }
-    variance_tables_generated = true;
+void GenerateCribStatistics::calculate_std_dev_tables() {
     for (int i = 0; i < 13; i++) {
         for (int j = i; j < 13; j++) {
             ScoreDistributionTable current_score_dist_table_my_crib =
-                score_dist_table.get_dealer_crib(i, j);
-            float variance = variance_table.get_dealer_crib(i, j);
-            std_dev_table.get_dealer_crib(i, j) = sqrt(variance);
+              stat_table.score_dist_table.get_dealer_crib(i, j);
+            float variance = stat_table.variance_table.get_dealer_crib(i, j);
+            stat_table.std_dev_table.get_dealer_crib(i, j) = sqrt(variance);
 
             ScoreDistributionTable current_score_dist_table_opp_crib =
-                score_dist_table.get_opp_crib(i, j);
-            variance = variance_table.get_opp_crib(i, j);
-            std_dev_table.get_opp_crib(i, j) = sqrt(variance);
+              stat_table.score_dist_table.get_opp_crib(i, j);
+            variance = stat_table.variance_table.get_opp_crib(i, j);
+            stat_table.std_dev_table.get_opp_crib(i, j) = sqrt(variance);
         }
     }
 }
 
-void GenerateCribStatistics::generate_max_min_tables() {
-    if (!freq_tables_generated) {
-        generate_freq_tables();
-    }
+void GenerateCribStatistics::calculate_max_min_tables() {
     for (int i = 0; i < 13; i++) {
         for (int j = i; j < 13; j++) {
             for (int t = 0; t < 2; t++) {
                 const ScoreDistributionTable& current_score_dist_table_my_crib =
-                    t == 0 ? score_dist_table.get_dealer_crib(i, j)
-                           : score_dist_table.get_opp_crib(i, j);
-                int& max = t == 0 ? max_table.get_dealer_crib(i, j)
-                                  : max_table.get_opp_crib(i, j);
-                int& min = t == 0 ? min_table.get_dealer_crib(i, j)
-                                  : min_table.get_opp_crib(i, j);
+                  t == 0 ? stat_table.score_dist_table.get_dealer_crib(i, j)
+                         : stat_table.score_dist_table.get_opp_crib(i, j);
+                int& max = t == 0 ? stat_table.max_table.get_dealer_crib(i, j)
+                                  : stat_table.max_table.get_opp_crib(i, j);
+                int& min = t == 0 ? stat_table.min_table.get_dealer_crib(i, j)
+                                  : stat_table.min_table.get_opp_crib(i, j);
 
                 max = 0;
                 min = 0;
@@ -186,27 +170,20 @@ void GenerateCribStatistics::generate_max_min_tables() {
     }
 }
 
-void GenerateCribStatistics::generate_freq_tables() {
-    generate_unscored_freq_tables();
-    is_freq_table_loaded = false;
-    generate_scored_freq_tables();
-    freq_tables_generated = true;
-}
-
-void GenerateCribStatistics::generate_unscored_freq_tables() {
+void GenerateCribStatistics::generate_discard_probabilities() {
     std::cout << "Generating Tables..." << std::endl;
     Deck deck;
     deck.shuffle();
+
+    CribDiscardProbabilities generating_prob_table = stat_table.prob_table;
+
     int total_games = 2 << 19;
     int epochs = 16;
     int num_games_in_epoch = total_games / epochs;
     for (int epoch = 0; epoch < epochs; epoch++) {
-        for (int i = 0; i < 13; i++) {
-            for (int j = i; j < 13; j++) {
-                freq_table.get_dealer_crib(i, j) *= freq_num_games;
-                freq_table.get_opp_crib(i, j) *= freq_num_games;
-            }
-        }
+
+        generating_prob_table.to_freq_table();
+
         for (int i = 0; i < num_games_in_epoch; i++) {
             // Print Percentage
             if (num_games_in_epoch > 10 &&
@@ -225,42 +202,31 @@ void GenerateCribStatistics::generate_unscored_freq_tables() {
             Hand dealer_hand = deck.deal_hand(6);
             dealer->set_hand(dealer_hand);
             auto [dealer_discard1, dealer_discard2] =
-                dealer->make_discards(true, this);
-            int freq_i = dealer_discard1.get_rank_int() - 1;
-            int freq_j = dealer_discard2.get_rank_int() - 1;
-            if (freq_i > freq_j) {
-                std::swap(freq_i, freq_j);
-            }
-            freq_table.get_dealer_crib(freq_i, freq_j)++;
+              dealer->make_discards(true, stat_table.prob_table);
+            generating_prob_table.get_table_value(
+              dealer_discard1.get_rank(), dealer_discard2.get_rank(), true)++;
 
             Hand pone_hand = deck.deal_hand(6);
             pone->set_hand(pone_hand);
             auto [pone_discard1, pone_discard2] =
-                pone->make_discards(false, this);
-            freq_i = pone_discard1.get_rank_int() - 1;
-            freq_j = pone_discard2.get_rank_int() - 1;
-            if (freq_i > freq_j) {
-                std::swap(freq_i, freq_j);
-            }
-            freq_table.get_opp_crib(freq_i, freq_j)++;
+              pone->make_discards(false, stat_table.prob_table);
+            generating_prob_table.get_table_value(
+              pone_discard1.get_rank(), pone_discard2.get_rank(), false)++;
         }
 
-        freq_num_games += num_games_in_epoch;
+        generating_prob_table.num_sim_discards += num_games_in_epoch;
 
-        for (int i = 0; i < 13; i++) {
-            for (int j = i; j < 13; j++) {
-                freq_table.get_dealer_crib(i, j) /= freq_num_games;
-                freq_table.get_opp_crib(i, j) /= freq_num_games;
-            }
-        }
+        generating_prob_table.to_prob_table();
+
+        stat_table.prob_table = generating_prob_table;
     }
 }
 
-void GenerateCribStatistics::generate_scored_freq_tables() {
+void GenerateCribStatistics::calculate_discard_score_distribution() {
     for (int i = 0; i < 13; i++) {
         for (int j = i; j < 13; j++) {
-            score_dist_table.get_dealer_crib(i, j).clear();
-            score_dist_table.get_opp_crib(i, j).clear();
+            stat_table.score_dist_table.get_dealer_crib(i, j).clear();
+            stat_table.score_dist_table.get_opp_crib(i, j).clear();
         }
     }
     const Deck deck;  // For cut card
@@ -268,13 +234,14 @@ void GenerateCribStatistics::generate_scored_freq_tables() {
         for (int j = i; j < 13; j++) {
             for (int t = 0; t < 2; t++) {
                 ScoreDistributionTable& current_score_freq_table =
-                    t == 0 ? score_dist_table.get_dealer_crib(i, j)
-                           : score_dist_table.get_opp_crib(i, j);
+                  t == 0 ? stat_table.score_dist_table.get_dealer_crib(i, j)
+                         : stat_table.score_dist_table.get_opp_crib(i, j);
 
                 for (int k = 0; k < 13; k++) {
                     for (int l = k; l < 13; l++) {
-                        float freq = t == 0 ? freq_table.get_dealer_crib(k, l)
-                                            : freq_table.get_opp_crib(k, l);
+                        float freq =
+                          t == 0 ? stat_table.prob_table.get_table_value(k, l, true)
+                                 : stat_table.prob_table.get_table_value(k, l, false);
                         for (auto it = deck.cbegin(); it != deck.cbegin() + 13;
                              ++it) {
                             Card cut = *it;
@@ -320,9 +287,9 @@ void GenerateCribStatistics::generate_scored_freq_tables() {
                                                static_cast<Rank>(l + 1)));
                             int score = score_hand_suitless(hand, cut);
                             current_score_freq_table[score] +=
-                                (1 - knob_prob) * cut_prob * freq;
+                              (1 - knob_prob) * cut_prob * freq;
                             current_score_freq_table[score + 1] +=
-                                (knob_prob)*cut_prob * freq;
+                              (knob_prob)*cut_prob * freq;
                         }
                     }
                 }
@@ -331,19 +298,25 @@ void GenerateCribStatistics::generate_scored_freq_tables() {
     }
 }
 
-DiscardStatistics::DiscardStatistics(Player* player, Card discard1,
-                                     Card discard2, bool is_dealer,
-                                     GenerateCribStatistics* gen_crib_stats)
-    : discard1(discard1),
-      discard2(discard2),
+GenerateDiscardStatistics::GenerateDiscardStatistics(
+  Player* player, bool is_dealer,
+  const CribDiscardProbabilities& crib_discard_probs)
+    : discard_stats(),
       player(player),
       is_dealer(is_dealer),
-      gen_crib_stats(gen_crib_stats),
-      score_dist_hand(),
-      score_dist_crib(),
-      score_dist_combined(-60, 60) {}
+      crib_discard_probs(crib_discard_probs) {}
 
-void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
+DiscardStatistics GenerateDiscardStatistics::generate_discard_stats(
+  Card discard1, Card discard2, std::optional<Card> optional_cut) {
+    DiscardStatistics discard_stat(discard1, discard2, is_dealer,
+                                   player->get_info());
+
+    // Aliases
+    ScoreDistributionTable& score_dist_hand = discard_stat.score_dist_hand;
+    ScoreDistributionTable& score_dist_crib = discard_stat.score_dist_crib;
+    ScoreDistributionTable& score_dist_combined =
+      discard_stat.score_dist_combined;
+
     Deck deck = Deck();
     deck.remove_cards(player->get_hand());
     Hand crib;
@@ -406,11 +379,11 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
                         i != j) {
                         is_flush = 1;
                         if (hand.contains(
-                                Card(cut.get_suit(), static_cast<Rank>(i)))) {
+                              Card(cut.get_suit(), static_cast<Rank>(i)))) {
                             is_flush = 0;
                         }
                         if (hand.contains(
-                                Card(cut.get_suit(), static_cast<Rank>(j)))) {
+                              Card(cut.get_suit(), static_cast<Rank>(j)))) {
                             is_flush = 0;
                         }
                     }
@@ -431,44 +404,44 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
                     }
                     int num_jacks = (i == 11) + (j == 11);  // 1 or 2
                     prob_knob =
-                        (float)num_jacks / (cards_count[11] + num_jacks);
+                      (float)num_jacks / (cards_count[11] + num_jacks);
                 }
 
                 float prob =
-                    gen_crib_stats->get_freq(crib[2], crib[3], !is_dealer);
+                  crib_discard_probs.get_prob(crib[2], crib[3], !is_dealer);
                 if (!optional_cut) {
                     prob *= 1.0 / 46;
                 }
                 int crib_score = score_hand_suitless(crib, cut);
-                int combined_score = is_dealer ? hand_score + crib_score
-                                               : hand_score - crib_score;
+                int combined_score =
+                  is_dealer ? hand_score + crib_score : hand_score - crib_score;
                 score_dist_crib[crib_score] +=
-                    prob * (1 - prob_flush) * (1 - prob_knob);
+                  prob * (1 - prob_flush) * (1 - prob_knob);
                 score_dist_combined[combined_score] +=
-                    prob * (1 - prob_flush) * (1 - prob_knob);
+                  prob * (1 - prob_flush) * (1 - prob_knob);
 
                 crib_score += possible_knob;
-                combined_score = is_dealer ? hand_score + crib_score
-                                           : hand_score - crib_score;
+                combined_score =
+                  is_dealer ? hand_score + crib_score : hand_score - crib_score;
                 score_dist_crib[crib_score] +=
-                    prob * (1 - prob_flush) * prob_knob;
+                  prob * (1 - prob_flush) * prob_knob;
                 score_dist_combined[combined_score] +=
-                    prob * (1 - prob_flush) * prob_knob;
+                  prob * (1 - prob_flush) * prob_knob;
 
                 crib_score += is_flush ? 5 : 0;
-                combined_score = is_dealer ? hand_score + crib_score
-                                           : hand_score - crib_score;
+                combined_score =
+                  is_dealer ? hand_score + crib_score : hand_score - crib_score;
                 score_dist_crib[crib_score] += prob * prob_flush * prob_knob;
                 score_dist_combined[combined_score] +=
-                    prob * prob_flush * prob_knob;
+                  prob * prob_flush * prob_knob;
 
                 crib_score -= possible_knob;
-                combined_score = is_dealer ? hand_score + crib_score
-                                           : hand_score - crib_score;
+                combined_score =
+                  is_dealer ? hand_score + crib_score : hand_score - crib_score;
                 score_dist_crib[crib_score] +=
-                    prob * prob_flush * (1 - prob_knob);
+                  prob * prob_flush * (1 - prob_knob);
                 score_dist_combined[combined_score] +=
-                    prob * prob_flush * (1 - prob_knob);
+                  prob * prob_flush * (1 - prob_knob);
 
                 cards_count[j]++;
             }
@@ -506,13 +479,25 @@ void DiscardStatistics::generate_all_tables(std::optional<Card> optional_cut) {
     /* } */
     /* std::cout << num_skipped << " hands skipped" << std::endl; */
     /* std::cout << std::endl; */
+
+    return discard_stat;
 }
 
-void DiscardStatistics::generate_all_tables_simulated(Player* opponent,
-                                                      std::optional<Card> cut) {
+DiscardStatistics GenerateDiscardStatistics::generate_discard_stats_simulated(
+  Card discard1, Card discard2, std::optional<Card> cut, Player* opponent) {
+    DiscardStatistics discard_stat(discard1, discard2, is_dealer,
+                                   player->get_info());
+
+    // Aliases
+    ScoreDistributionTable& score_dist_hand = discard_stat.score_dist_hand;
+    ScoreDistributionTable& score_dist_crib = discard_stat.score_dist_crib;
+    ScoreDistributionTable& score_dist_combined =
+      discard_stat.score_dist_combined;
+
     bool is_opponent_nullptr = opponent == nullptr;
     if (is_opponent_nullptr) {
-        opponent = new StatPlayer("Opponent");
+        opponent =
+          PlayerFactory::create_player({"Stat", PlayerType::STAT}).release();
     }
     Deck deck = Deck();
     deck.remove_cards(player->get_hand());
@@ -563,7 +548,7 @@ void DiscardStatistics::generate_all_tables_simulated(Player* opponent,
             // Score for crib
             Hand crib_temp = deck.deal_hand(6);
             opponent->set_hand(crib_temp);
-            auto [d1, d2] = opponent->make_discards(false, gen_crib_stats);
+            auto [d1, d2] = opponent->make_discards(false, crib_discard_probs);
             crib[2] = d1;
             crib[3] = d2;
             int crib_score = score_hand(crib, cut_card, true);
@@ -571,7 +556,7 @@ void DiscardStatistics::generate_all_tables_simulated(Player* opponent,
 
             // Score for combined stats
             int combined_score =
-                is_dealer ? hand_score + crib_score : hand_score - crib_score;
+              is_dealer ? hand_score + crib_score : hand_score - crib_score;
             score_dist_combined[combined_score] += 1.0;
 
             i++;
@@ -624,157 +609,33 @@ void DiscardStatistics::generate_all_tables_simulated(Player* opponent,
     if (is_opponent_nullptr) {
         delete opponent;
     }
+
+    return discard_stat;
 }
-
-ScoreDistributionTable& DiscardStatistics::get_score_dist(
-    ScoreType score_type) {
-    switch (score_type) {
-        case ScoreType::HAND:
-            return score_dist_hand;
-        case ScoreType::CRIB:
-            return score_dist_crib;
-        case ScoreType::COMBINED:
-            return score_dist_combined;
-        default:
-            std::cerr << "Error: Invalid score type" << std::endl;
-            exit(1);
-    }
-}
-
-const ScoreDistributionTable& DiscardStatistics::get_score_dist(
-    ScoreType score_type) const {
-    switch (score_type) {
-        case ScoreType::HAND:
-            return score_dist_hand;
-        case ScoreType::CRIB:
-            return score_dist_crib;
-        case ScoreType::COMBINED:
-            return score_dist_combined;
-        default:
-            std::cerr << "Error: Invalid score type" << std::endl;
-            exit(1);
-    }
-}
-
-float DiscardStatistics::get_mean(ScoreType score_type) const {
-    const ScoreDistributionTable& score_dist = get_score_dist(score_type);
-    return score_dist.calc_mean();
-}
-
-int DiscardStatistics::get_median(ScoreType score_type) const {
-    const ScoreDistributionTable& score_dist = get_score_dist(score_type);
-    return score_dist.calc_median();
-}
-
-float DiscardStatistics::get_variance(ScoreType score_type) const {
-    const ScoreDistributionTable& score_dist = get_score_dist(score_type);
-    return score_dist.calc_variance();
-}
-
-float DiscardStatistics::get_std_dev(ScoreType score_type) const {
-    const ScoreDistributionTable& score_dist = get_score_dist(score_type);
-    return score_dist.calc_std_dev();
-}
-
-int DiscardStatistics::get_max(ScoreType score_type) const {
-    const ScoreDistributionTable& score_dist = get_score_dist(score_type);
-    return score_dist.calc_max();
-}
-
-int DiscardStatistics::get_min(ScoreType score_type) const {
-    const ScoreDistributionTable& score_dist = get_score_dist(score_type);
-    return score_dist.calc_min();
-}
-
-float DiscardStatistics::get_prob(ScoreType score_type, int score) const {
-    const ScoreDistributionTable& score_dist = get_score_dist(score_type);
-    return score_dist.prob_score(score);
-}
-
-float DiscardStatistics::get_prob_cummulative(ScoreType score_type,
-                                              int score) const {
-    const ScoreDistributionTable& score_dist = get_score_dist(score_type);
-    return score_dist.prob_score_cummulative(score);
-}
-
-float DiscardStatistics::get_prob_between(ScoreType score_type, int score1,
-                                          int score2) const {
-    const ScoreDistributionTable& score_dist = get_score_dist(score_type);
-    return score_dist.prob_score_between(score1, score2);
-}
-
-std::string DiscardStatistics::get_discard_string() const {
-    std::string discard_string = "Discards: ";
-    discard_string += discard1.to_string();
-    discard_string += " ";
-    discard_string += discard2.to_string();
-    discard_string += "\n";
-
-    discard_string += "Hand Stats> ";
-    discard_string +=
-        "Mean: " + std::to_string(get_mean(ScoreType::HAND)) + " ";
-    discard_string += "Min: " + std::to_string(get_min(ScoreType::HAND)) + " ";
-    discard_string += "Max: " + std::to_string(get_max(ScoreType::HAND)) + " ";
-    discard_string += "\n";
-
-    discard_string += "Crib Stats> ";
-    discard_string +=
-        "Mean: " + std::to_string(get_mean(ScoreType::CRIB)) + " ";
-    discard_string += "Min: " + std::to_string(get_min(ScoreType::CRIB)) + " ";
-    discard_string += "Max: " + std::to_string(get_max(ScoreType::CRIB)) + " ";
-    discard_string += "\n";
-
-    discard_string += "Combined Stats> ";
-    discard_string +=
-        "Mean: " + std::to_string(get_mean(ScoreType::COMBINED)) + " ";
-    discard_string +=
-        "Min: " + std::to_string(get_min(ScoreType::COMBINED)) + " ";
-    discard_string +=
-        "Max: " + std::to_string(get_max(ScoreType::COMBINED)) + " ";
-    discard_string += "\n";
-    return discard_string;
-}
-
-std::ostream& operator<<(std::ostream& os,
-                         const DiscardStatistics& discard_stats) {
-    os << discard_stats.get_discard_string();
-    return os;
-}
-
-GenerateDiscardStatistics::GenerateDiscardStatistics(
-    Player* player, bool is_dealer, GenerateCribStatistics* gen_crib_stats)
-    : discard_stats(),
-      player(player),
-      is_dealer(is_dealer),
-      gen_crib_stats(gen_crib_stats) {}
-
-void GenerateDiscardStatistics::generate_discard_stats(std::optional<Card> cut,
-                                                       bool use_simulated,
-                                                       Player* opponent) {
+void GenerateDiscardStatistics::generate_all_discard_stats(
+  std::optional<Card> cut, bool use_simulated, Player* opponent) {
     for (auto it = player->get_hand().cbegin(); it != player->get_hand().cend();
          ++it) {
         for (auto it2 = it + 1; it2 != player->get_hand().cend(); ++it2) {
             Card discard1 = *it;
             Card discard2 = *it2;
-            std::unique_ptr<DiscardStatistics> discard_stat =
-                std::make_unique<DiscardStatistics>(player, discard1, discard2,
-                                                    is_dealer, gen_crib_stats);
             if (use_simulated) {
-                discard_stat->generate_all_tables_simulated(opponent, cut);
+                discard_stats.emplace_back(generate_discard_stats_simulated(
+                  discard1, discard2, cut, opponent));
             } else {
-                discard_stat->generate_all_tables(cut);
+                discard_stats.emplace_back(
+                  generate_discard_stats(discard1, discard2, cut));
             }
-            discard_stats.emplace_back(std::move(discard_stat));
         }
     }
 }
 
 const DiscardStatistics& GenerateDiscardStatistics::get_discard_stats(
-    Card discard1, Card discard2) const {
+  Card discard1, Card discard2) const {
     for (auto it = discard_stats.cbegin(); it != discard_stats.cend(); ++it) {
-        if ((*it)->get_discard1() == discard1 &&
-            (*it)->get_discard2() == discard2) {
-            return **it;
+        if ((*it).get_discard1() == discard1 &&
+            (*it).get_discard2() == discard2) {
+            return *it;
         }
     }
     std::cerr << "Error: Discard statistics not found" << std::endl;
@@ -783,57 +644,39 @@ const DiscardStatistics& GenerateDiscardStatistics::get_discard_stats(
 
 void GenerateDiscardStatistics::sort_discard_stats(ScoreType score_type,
                                                    Statistic stat) {
+    auto comparison_heuristic = [score_type](const DiscardStatistics& a,
+                                             const DiscardStatistics& b) {
+        return a.get_mean(score_type) > b.get_mean(score_type);
+    };
+
     switch (stat) {
         case Statistic::MEAN:
-            std::sort(
-                discard_stats.begin(), discard_stats.end(),
-                [score_type](const std::unique_ptr<DiscardStatistics>& a,
-                             const std::unique_ptr<DiscardStatistics>& b) {
-                    return a->get_mean(score_type) > b->get_mean(score_type);
-                });
+            std::stable_sort(discard_stats.begin(), discard_stats.end(),
+                             [score_type](const DiscardStatistics& a,
+                                          const DiscardStatistics& b) {
+                                 return a.get_mean(score_type) >
+                                        b.get_mean(score_type);
+                             });
             break;
         case Statistic::MEDIAN:
-            std::sort(
-                discard_stats.begin(), discard_stats.end(),
-                [score_type](const std::unique_ptr<DiscardStatistics>& a,
-                             const std::unique_ptr<DiscardStatistics>& b) {
-                    return a->get_median(score_type) >
-                           b->get_median(score_type);
-                });
+            std::stable_sort(discard_stats.begin(), discard_stats.end(),
+                             comparison_heuristic);
             break;
         case Statistic::VARIANCE:
-            std::sort(
-                discard_stats.begin(), discard_stats.end(),
-                [score_type](const std::unique_ptr<DiscardStatistics>& a,
-                             const std::unique_ptr<DiscardStatistics>& b) {
-                    return a->get_variance(score_type) >
-                           b->get_variance(score_type);
-                });
+            std::stable_sort(discard_stats.begin(), discard_stats.end(),
+                             comparison_heuristic);
             break;
         case Statistic::STD_DEV:
-            std::sort(
-                discard_stats.begin(), discard_stats.end(),
-                [score_type](const std::unique_ptr<DiscardStatistics>& a,
-                             const std::unique_ptr<DiscardStatistics>& b) {
-                    return a->get_std_dev(score_type) >
-                           b->get_std_dev(score_type);
-                });
+            std::stable_sort(discard_stats.begin(), discard_stats.end(),
+                             comparison_heuristic);
             break;
         case Statistic::MAX:
-            std::sort(
-                discard_stats.begin(), discard_stats.end(),
-                [score_type](const std::unique_ptr<DiscardStatistics>& a,
-                             const std::unique_ptr<DiscardStatistics>& b) {
-                    return a->get_max(score_type) > b->get_max(score_type);
-                });
+            std::stable_sort(discard_stats.begin(), discard_stats.end(),
+                             comparison_heuristic);
             break;
         case Statistic::MIN:
-            std::sort(
-                discard_stats.begin(), discard_stats.end(),
-                [score_type](const std::unique_ptr<DiscardStatistics>& a,
-                             const std::unique_ptr<DiscardStatistics>& b) {
-                    return a->get_min(score_type) > b->get_min(score_type);
-                });
+            std::stable_sort(discard_stats.begin(), discard_stats.end(),
+                             comparison_heuristic);
             break;
         default:
             std::cerr << "Error: Invalid statistic" << std::endl;
@@ -842,22 +685,22 @@ void GenerateDiscardStatistics::sort_discard_stats(ScoreType score_type,
 }
 
 const DiscardStatistics& GenerateDiscardStatistics::get_best_discard_stats()
-    const {
-    return *discard_stats[0];
+  const {
+    return discard_stats[0];
 }
 
 std::string GenerateDiscardStatistics::get_discard_stats_string(
-    int num_discard_stats) const {
+  int num_discard_stats) const {
     std::string discard_stats_string = "";
     for (int i = 0; i < num_discard_stats; i++) {
-        discard_stats_string += discard_stats[i]->get_discard_string();
+        discard_stats_string += discard_stats[i].get_discard_string();
         discard_stats_string += "\n";
     }
     return discard_stats_string;
 }
 
 void GenerateDiscardStatistics::print_discard_stats(
-    int num_discard_stats) const {
+  int num_discard_stats) const {
     std::cout << get_discard_stats_string(num_discard_stats);
 }
 
@@ -865,7 +708,7 @@ std::ostream& operator<<(std::ostream& os,
                          const GenerateDiscardStatistics& gen_discard_stats) {
     for (auto it = gen_discard_stats.discard_stats.cbegin();
          it != gen_discard_stats.discard_stats.cend(); ++it) {
-        os << **it << std::endl;
+        os << *it << std::endl;
     }
     return os;
 }

@@ -14,7 +14,7 @@ namespace cribbage {
 class Game {
   public:
     Game(Player* player1, Player* player2,
-         GenerateCribStatistics* gen_crib_stats);
+         const CribDiscardProbabilities& crib_discard_probs);
     //~Game() = default;
 
     bool play_game();
@@ -45,7 +45,7 @@ class Game {
   private:
     Player* player1;
     Player* player2;
-    GenerateCribStatistics* gen_crib_stats;
+    const CribDiscardProbabilities& crib_discard_probs;
 
     GamePgn::Round round;
     GamePgn pgn;

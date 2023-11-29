@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "card.h"
+#include "player.h"
 
 namespace cribbage {
 
@@ -27,6 +28,10 @@ class ScoreDistributionTable {
     ScoreDistributionTable();
     ScoreDistributionTable(int min, int max);
     //~ScoreDistributionTable() = default;
+
+    ScoreDistributionTable(const ScoreDistributionTable& other) = default;
+    ScoreDistributionTable(ScoreDistributionTable&& other) = default;
+    ScoreDistributionTable& operator=(ScoreDistributionTable&& other) = default;
 
     float calc_mean() const;
     int calc_median() const;
@@ -53,7 +58,7 @@ class ScoreDistributionTable {
 
   private:
     std::vector<float>
-        dist_table;  // 0-29 for single hand, -60 through 60 for combined
+      dist_table;  // 0-29 for single hand, -60 through 60 for combined
     int min;
     int max;
 };
@@ -62,7 +67,7 @@ template <typename T>
 class Table {
   public:
     /*
-     * @brief Default constructor.
+     * @brief initializes all values to default.
      */
     Table();
 
@@ -71,15 +76,16 @@ class Table {
      */
     Table(std::string stats_name);
 
-    Table(Table&& other) = default;
-    Table(const Table& other) = delete;
-
-    Table& operator=(const Table& other) = delete;
-
     T& get_dealer_crib(int index1, int index2) {
         return table_dealer_crib[index1][index2];
     }
+    const T& get_dealer_crib(int index1, int index2) const {
+        return table_dealer_crib[index1][index2];
+    }
     T& get_opp_crib(int index1, int index2) {
+        return table_opp_crib[index1][index2];
+    }
+    const T& get_opp_crib(int index1, int index2) const {
         return table_opp_crib[index1][index2];
     }
 
@@ -94,21 +100,90 @@ class Table {
     T table_opp_crib[13][13];
 };
 
+/*
+ * @brief Table for storing the number of times a score occurs.
+ */
+class CribDiscardProbabilities {
+  public:
+    CribDiscardProbabilities();
+    CribDiscardProbabilities(int num_sim_discards);
+
+    friend class StatisticTable;
+    friend class GenerateCribStatistics;
+
+    const float& get_prob(Card card1, Card card2, bool is_dealer) const;
+    const float& get_prob(Rank rank1, Rank rank2, bool is_dealer) const;
+
+  private:
+    const float& get_table_value(int index1, int index2, bool is_dealer) const;
+    float& get_table_value(int index1, int index2, bool is_dealer);
+    float& get_table_value(Rank rank1, Rank rank2, bool is_dealer);
+
+    void to_freq_table();
+    void to_prob_table();
+
+  private:
+    Table<float> table;
+    int num_sim_discards;
+    bool is_freq_table = false;
+};
+
+class DiscardStatistics {
+  public:
+    DiscardStatistics(Card discard1, Card discard2, bool is_dealer,
+                      PlayerInfo player);
+
+    friend class GenerateDiscardStatistics;
+
+    inline Card get_discard1() const { return discard1; }
+    inline Card get_discard2() const { return discard2; }
+
+    const ScoreDistributionTable& get_score_dist(ScoreType score_type) const;
+
+    float get_mean(ScoreType score_type) const;
+    int get_median(ScoreType score_type) const;
+    float get_variance(ScoreType score_type) const;
+    float get_std_dev(ScoreType score_type) const;
+    int get_max(ScoreType score_type) const;
+    int get_min(ScoreType score_type) const;
+
+    float get_prob(ScoreType score_type, int score) const;
+    float get_prob_cummulative(ScoreType score_type, int score) const;
+    float get_prob_between(ScoreType score_type, int score1, int score2) const;
+
+    std::string get_discard_string() const;
+    friend std::ostream& operator<<(std::ostream& os,
+                                    const DiscardStatistics& discard_stats);
+
+  private:
+    ScoreDistributionTable& get_score_dist(ScoreType score_type);
+
+  private:
+    Card discard1;
+    Card discard2;
+    PlayerInfo player_info;
+    bool is_dealer;
+
+    ScoreDistributionTable score_dist_hand;
+    ScoreDistributionTable score_dist_crib;
+    ScoreDistributionTable score_dist_combined;
+};
+
 class StatisticTable {
   public:
     StatisticTable();
     //~StatisticTable() = default;
-
-    StatisticTable(StatisticTable&& other) = default;
-
-    virtual void generate_all_tables() = 0;
+    
+    friend class GenerateCribStatistics;
 
     int load_tables(std::optional<std::string> table = std::nullopt);
     void save_tables(std::string table);
 
-    float get_freq(Card card1, Card card2, bool is_dealer);
+    const CribDiscardProbabilities& get_crib_discard_probs() {
+        return prob_table;
+    }
     ScoreDistributionTable get_score_dist(Card card1, Card card2,
-                                                  bool is_dealer);
+                                          bool is_dealer);
     float get_mean(Card card1, Card card2, bool is_dealer);
     int get_median(Card card1, Card card2, bool is_dealer);
     float get_variance(Card card1, Card card2, bool is_dealer);
@@ -120,24 +195,15 @@ class StatisticTable {
     void load_default_tables();
 
   protected:
-    Table<float> freq_table_loaded;
-    bool is_freq_table_loaded;
-    Table<float> freq_table;
-    int freq_num_games;
+    CribDiscardProbabilities prob_table;
 
+    // Used to calculate the other tables
     Table<ScoreDistributionTable> score_dist_table;
-    bool freq_tables_generated;
 
     Table<float> mean_table;
-    bool mean_tables_generated;
-
     Table<int> median_table;
-
     Table<float> variance_table;
-    bool variance_tables_generated;
-
     Table<float> std_dev_table;
-
     Table<int> max_table;
     Table<int> min_table;
 };

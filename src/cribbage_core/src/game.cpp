@@ -4,10 +4,10 @@
 namespace cribbage {
 
 Game::Game(Player* player1, Player* player2,
-           GenerateCribStatistics* gen_crib_stats)
+           const CribDiscardProbabilities& crib_discard_probs)
     : player1(player1),
       player2(player2),
-      gen_crib_stats(gen_crib_stats),
+      crib_discard_probs(crib_discard_probs),
       round(),
       pgn(),
       deck(),
@@ -20,10 +20,10 @@ bool Game::play_game() {
     bool winner = false;
 
     GamePgn::GameInfo game_info;
-    game_info.first_dealer_name = player1->get_name();
-    game_info.first_pone_name = player2->get_name();
-    game_info.first_dealer_type = player1->get_type();
-    game_info.first_pone_type = player2->get_type();
+    game_info.first_dealer_name = player1->get_info().get_name();
+    game_info.first_pone_name = player2->get_info().get_name();
+    game_info.first_dealer_type = player1->get_info().get_type();
+    game_info.first_pone_type = player2->get_info().get_type();
     pgn.set_game_info(game_info);
 
     while (true) {
@@ -85,9 +85,9 @@ void Game::deal() {
 
 void Game::discard() {
     std::pair<Card, Card> discards1 =
-      player1->make_discards(is_player1_dealer(), gen_crib_stats);
+      player1->make_discards(is_player1_dealer(), crib_discard_probs);
     std::pair<Card, Card> discards2 =
-      player2->make_discards(!is_player1_dealer(), gen_crib_stats);
+      player2->make_discards(!is_player1_dealer(), crib_discard_probs);
 
     round.discards1 = discards1;
     round.discards2 = discards2;

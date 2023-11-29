@@ -1,6 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include <memory>
 #include <string>
 #include "card_pile.h"
 #include "hand.h"
@@ -9,20 +10,35 @@ namespace cribbage {
 
 class GenerateCribStatistics;
 
+enum class PlayerType { NONE = 0, HUMAN, RANDOM, STAT };
+
+
+class PlayerInfo {
+  public:
+    PlayerInfo() = default;
+    PlayerInfo(std::string name, PlayerType type);
+
+    const std::string& get_name() const { return name; }
+    PlayerType get_type() const { return type; }
+
+  private:
+    std::string name;
+    PlayerType type;
+};
+
+class CribDiscardProbabilities;
+
 class Player {
   public:
-    enum class PlayerType { NONE = 0, HUMAN, RANDOM, STAT };
 
   public:
-    Player(std::string name);
+    Player(PlayerInfo info);
     virtual ~Player() = default;
 
-    std::string get_name() const;
+    const PlayerInfo& get_info() const { return info; }
 
-    virtual PlayerType get_type() const { return PlayerType::NONE; }
-
-    Hand& get_hand();
-    void set_hand(Hand hand);
+    Hand& get_hand() { return hand; }
+    void set_hand(Hand hand) { this->hand = hand; }
 
     /*
      * @brief Play a card in the pegging phase.
@@ -49,47 +65,43 @@ class Player {
      * @return The 2 cards to discard.
      */
     virtual std::pair<Card, Card> make_discards(
-      bool is_dealer, GenerateCribStatistics* gen_crib_stats) = 0;
+      bool is_dealer, const CribDiscardProbabilities& crib_discard_probs) = 0;
 
   protected:
-    std::string name;
+    PlayerInfo info;
     Hand hand;
+};
+
+class PlayerFactory {
+  public:
+    static std::unique_ptr<Player> create_player(PlayerInfo info);
 };
 
 class HumanPlayer : public Player {
   public:
-    HumanPlayer(std::string name);
-
-    PlayerType get_type() const override { return PlayerType::HUMAN; }
-
+    HumanPlayer(PlayerInfo info) : Player(info) {}
     Card play_card(const CardPile& pile, const Hand& dealt_hand,
                    Card cut) override;
     std::pair<Card, Card> make_discards(
-      bool is_dealer, GenerateCribStatistics* gen_crib_stats) override;
+      bool is_dealer, const CribDiscardProbabilities& crib_discard_probs) override;
 };
 
 class RandomPlayer : public Player {
   public:
-    RandomPlayer(std::string name);
-
-    PlayerType get_type() const override { return PlayerType::RANDOM; }
-
+    RandomPlayer(PlayerInfo info) : Player(info) {}
     Card play_card(const CardPile& pile, const Hand& dealt_hand,
                    Card cut) override;
     std::pair<Card, Card> make_discards(
-      bool is_dealer, GenerateCribStatistics* gen_crib_stats) override;
+      bool is_dealer, const CribDiscardProbabilities& crib_discard_probs) override;
 };
 
 class StatPlayer : public Player {
   public:
-    StatPlayer(std::string name);
-
-    PlayerType get_type() const override { return PlayerType::STAT; }
-
+    StatPlayer(PlayerInfo info) : Player(info) {}
     Card play_card(const CardPile& pile, const Hand& dealt_hand,
                    Card cut) override;
     std::pair<Card, Card> make_discards(
-      bool is_dealer, GenerateCribStatistics* gen_crib_stats) override;
+      bool is_dealer, const CribDiscardProbabilities& crib_discard_probs) override;
 };
 
 }  // namespace cribbage

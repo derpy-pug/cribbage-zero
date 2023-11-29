@@ -8,21 +8,25 @@
 
 namespace cribbage {
 
-Player::Player(std::string name) : name(name) {}
+PlayerInfo::PlayerInfo(std::string name, PlayerType type)
+    : name(name), type(type) {}
 
-std::string Player::get_name() const {
-    return name;
+
+Player::Player(PlayerInfo info) : info(info) {}
+
+std::unique_ptr<Player> PlayerFactory::create_player(PlayerInfo info) {
+    switch (info.get_type()) {
+        case PlayerType::HUMAN:
+            return std::make_unique<HumanPlayer>(info);
+        case PlayerType::RANDOM:
+            return std::make_unique<RandomPlayer>(info);
+        case PlayerType::STAT:
+            return std::make_unique<StatPlayer>(info);
+        default:
+            std::cerr << "Invalid player type" << std::endl;
+            throw std::runtime_error("Invalid player type");
+    }
 }
-
-Hand& Player::get_hand() {
-    return hand;
-}
-
-void Player::set_hand(Hand hand) {
-    this->hand = hand;
-}
-
-HumanPlayer::HumanPlayer(std::string name) : Player(name) {}
 
 Card HumanPlayer::play_card(const CardPile& pile, const Hand& dealt_hand, Card cut) {
     std::cout << "Your hand: " << get_hand() << std::endl;
@@ -43,7 +47,7 @@ Card HumanPlayer::play_card(const CardPile& pile, const Hand& dealt_hand, Card c
 }
 
 std::pair<Card, Card> HumanPlayer::make_discards(
-  bool is_dealer, GenerateCribStatistics* gen_crib_stats) {
+  bool is_dealer, const CribDiscardProbabilities& crib_discard_probs) {
     if (is_dealer) {
         std::cout << "Your crib" << std::endl;
     } else {
@@ -57,14 +61,12 @@ std::pair<Card, Card> HumanPlayer::make_discards(
     if (i == j || i >= get_hand().size() ||
         j >= get_hand().size()) {
         std::cout << "Invalid card index" << std::endl;
-        return make_discards(is_dealer, gen_crib_stats);
+        return make_discards(is_dealer, crib_discard_probs);
     }
     get_hand().remove_card(get_hand()[i]);
     get_hand().remove_card(get_hand()[j]);
     return {get_hand()[i], get_hand()[j]};
 }
-
-RandomPlayer::RandomPlayer(std::string name) : Player(name) {}
 
 Card RandomPlayer::play_card(const CardPile& pile, const Hand& dealt_hand, Card cut) {
     std::vector<Card> playable_cards;
@@ -84,7 +86,7 @@ Card RandomPlayer::play_card(const CardPile& pile, const Hand& dealt_hand, Card 
 }
 
 std::pair<Card, Card> RandomPlayer::make_discards(
-  bool is_dealer, GenerateCribStatistics* gen_crib_stats) {
+  bool is_dealer, const CribDiscardProbabilities& crib_discard_probs) {
     int i = CribbageRandom::get_instance()->get_int(0, get_hand().size());
     int j = CribbageRandom::get_instance()->get_int(0, get_hand().size() - 1);
     if (j == i)
@@ -94,8 +96,6 @@ std::pair<Card, Card> RandomPlayer::make_discards(
     get_hand().remove_card(get_hand()[j]);
     return pair;
 }
-
-StatPlayer::StatPlayer(std::string name) : Player(name) {}
 
 Card StatPlayer::play_card(const CardPile& pile, const Hand& dealt_hand, Card cut) {
     //TODO: Implement AI
@@ -117,9 +117,9 @@ Card StatPlayer::play_card(const CardPile& pile, const Hand& dealt_hand, Card cu
 }
 
 std::pair<Card, Card> StatPlayer::make_discards(
-  bool is_dealer, GenerateCribStatistics* gen_crib_stats) {
-    GenerateDiscardStatistics gen_discard(this, is_dealer, gen_crib_stats);
-    gen_discard.generate_discard_stats();
+  bool is_dealer, const CribDiscardProbabilities& crib_discard_probs) {
+    GenerateDiscardStatistics gen_discard(this, is_dealer, crib_discard_probs);
+    gen_discard.generate_all_discard_stats();
     gen_discard.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
     const DiscardStatistics& discard_stats =
       gen_discard.get_best_discard_stats();
