@@ -154,15 +154,15 @@ void GamePgn::load(std::stringstream& pgn) {
             std::transform(value.begin(), value.end(), value.begin(),
                            ::tolower);
             if (value == "human") {
-                new_game_info.first_dealer_type = Player::PlayerType::HUMAN;
+                new_game_info.first_dealer_type = PlayerType::HUMAN;
             } else if (value == "random") {
-                new_game_info.first_dealer_type = Player::PlayerType::RANDOM;
+                new_game_info.first_dealer_type = PlayerType::RANDOM;
             } else if (value == "stat") {
-                new_game_info.first_dealer_type = Player::PlayerType::STAT;
+                new_game_info.first_dealer_type = PlayerType::STAT;
             } else {
                 std::cerr << "Error parsing first dealer type (" << value
                           << ") on line " << line_number << std::endl;
-                new_game_info.first_dealer_type = Player::PlayerType::NONE;
+                new_game_info.first_dealer_type = PlayerType::NONE;
             }
         } else if (tag == "[firstpone") {
             new_game_info.first_pone_name = value;
@@ -170,15 +170,15 @@ void GamePgn::load(std::stringstream& pgn) {
             std::transform(value.begin(), value.end(), value.begin(),
                            ::tolower);
             if (value == "human") {
-                new_game_info.first_pone_type = Player::PlayerType::HUMAN;
+                new_game_info.first_pone_type = PlayerType::HUMAN;
             } else if (value == "random") {
-                new_game_info.first_pone_type = Player::PlayerType::RANDOM;
+                new_game_info.first_pone_type = PlayerType::RANDOM;
             } else if (value == "stat") {
-                new_game_info.first_pone_type = Player::PlayerType::STAT;
+                new_game_info.first_pone_type = PlayerType::STAT;
             } else {
                 std::cerr << "Error parsing first pone type (" << value
                           << ") on line " << line_number << std::endl;
-                new_game_info.first_pone_type = Player::PlayerType::NONE;
+                new_game_info.first_pone_type = PlayerType::NONE;
             }
         } else if (tag == "[result") {
             std::string result;
@@ -416,6 +416,11 @@ void GamePgn::add_round(const Round& round) {
     rounds.emplace_back(round);
 }
 
+bool GamePgn::validate() const {
+    // TODO: Validate game info
+    return true;
+}
+
 static std::string pegging_cards_string(std::vector<Card> pegging_cards) {
     std::stringstream ss;
     for (const Card& card : pegging_cards) {
@@ -442,13 +447,13 @@ static std::stringstream make_pgn_info_tags(
     if (game_info.first_dealer_name != "") {
         ss << "[FirstDealer \"" + game_info.first_dealer_name + "\"]\n";
     }
-    if (game_info.first_dealer_type != Player::PlayerType::NONE) {
+    if (game_info.first_dealer_type != PlayerType::NONE) {
         ss << "[FirstDealerType \"";
-        if (game_info.first_dealer_type == Player::PlayerType::HUMAN) {
+        if (game_info.first_dealer_type == PlayerType::HUMAN) {
             ss << "Human";
-        } else if (game_info.first_dealer_type == Player::PlayerType::RANDOM) {
+        } else if (game_info.first_dealer_type == PlayerType::RANDOM) {
             ss << "Random";
-        } else if (game_info.first_dealer_type == Player::PlayerType::STAT) {
+        } else if (game_info.first_dealer_type == PlayerType::STAT) {
             ss << "Stat";
         }
         ss << "\"]\n";
@@ -456,13 +461,13 @@ static std::stringstream make_pgn_info_tags(
     if (game_info.first_pone_name != "") {
         ss << "[FirstPone \"" + game_info.first_pone_name + "\"]\n";
     }
-    if (game_info.first_pone_type != Player::PlayerType::NONE) {
+    if (game_info.first_pone_type != PlayerType::NONE) {
         ss << "[FirstPoneType \"";
-        if (game_info.first_pone_type == Player::PlayerType::HUMAN) {
+        if (game_info.first_pone_type == PlayerType::HUMAN) {
             ss << "Human";
-        } else if (game_info.first_pone_type == Player::PlayerType::RANDOM) {
+        } else if (game_info.first_pone_type == PlayerType::RANDOM) {
             ss << "Random";
-        } else if (game_info.first_pone_type == Player::PlayerType::STAT) {
+        } else if (game_info.first_pone_type == PlayerType::STAT) {
             ss << "Stat";
         }
         ss << "\"]\n";

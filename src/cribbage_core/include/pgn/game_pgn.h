@@ -23,9 +23,9 @@ class GamePgn {
         std::string date;
         std::string round;
         std::string first_dealer_name;
-        Player::PlayerType first_dealer_type;
+        PlayerType first_dealer_type;
         std::string first_pone_name;
-        Player::PlayerType first_pone_type;
+        PlayerType first_pone_type;
         GameResult result;
     };
 
@@ -79,6 +79,8 @@ class GamePgn {
     void add_round(const Round& round);
 
     void set_game_info(GameInfo game_info) { this->game_info = game_info; }
+
+    bool validate() const;
 
     std::string make_pgn() const noexcept(false);
     friend std::ostream& operator<<(std::ostream& os, const GamePgn& game_pgn);
