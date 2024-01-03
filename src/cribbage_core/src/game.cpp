@@ -19,7 +19,7 @@ Game::Game(Player* player1, Player* player2,
 bool Game::play_game() {
     bool winner = false;
 
-    GamePgn::GameInfo game_info;
+    PGN::GameInfo game_info;
     game_info.first_dealer_name = player1->get_info().get_name();
     game_info.first_pone_name = player2->get_info().get_name();
     game_info.first_dealer_type = player1->get_info().get_type();
@@ -34,8 +34,8 @@ bool Game::play_game() {
         }
     }
 
-    GamePgn::GameResult result = winner ? GamePgn::GameResult::FIRST_DEALER
-                                        : GamePgn::GameResult::FIRST_PONE;
+    PGN::GameResult result = winner ? PGN::GameResult::FIRST_DEALER
+                                        : PGN::GameResult::FIRST_PONE;
     game_info.result = result;
     pgn.set_game_info(game_info);
 
@@ -44,7 +44,7 @@ bool Game::play_game() {
 
 void Game::play_round() {
     round_number++;
-    round = GamePgn::Round();
+    round = PGN::Round();
 
     deal();
     discard();
@@ -173,14 +173,18 @@ bool Game::score_pegging(bool is_player1_turn, const CardPile& pegging_cards,
         round.pegging_scores = std::vector<int>();
         round.pegging_scores->reserve(8);
     }
+    if (!round.pegging_player.has_value()) {
+        round.pegging_player = std::vector<bool>();
+        round.pegging_player->reserve(8);
+    }
     int score = pegging_cards.score_pile();
     round.pegging_scores->push_back(score);
     if (is_player1_turn) {
         board.move(WhichPlayer::FIRST_DEALER, score);
-        round.pegging_player.push_back(true);
+        round.pegging_player->push_back(true);
     } else {
         board.move(WhichPlayer::FIRST_PONE, score);
-        round.pegging_player.push_back(false);
+        round.pegging_player->push_back(false);
     }
     return board.get_winner().has_value();
 }

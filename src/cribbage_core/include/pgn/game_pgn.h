@@ -11,9 +11,18 @@ namespace cribbage {
 /* 
  * @brief Class for saving and loading games in PGN format.
  */
-class GamePgn {
+class PGN {
   public:
     enum class GameResult { NONE = 0, FIRST_DEALER, FIRST_PONE };
+
+    enum class ValidationType {
+        FAIL,
+        MISSING_ROUND,
+        MISSING_SCORES,
+        PARTIAL,
+        UNFINISHED,
+        FINSIHED
+    };
 
     struct GameInfo {
         GameInfo() = default;
@@ -47,6 +56,30 @@ class GamePgn {
         void add_pegging_card(Card card);
         void add_pegging_score(int score);
 
+        ValidationType validate() const;
+      private:
+        // Bitflags for hand validation
+        
+        enum RoundValidationType{
+            INVALID = 0,
+            VALID,
+            SCORE_MISMATCH,
+            INCOMPLETE,
+            MISSING,
+            RECONSTRUCT, 
+            SINGLE,
+        };
+
+        std::pair<RoundValidationType, RoundValidationType> validate_hands() const;
+        std::pair<RoundValidationType, RoundValidationType> validate_discards() const;
+        RoundValidationType check_crib_score() const;
+        RoundValidationType check_hand_score(Hand hand, int score) const;
+        RoundValidationType check_cut_score() const;
+        RoundValidationType check_pegging_score() const;
+        RoundValidationType check_pegging_cards() const;
+        RoundValidationType check_pegging_player() const;
+
+
       public:
         int round_number = 0;
 
@@ -64,12 +97,12 @@ class GamePgn {
 
         std::optional<CardPile> pegging_cards;
         std::optional<std::vector<int>> pegging_scores;
-        std::vector<bool> pegging_player;
+        std::optional<std::vector<bool>> pegging_player;
     };
 
   public:
-    GamePgn() = default;
-    GamePgn(GameInfo game_info);
+    PGN() = default;
+    PGN(GameInfo game_info);
     //~GamePgn() = default;
 
     bool save(std::string filename) const;
@@ -80,10 +113,10 @@ class GamePgn {
 
     void set_game_info(GameInfo game_info) { this->game_info = game_info; }
 
-    bool validate() const;
+    ValidationType validate() const;
 
     std::string make_pgn() const noexcept(false);
-    friend std::ostream& operator<<(std::ostream& os, const GamePgn& game_pgn);
+    friend std::ostream& operator<<(std::ostream& os, const PGN& game_pgn);
 
   private:
     Player* player1;

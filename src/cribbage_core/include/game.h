@@ -19,7 +19,7 @@ class Game {
 
     bool play_game();
 
-    const GamePgn& get_pgn() const { return pgn; }
+    const PGN& get_pgn() const { return pgn; }
 
   private:
     void play_round();
@@ -47,8 +47,8 @@ class Game {
     Player* player2;
     const CribDiscardProbabilities& crib_discard_probs;
 
-    GamePgn::Round round;
-    GamePgn pgn;
+    PGN::Round round;
+    PGN pgn;
 
     Deck deck;
     Board board;

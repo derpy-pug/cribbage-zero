@@ -230,7 +230,7 @@ int cli_game(const ParseCommandLineArgs& args) {
     /* std::cout << game.get_pgn() << std::endl; */
     /* game.get_pgn().save("game.pgn"); */
 
-    GamePgn pgn;
+    PGN pgn;
     std::fstream pgn_file("pgn/game.pgn", std::ios::in);
     std::stringstream buffer;
     buffer << pgn_file.rdbuf();
