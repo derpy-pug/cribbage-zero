@@ -38,6 +38,16 @@ Hand Hand::sort() const {
     return sorted;
 }
 
+bool Hand::operator==(const Hand& other) const {
+    Hand sorted = sort();
+    Hand other_sorted = other.sort();
+    return sorted.cards == other_sorted.cards;
+}
+
+bool Hand::operator!=(const Hand& other) const {
+    return !(*this == other);
+}
+
 std::string Hand::to_string() const {
     std::string str;
     str.reserve(3 * cards.size());

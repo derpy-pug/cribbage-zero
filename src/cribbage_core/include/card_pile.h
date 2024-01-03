@@ -67,6 +67,7 @@ class CardPile {
      */
     int score_pile(Card another_card);
 
+    const std::vector<Card>& get_cards() const { return cards; }
 
     /*
      * @brief Gets the string representation of the pile
@@ -75,10 +76,11 @@ class CardPile {
      */
     std::string to_string() const;
 
+    const std::vector<int>& get_scores() const { return scores; }
+
     friend std::ostream& operator<<(std::ostream& os, const CardPile& pile);
 
   private:
-
     int score_pile_run() const;
 
   private:
@@ -86,6 +88,7 @@ class CardPile {
     std::vector<Card> cards;
     int current_round_offset;
     int previous_round_offset;
+    std::vector<int> scores;
 };
 
 }  // namespace cribbage

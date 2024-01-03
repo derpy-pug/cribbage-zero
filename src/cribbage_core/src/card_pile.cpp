@@ -14,6 +14,7 @@ void CardPile::add_card(Card card) {
     }
     cards.push_back(card);
     current_sum += card.get_value();
+    scores.push_back(score_pile());
 }
 
 bool CardPile::can_play_card(Card card) const {
@@ -76,6 +77,7 @@ int CardPile::score_pile(Card another_card) {
         return 0;
     }
     add_card(another_card);
+    scores.pop_back();
     int score = score_pile();
     cards.pop_back();
     return score;

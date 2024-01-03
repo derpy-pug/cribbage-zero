@@ -27,6 +27,26 @@ class Hand : public CardContainer {
     bool contains(Card card) const;
 
     /*
+     * @brief Checks if two hands are equal
+     *
+     * @param other The other hand to compare to
+     *
+     * @important The hands are equal if they contain the same cards
+     *          order does not matter
+     *
+     * @return true if the hands are equal
+     *       false otherwise
+     */
+    bool operator==(const Hand& other) const;
+
+    /*
+     * @brief Opposite of operator==
+     *
+     * @see operator==()
+     */
+    bool operator!=(const Hand& other) const;
+
+    /*
      * @brief Gets the string representation of the hand
      *
      * Example: "AS 2D 3H 4S 5C"
