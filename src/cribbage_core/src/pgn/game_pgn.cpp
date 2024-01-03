@@ -5,9 +5,12 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include "scoring.h"
 #include "util/parse.h"
 
 #define PGN_DIR "pgn/"
+
+static const int NUM_PLAYERS = 2;
 
 static const std::array<std::string, 7> INFO_TAGS = {
   "event", "site", "date", "round", "firstdealer", "firstpone", "result"};
@@ -31,28 +34,293 @@ static const std::array<std::string, 11> ROUND_TAGS = {
 
 namespace cribbage {
 
-void GamePgn::Round::add_pegging_card(Card card) {
+void PGN::Round::add_pegging_card(Card card) {
     if (!pegging_cards) {
         pegging_cards = CardPile();
     }
     pegging_cards->add_card(card);
 }
 
-void GamePgn::Round::add_pegging_score(int score) {
+void PGN::Round::add_pegging_score(int score) {
     if (!pegging_scores) {
         pegging_scores = std::vector<int>();
     }
     pegging_scores->emplace_back(score);
 }
 
-GamePgn::GamePgn(GameInfo game_info) : game_info(game_info) {}
+PGN::ValidationType PGN::Round::validate() const {
+    using RoundValidationType = PGN::Round::RoundValidationType;
+    auto[hand1_validation, hand2_validation] = validate_hands();
+    auto[discards1_validation, discards2_validation] = validate_discards();
+
+    RoundValidationType hand1_score_validation;
+    if (hand1_validation == VALID && discards1_validation == VALID) {
+        Hand hand = hand1.value();
+        hand.remove_card(discards1->first);
+        hand.remove_card(discards1->second);
+        hand1_score_validation = check_hand_score(hand, hand1_score.value());
+    }
+    RoundValidationType hand2_score_validation;
+    if (hand2_validation == VALID && discards2_validation == VALID) {
+        Hand hand = hand2.value();
+        hand.remove_card(discards2->first);
+        hand.remove_card(discards2->second);
+        hand2_score_validation = check_hand_score(hand, hand2_score.value());
+    }
+
+    RoundValidationType crib_score_validation;
+    if (discards1_validation == VALID && discards2_validation == VALID) {
+        crib_score_validation = check_crib_score();
+    }
+
+    RoundValidationType cut_score_validation; 
+    if (cut) {
+        cut_score_validation = check_cut_score();
+    }
+
+    RoundValidationType pegging_cards_validation = check_pegging_cards();
+    RoundValidationType pegging_scores_validation; 
+    if (pegging_cards_validation == VALID) {
+        pegging_scores_validation = check_pegging_score();
+    }
+    RoundValidationType pegging_player_validation;
+    if (pegging_cards_validation == VALID) {
+        pegging_player_validation = check_pegging_player();
+    }
+
+
+    // Now we know if each part is valid relative to itself, 
+    // we can check if each part is valid relative to the other parts
+
+    if (hand1_validation == VALID && discards1_validation == VALID) {
+        bool contains = hand1->contains(discards1->first) && hand1->contains(discards1->second);
+        if (!contains) {
+            return ValidationType::FAIL;
+        }
+    }
+
+    if (hand1_validation == RECONSTRUCT && discards1_validation == VALID) {
+        if (hand1->size() == 5) {
+            int num_contains = 0;
+            for (const Card& card : hand1.value()) {
+                if (card == discards1->first || card == discards1->second) {
+                    num_contains++;
+                }
+            }
+            if (num_contains != 1) {
+                hand1_validation = INCOMPLETE;
+                discards1_validation = INVALID;
+            }
+        } else if (hand1->size() == 4) {
+            bool contains = hand1->contains(discards1->first) || hand1->contains(discards1->second);
+            if (contains) {
+                hand1_validation = INCOMPLETE;;
+                discards1_validation = INVALID;
+            } 
+        }
+    }
+
+    if (hand2_validation == VALID && discards2_validation == VALID) {
+        bool contains = hand2->contains(discards2->first) && hand2->contains(discards2->second);
+        if (!contains) {
+            return ValidationType::FAIL;
+        }
+    }
+
+    if (hand2_validation == RECONSTRUCT && discards2_validation == VALID) {
+        if (hand2->size() == 5) {
+            int num_contains = 0;
+            for (const Card& card : hand2.value()) {
+                if (card == discards2->first || card == discards2->second) {
+                    num_contains++;
+                }
+            } 
+            if (num_contains != 1) {
+                hand2_validation = INCOMPLETE;
+                discards2_validation = INVALID;
+            }
+        } else if (hand2->size() == 4) {
+            bool contains = hand2->contains(discards2->first) || hand2->contains(discards2->second);
+            if (contains) {
+                hand2_validation = INCOMPLETE;;
+                discards2_validation = INVALID;
+            } 
+        }
+    }
+
+
+    return ValidationType::FINSIHED;
+}
+
+std::pair<PGN::Round::RoundValidationType, PGN::Round::RoundValidationType> PGN::Round::validate_hands() const{
+    std::pair<PGN::Round::RoundValidationType, PGN::Round::RoundValidationType> validation = std::make_pair(RoundValidationType::INVALID, RoundValidationType::INVALID);
+    if (!hand1) {
+        validation.first = RoundValidationType::MISSING;
+    } else {
+        Hand hand = hand1.value();
+        bool unqiue = std::unique(hand.begin(), hand.end()) == hand.end();
+        if (!unqiue) {
+            validation.first = RoundValidationType::INVALID;
+        } else if (hand.size() == 6) {
+            validation.first = RoundValidationType::VALID;
+        } else if (hand.size() == 5) {
+            validation.first = RoundValidationType::RECONSTRUCT;
+        } else if (hand.size() == 4) {
+            validation.first = RoundValidationType::RECONSTRUCT;
+        } else {
+            validation.first = RoundValidationType::INCOMPLETE;
+        }
+
+    }
+    if (!hand2) {
+        validation.second = RoundValidationType::MISSING;
+    } else {
+        Hand hand = hand2.value();
+        bool unqiue = std::unique(hand.begin(), hand.end()) == hand.end();
+        if (!unqiue) {
+            validation.second = RoundValidationType::INVALID;
+        } else if (hand.size() == 6) {
+            validation.second = RoundValidationType::VALID;
+        } else if (hand.size() == 5) {
+            validation.second = RoundValidationType::RECONSTRUCT;
+        } else if (hand.size() == 4) {
+            validation.second = RoundValidationType::RECONSTRUCT;
+        } else {
+            validation.second = RoundValidationType::INCOMPLETE;
+        }
+    }
+    return validation;
+}
+std::pair<PGN::Round::RoundValidationType, PGN::Round::RoundValidationType> PGN::Round::validate_discards() const {
+    std::pair<PGN::Round::RoundValidationType, PGN::Round::RoundValidationType> validation = std::make_pair(RoundValidationType::INVALID, RoundValidationType::INVALID);
+
+    if (!discards1) {
+        validation.first = RoundValidationType::MISSING;
+    } else {
+        if (discards1->first == discards1->second) {
+            validation.first = RoundValidationType::INVALID;
+        } else {
+            validation.first = RoundValidationType::VALID;
+        }
+    }
+
+    if (!discards2) {
+        validation.second = RoundValidationType::MISSING;
+    } else {
+        if (discards2->first == discards2->second) {
+            validation.second = RoundValidationType::INVALID;
+        } else {
+            validation.second = RoundValidationType::VALID;
+        }
+    }
+
+    return validation;
+}
+PGN::Round::RoundValidationType PGN::Round::check_crib_score() const {
+    if (discards1->first == discards2->first ||
+        discards1->first == discards2->second ||
+        discards1->second == discards2->first ||
+        discards1->second == discards2->second) {
+        return RoundValidationType::INVALID;
+    }
+
+    Hand crib;
+    crib.add_card(discards1->first);
+    crib.add_card(discards1->second);
+    crib.add_card(discards2->first);
+    crib.add_card(discards2->second);
+    crib.add_card(cut.value());
+    int score = score_hand(crib, cut.value(), true);
+
+    if (score == crib_score) {
+        return RoundValidationType::VALID;
+    } else {
+        return RoundValidationType::SCORE_MISMATCH;
+    }
+
+}
+
+PGN::Round::RoundValidationType PGN::Round::check_hand_score(Hand hand, int hand_score) const {
+
+    int score = score_hand(hand, cut.value(), false);
+    if (score == hand1_score) {
+        return RoundValidationType::VALID;
+    } else {
+        return RoundValidationType::SCORE_MISMATCH;
+    }
+}
+PGN::Round::RoundValidationType PGN::Round::check_cut_score() const {
+    if (!cut_score) {
+        return RoundValidationType::MISSING;
+    } else {
+        if (cut.value().get_rank() == Rank::JACK) {
+            if (cut_score == 2) {
+                return RoundValidationType::VALID;
+            } else {
+                return RoundValidationType::SCORE_MISMATCH;
+            }
+        } else {
+            if (cut_score == 0) {
+                return RoundValidationType::VALID;
+            } else {
+                return RoundValidationType::SCORE_MISMATCH;
+            }
+        }
+    }
+}
+PGN::Round::RoundValidationType PGN::Round::check_pegging_score() const {
+    if (!pegging_scores) {
+        return RoundValidationType::MISSING;
+    } else {
+        if (pegging_cards.value().get_scores().size() != pegging_scores.value().size()) {
+            return RoundValidationType::INCOMPLETE;
+        } else {
+            for (int i = 0; (unsigned)i < pegging_scores.value().size(); i++) {
+                if (pegging_cards.value().get_scores()[i] != pegging_scores.value()[i]) {
+                    return RoundValidationType::SCORE_MISMATCH;
+                }
+            }
+            return RoundValidationType::VALID;
+        }
+    }
+}
+PGN::Round::RoundValidationType PGN::Round::check_pegging_cards() const {
+    if (!pegging_cards) {
+        return RoundValidationType::MISSING;
+    } else {
+        if (pegging_cards.value().get_cards().size() != NUM_PLAYERS * 4) {
+            return RoundValidationType::INCOMPLETE;
+        } else {
+            auto cards = pegging_cards.value().get_cards();
+            bool unique = std::unique(cards.begin(), cards.end()) == cards.end();
+            if (!unique) {
+                return RoundValidationType::INVALID;
+            } else {
+                return RoundValidationType::VALID;
+            }
+        }
+    }
+}
+PGN::Round::RoundValidationType PGN::Round::check_pegging_player() const {
+    if (!pegging_player) {
+        return RoundValidationType::MISSING;
+    } else {
+        if (pegging_player.value().size() != pegging_cards.value().get_cards().size()) {
+            return RoundValidationType::INCOMPLETE;
+        } else {
+            return RoundValidationType::VALID;
+        }
+    }
+}
+
+PGN::PGN(GameInfo game_info) : game_info(game_info) {}
 
 /*
  * @brief Saves the game in PGN format.
  *
  * Append the game to the end of the file.
  */
-bool GamePgn::save(std::string filename) const {
+bool PGN::save(std::string filename) const {
     std::ofstream pgn_file;
     pgn_file.open(PGN_DIR + filename, std::ios_base::app);
     if (!pgn_file.is_open()) {
@@ -100,7 +368,7 @@ static int get_round_number(const std::string& line) {
  *
  * @return The game loaded from the PGN file.
  */
-void GamePgn::load(std::stringstream& pgn) {
+void PGN::load(std::stringstream& pgn) {
     std::string line;
     int line_number = 0;
 
@@ -408,17 +676,182 @@ void GamePgn::load(std::stringstream& pgn) {
     add_round(round);
 }
 
-void GamePgn::add_round(Round&& round) {
+void PGN::add_round(Round&& round) {
     rounds.emplace_back(round);
+    std::sort(rounds.begin(), rounds.end(), [](const Round& a, const Round& b) {
+        return a.round_number < b.round_number;
+    });
 }
 
-void GamePgn::add_round(const Round& round) {
+void PGN::add_round(const Round& round) {
     rounds.emplace_back(round);
+    std::sort(rounds.begin(), rounds.end(), [](const Round& a, const Round& b) {
+        return a.round_number < b.round_number;
+    });
 }
 
-bool GamePgn::validate() const {
+PGN::ValidationType set_min_validation(PGN::ValidationType& min_validation,
+                                       PGN::ValidationType new_validation) {
+    if (new_validation < min_validation) {
+        min_validation = new_validation;
+    }
+    return min_validation;
+}
+
+PGN::ValidationType PGN::validate() const {
     // TODO: Validate game info
-    return true;
+
+    ValidationType min_validation = ValidationType::FINSIHED;
+
+    int i = 1;
+    for (const Round& round : rounds) {
+        bool last_round = (unsigned)i == rounds.size();
+
+        if (round.round_number != i) {
+            set_min_validation(min_validation, ValidationType::MISSING_ROUND);
+        }
+
+        if (!round.hand1 && !round.hand1_score) {
+            set_min_validation(min_validation, ValidationType::MISSING_SCORES);
+        }
+        if (!round.hand2 && !round.hand2_score) {
+            set_min_validation(min_validation, ValidationType::MISSING_SCORES);
+        }
+        if ((!round.discards1 || !round.discards2) && !round.crib_score) {
+            set_min_validation(min_validation, ValidationType::MISSING_SCORES);
+        }
+        if (!round.cut && !round.cut_score) {  // Possibly could be skipped
+            set_min_validation(min_validation, ValidationType::MISSING_SCORES);
+        }
+        if (!round.pegging_cards && !round.pegging_scores) {
+            set_min_validation(min_validation, ValidationType::MISSING_SCORES);
+        }
+
+        if (round.hand1) {
+            if (round.hand1_score) {
+                if (round.hand1->size() != 6) {
+                    set_min_validation(min_validation, ValidationType::PARTIAL);
+                }
+            } else {
+                if (round.hand1->size() != 6) {
+                    set_min_validation(min_validation, ValidationType::FAIL);
+                }
+            }
+
+            if (round.discards1) {
+                if (!round.hand1->contains(round.discards1->first) ||
+                    !round.hand1->contains(round.discards1->second)) {
+                    set_min_validation(min_validation, ValidationType::FAIL);
+                }
+            }
+        }
+        if (round.hand2) {
+            if (round.hand2_score) {
+                if (round.hand2->size() != 6) {
+                    set_min_validation(min_validation, ValidationType::PARTIAL);
+                }
+            } else {
+                if (round.hand2->size() != 6) {
+                    set_min_validation(min_validation, ValidationType::FAIL);
+                }
+            }
+
+            if (round.discards2) {
+                if (round.hand2->size() == 6) {
+                    if (!round.hand2->contains(round.discards2->first) ||
+                        !round.hand2->contains(round.discards2->second)) {
+                        set_min_validation(min_validation,
+                                           ValidationType::FAIL);
+                    }
+                } else if (round.hand2->size() == 5) {
+                    int num_matched = 0;
+                    for (const Card& card : round.hand2.value().get_cards()) {
+                        if (card == round.discards2->first ||
+                            card == round.discards2->second) {
+                            num_matched++;
+                        }
+                    }
+                    if (num_matched == 1) {}
+
+                } else {
+                    set_min_validation(min_validation, ValidationType::PARTIAL);
+                }
+            }
+        }
+        if (round.discards1) {
+            if (round.discards1->first == round.discards1->second) {
+                set_min_validation(min_validation, ValidationType::FAIL);
+            }
+        }
+        if (round.discards2) {
+            if (round.discards2->first == round.discards2->second) {
+                set_min_validation(min_validation, ValidationType::FAIL);
+            }
+        }
+
+        // Make sure all cards are unique and all cards are used in the peggings
+        Hand combined_cards;
+        if (round.hand1) {
+            for (const Card& card : round.hand1.value()) {
+                combined_cards.add_card(card);
+            }
+        }
+        if (round.hand2) {
+            for (const Card& card : round.hand2.value()) {
+                combined_cards.add_card(card);
+            }
+        }
+        if (round.cut) {
+            combined_cards.add_card(round.cut.value());
+        }
+
+        if (std::unique(combined_cards.begin(), combined_cards.end()) !=
+            combined_cards.end()) {
+            set_min_validation(min_validation, ValidationType::FAIL);
+        }
+
+        if (round.hand1 && round.hand2) {
+            if (round.cut) {
+                combined_cards.remove_card(round.cut.value());
+            }
+
+            // If the combined cards are not the same as the pegging cards
+            if (round.pegging_cards) {
+                if (combined_cards != round.pegging_cards->get_cards()) {
+                    set_min_validation(min_validation, ValidationType::PARTIAL);
+                }
+            }
+
+            bool removed_discards = false;
+            if (round.discards1) {
+                combined_cards.remove_card(round.discards1->first);
+                combined_cards.remove_card(round.discards1->second);
+                removed_discards = true;
+            }
+            if (round.discards2) {
+                combined_cards.remove_card(round.discards2->first);
+                combined_cards.remove_card(round.discards2->second);
+                removed_discards = true;
+            }
+
+            if (removed_discards) {
+                // If the combined cards are not the same as the pegging cards
+                if (round.pegging_cards) {
+                    if (combined_cards != round.pegging_cards->get_cards()) {}
+                }
+            }
+        }
+
+        auto cards = round.pegging_cards.value_or(CardPile()).get_cards();
+        if (std::find(cards.begin(), cards.end(), round.cut.value()) !=
+            cards.end()) {
+            set_min_validation(min_validation, ValidationType::FAIL);
+        }
+
+        i++;
+    }
+
+    return ValidationType::FINSIHED;
 }
 
 static std::string pegging_cards_string(std::vector<Card> pegging_cards) {
@@ -429,8 +862,7 @@ static std::string pegging_cards_string(std::vector<Card> pegging_cards) {
     return ss.str();
 }
 
-static std::stringstream make_pgn_info_tags(
-  const GamePgn::GameInfo& game_info) {
+static std::stringstream make_pgn_info_tags(const PGN::GameInfo& game_info) {
     std::stringstream ss;
     if (game_info.event != "") {
         ss << "[Event \"" + game_info.event + "\"]\n";
@@ -472,11 +904,11 @@ static std::stringstream make_pgn_info_tags(
         }
         ss << "\"]\n";
     }
-    if (game_info.result != GamePgn::GameResult::NONE) {
+    if (game_info.result != PGN::GameResult::NONE) {
         ss << "[Result \"";
-        if (game_info.result == GamePgn::GameResult::FIRST_DEALER) {
+        if (game_info.result == PGN::GameResult::FIRST_DEALER) {
             ss << "1-0";
-        } else if (game_info.result == GamePgn::GameResult::FIRST_PONE) {
+        } else if (game_info.result == PGN::GameResult::FIRST_PONE) {
             ss << "0-1";
         }
         ss << "\"]\n";
@@ -484,7 +916,7 @@ static std::stringstream make_pgn_info_tags(
     return ss;
 }
 
-static std::stringstream make_pgn_round_tags(const GamePgn::Round& round) {
+static std::stringstream make_pgn_round_tags(const PGN::Round& round) {
     const std::string PGN_INDENT = "  ";  // Round tags indent
     const std::string PGN_SPACING =
       "  ";  // Spacing between tag and value groups
@@ -537,10 +969,10 @@ static std::stringstream make_pgn_round_tags(const GamePgn::Round& round) {
 }
 
 static std::stringstream make_pgn_rounds(
-  const std::vector<GamePgn::Round>& rounds) {
+  const std::vector<PGN::Round>& rounds) {
     std::stringstream ss;
     unsigned int round_idx = 1;
-    for (const GamePgn::Round& round : rounds) {
+    for (const PGN::Round& round : rounds) {
         ss << round_idx << ".\n";
         ss << make_pgn_round_tags(round).str();
         if (round_idx != rounds.size()) {
@@ -578,7 +1010,7 @@ static std::stringstream make_pgn_rounds(
  *    S 0  0  0  0  1    0  0  1
  *
  */
-std::string GamePgn::make_pgn() const {
+std::string PGN::make_pgn() const {
     // TODO: Colorize the PGN
     std::stringstream pgn;
     pgn << make_pgn_info_tags(game_info).str();
@@ -592,7 +1024,7 @@ std::string GamePgn::make_pgn() const {
     return pgn.str();
 }
 
-std::ostream& operator<<(std::ostream& os, const GamePgn& game_pgn) {
+std::ostream& operator<<(std::ostream& os, const PGN& game_pgn) {
     return os << game_pgn.make_pgn();
 }
 
