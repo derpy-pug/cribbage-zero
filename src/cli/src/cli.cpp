@@ -78,7 +78,6 @@ ParseCommandLineArgs::ParseCommandLineArgs(int argc, char** argv)
     : argc(argc), argv(argv) {
     int ret = parse();
     if (ret == 2) {
-        std::cout << help() << std::endl;
         exit(0);
     } else if (ret != 0) {
         throw std::invalid_argument("Invalid command line arguments");
