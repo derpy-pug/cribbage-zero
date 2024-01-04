@@ -49,6 +49,9 @@ class ScoreDistributionTable {
     int get_possible_score_min() const { return possible_min; }
     int get_possible_score_max() const { return possible_max; }
 
+    int get_score_min() const { return min_score; }
+    int get_score_max() const { return max_score; }
+
     void clear();
 
     void normalize();
