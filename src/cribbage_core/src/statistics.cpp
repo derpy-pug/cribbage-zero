@@ -60,36 +60,36 @@ const static float default_stat_vs_stat_opp_crib[13][13] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.00313854, 0.0310097},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.00335312}};
 
-ScoreDistributionTable::ScoreDistributionTable() : min(0), max(29) {
+ScoreDistributionTable::ScoreDistributionTable() : possible_min(0), possible_max(29), min_score(29), max_score(0) {
     dist_table.resize(30);
 }
 
 ScoreDistributionTable::ScoreDistributionTable(int min, int max)
-    : min(min), max(max) {
+    : possible_min(min), possible_max(max), min_score(max), max_score(min) {
     dist_table.resize(max - min + 1);
 }
 
 float& ScoreDistributionTable::get_table_value(int score) {
-    if (score < min || score > max) {
+    if (score < possible_min || score > possible_max) {
         std::cerr << "Score out of range: " << score << std::endl;
         exit(1);
     }
-    int score_index = score - min;
+    int score_index = score - possible_min;
     return dist_table[score_index];
 }
 
 const float& ScoreDistributionTable::get_table_value(int score) const {
-    if (score < min || score > max) {
+    if (score < possible_min || score > possible_max) {
         std::cerr << "Score out of range: " << score << std::endl;
         exit(1);
     }
-    int score_index = score - min;
+    int score_index = score - possible_min;
     return dist_table[score_index];
 }
 
 float ScoreDistributionTable::calc_mean() const {
     float mean = 0;
-    for (int i = min; i < max; ++i) {
+    for (int i = min_score; i < max_score; ++i) {
         mean += i * get_table_value(i);
     }
     return mean;
@@ -97,7 +97,7 @@ float ScoreDistributionTable::calc_mean() const {
 
 int ScoreDistributionTable::calc_median() const {
     float cummulative = 0;
-    for (int i = min; i < max; ++i) {
+    for (int i = min_score; i < max_score; ++i) {
         cummulative += get_table_value(i);
         if (cummulative >= 0.5) {
             return i;
@@ -107,7 +107,7 @@ int ScoreDistributionTable::calc_median() const {
 }
 
 int ScoreDistributionTable::calc_max() const {
-    for (int i = max; i >= min; --i) {
+    for (int i = min_score; i >= max_score; --i) {
         if (get_table_value(i) > 0) {
             return i;
         }
@@ -116,7 +116,7 @@ int ScoreDistributionTable::calc_max() const {
 }
 
 int ScoreDistributionTable::calc_min() const {
-    for (int i = min; i < max; ++i) {
+    for (int i = min_score; i < max_score; ++i) {
         if (get_table_value(i) > 0) {
             return i;
         }
@@ -127,7 +127,7 @@ int ScoreDistributionTable::calc_min() const {
 float ScoreDistributionTable::calc_variance() const {
     float mean = calc_mean();
     float variance = 0;
-    for (int i = min; i < max; ++i) {
+    for (int i = min_score; i < max_score; ++i) {
         variance += (i - mean) * (i - mean) * get_table_value(i);
     }
     return variance;
@@ -138,21 +138,21 @@ float ScoreDistributionTable::calc_std_dev() const {
 }
 
 float ScoreDistributionTable::prob_score(int score) const {
-    if (score < min || score > max) {
+    if (score < min_score || score > max_score) {
         return 0;
     }
     return get_table_value(score);
 }
 
 float ScoreDistributionTable::prob_score_cummulative(int score) const {
-    if (score < min) {
+    if (score < min_score) {
         return 0;
     }
-    if (score > max) {
+    if (score >= max_score) {
         return 1;
     }
     float cummulative = 0;
-    for (int i = min; i <= score; ++i) {
+    for (int i = min_score; i <= score; ++i) {
         cummulative += get_table_value(i);
     }
     return cummulative;
@@ -162,11 +162,11 @@ float ScoreDistributionTable::prob_score_between(int score1, int score2) const {
     if (score1 > score2) {
         std::swap(score1, score2);
     }
-    if (score1 < min) {
-        score1 = min;
+    if (score1 < min_score) {
+        score1 = min_score;
     }
-    if (score2 > max) {
-        score2 = max;
+    if (score2 > max_score) {
+        score2 = max_score;
     }
     float cummulative = 0;
     for (int i = score1; i <= score2; ++i) {
@@ -176,7 +176,7 @@ float ScoreDistributionTable::prob_score_between(int score1, int score2) const {
 }
 
 float& ScoreDistributionTable::operator[](int score) {
-    if (score < min || score > max) {
+    if (score < possible_min || score > possible_max) {
         std::cerr << "Score out of range: " << score << std::endl;
         exit(1);
     }
@@ -184,7 +184,7 @@ float& ScoreDistributionTable::operator[](int score) {
 }
 
 const float& ScoreDistributionTable::operator[](int score) const {
-    if (score < min || score > max) {
+    if (score < possible_min || score > possible_max) {
         std::cerr << "Score out of range: " << score << std::endl;
         exit(1);
     }
@@ -194,6 +194,25 @@ const float& ScoreDistributionTable::operator[](int score) const {
 void ScoreDistributionTable::clear() {
     for (int i = 0; i < (int)dist_table.size(); ++i) {
         dist_table[i] = 0;
+    }
+}
+
+void ScoreDistributionTable::normalize() {
+    float total = 0;
+    for (int i = possible_min; i <= possible_max; ++i) {
+        auto prob = dist_table[i - possible_min];
+        if (prob > 0) {
+            total += prob;
+            if (i < min_score) {
+                min_score = i;
+            }
+            if (i > max_score) {
+                max_score = i;
+            }
+        }
+    }
+    for (int i = possible_min; i <= possible_max; ++i) {
+        dist_table[i - possible_min] /= total;
     }
 }
 

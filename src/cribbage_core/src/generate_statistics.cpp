@@ -299,6 +299,7 @@ void GenerateCribStatistics::calculate_discard_score_distribution() {
                         }
                     }
                 }
+                current_score_freq_table.normalize();
             }
         }
     }
@@ -459,22 +460,17 @@ DiscardStatistics GenerateDiscardStatistics::generate_discard_stats(
         }
     }
 
-    float sum = 0;
-    for (int i = score_dist_combined.get_possible_score_min();
-         i <= score_dist_combined.get_possible_score_max(); i++) {
-        sum += score_dist_combined[i];
-    }
     /* Normalize the probabilities
      * This is nessesary because some hands are skipped.
      * This normalization is not perfect and assumes
      * that the skipped hands prob is distributed evenly.
+     *
+     * Also the normalization sets the min and max scores for the dist
      */
+    score_dist_combined.normalize();
+    score_dist_hand.normalize();
+    score_dist_crib.normalize();
 
-    sum = 1 / sum;
-    for (int i = score_dist_combined.get_possible_score_min();
-         i <= score_dist_combined.get_possible_score_max(); i++) {
-        score_dist_combined[i] *= sum;
-    }
 
     /* std::cout << "Discards: " << discard1 << " " << discard2 << std::endl; */
     /* if (sum < 0.999 || sum > 1.001) { */
@@ -611,6 +607,9 @@ DiscardStatistics GenerateDiscardStatistics::generate_discard_stats_simulated(
          j <= score_dist_crib.get_possible_score_max(); j++) {
         score_dist_crib[j] /= i;
     }
+    score_dist_combined.normalize();
+    score_dist_hand.normalize();
+    score_dist_crib.normalize();
 
     if (is_opponent_nullptr) {
         delete opponent;

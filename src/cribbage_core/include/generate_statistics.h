@@ -1,12 +1,8 @@
 #ifndef GENERATE_STATISTICS_H
 #define GENERATE_STATISTICS_H
 
-#include <memory>
 #include <optional>
-#include <string>
 
-#include "deck.h"
-#include "hand.h"
 #include "player.h"
 #include "statistics.h"
 

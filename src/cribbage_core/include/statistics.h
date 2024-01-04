@@ -46,10 +46,12 @@ class ScoreDistributionTable {
     float& operator[](int score);
     const float& operator[](int score) const;
 
-    int get_possible_score_min() const { return min; }
-    int get_possible_score_max() const { return max; }
+    int get_possible_score_min() const { return possible_min; }
+    int get_possible_score_max() const { return possible_max; }
 
     void clear();
+
+    void normalize();
 
   private:
     float& get_table_value(int score);
@@ -58,8 +60,10 @@ class ScoreDistributionTable {
   private:
     std::vector<float>
       dist_table;  // 0-29 for single hand, -60 through 60 for combined
-    int min;
-    int max;
+    int possible_min;
+    int possible_max;
+    int min_score;
+    int max_score;
 };
 
 template <typename T>
