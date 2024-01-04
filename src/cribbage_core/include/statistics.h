@@ -28,10 +28,6 @@ class ScoreDistributionTable {
     ScoreDistributionTable();
     ScoreDistributionTable(int min, int max);
 
-    ScoreDistributionTable(const ScoreDistributionTable& other) = default;
-    ScoreDistributionTable(ScoreDistributionTable&& other) = default;
-    ScoreDistributionTable& operator=(ScoreDistributionTable&& other) = default;
-
     float calc_mean() const;
     int calc_median() const;
     float calc_variance() const;
