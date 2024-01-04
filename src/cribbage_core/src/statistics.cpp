@@ -89,7 +89,7 @@ const float& ScoreDistributionTable::get_table_value(int score) const {
 
 float ScoreDistributionTable::calc_mean() const {
     float mean = 0;
-    for (int i = min_score; i < max_score; ++i) {
+    for (int i = min_score; i <= max_score; ++i) {
         mean += i * get_table_value(i);
     }
     return mean;
@@ -97,7 +97,7 @@ float ScoreDistributionTable::calc_mean() const {
 
 int ScoreDistributionTable::calc_median() const {
     float cummulative = 0;
-    for (int i = min_score; i < max_score; ++i) {
+    for (int i = min_score; i <= max_score; ++i) {
         cummulative += get_table_value(i);
         if (cummulative >= 0.5) {
             return i;
@@ -107,7 +107,7 @@ int ScoreDistributionTable::calc_median() const {
 }
 
 int ScoreDistributionTable::calc_max() const {
-    for (int i = min_score; i >= max_score; --i) {
+    for (int i = max_score; i >= min_score; --i) {
         if (get_table_value(i) > 0) {
             return i;
         }
@@ -116,7 +116,7 @@ int ScoreDistributionTable::calc_max() const {
 }
 
 int ScoreDistributionTable::calc_min() const {
-    for (int i = min_score; i < max_score; ++i) {
+    for (int i = min_score; i <= max_score; ++i) {
         if (get_table_value(i) > 0) {
             return i;
         }
@@ -127,7 +127,7 @@ int ScoreDistributionTable::calc_min() const {
 float ScoreDistributionTable::calc_variance() const {
     float mean = calc_mean();
     float variance = 0;
-    for (int i = min_score; i < max_score; ++i) {
+    for (int i = min_score; i <= max_score; ++i) {
         variance += (i - mean) * (i - mean) * get_table_value(i);
     }
     return variance;
@@ -211,8 +211,8 @@ void ScoreDistributionTable::normalize() {
             }
         }
     }
-    for (int i = possible_min; i <= possible_max; ++i) {
-        dist_table[i - possible_min] /= total;
+    for (int i = min_score; i <= max_score; ++i) {
+        dist_table[i - min_score] /= total;
     }
 }
 
