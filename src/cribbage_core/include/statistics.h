@@ -188,6 +188,9 @@ class AllDiscardStatistics {
     const DiscardStatistics& get_best_discard_stats() const;
     const DiscardStatistics& get_discard_stats(Card discard1,
                                                Card discard2) const;
+    const std::vector<DiscardStatistics>& get_all_discard_stats() const {
+        return discard_stats;
+    }
 
     std::string get_discard_stats_string(int num_discard_stats = 15) const;
     void print_discard_stats(int num_discard_stats = 15) const;
