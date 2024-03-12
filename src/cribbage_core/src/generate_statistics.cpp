@@ -748,12 +748,12 @@ DiscardHeuristics GenerateDiscardHeuristics::generate_discard_heuristics(ScoreTy
 
     std::transform(z_stats.begin(), z_stats.end(), z_stats.begin(),
                    [values_range](float x) {
-                          return mean_arc_calc(x, values_range, 0.5);
+                          return mean_arc_calc(x, values_range, 0.20);
                    });
 
-    for (auto it = z_stats.begin(); it != z_stats.end(); ++it) {
-        std::cout << *it << std::endl;
-    }
+    /* for (auto it = z_stats.begin(); it != z_stats.end(); ++it) { */
+    /*     std::cout << *it << std::endl; */
+    /* } */
     
 
     discard_heuristics.heuristics = z_stats;
