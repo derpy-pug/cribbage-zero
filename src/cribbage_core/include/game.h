@@ -1,10 +1,8 @@
 #pragma once
 
-#include <memory>
-
 #include "board.h"
 #include "deck.h"
-#include "generate_statistics.h"
+#include "statistics/statistics.h"
 #include "hand.h"
 #include "pgn/game_pgn.h"
 #include "player.h"

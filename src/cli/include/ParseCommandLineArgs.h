@@ -41,6 +41,10 @@ class ParseDiscardStatsArgs {
     std::optional<int> top_discards;
 };
 
+class ParsePgnArgs {
+
+};
+
 class ParseGameArgs {
   public:
     ParseGameArgs() = default;
@@ -74,13 +78,13 @@ class ParseCommandLineArgs {
   public:
     ParseCommandLineArgs(int argc, char** argv);
 
-    enum class ParseResult { DISCARDS, GAME, PLAY, HELP, ERROR };
+    enum class ParseResult { DISCARDS, GAME, PLAY, HELP, PGN, ERROR };
 
     ParseResult get_command_type() { return result; }
 
     ParseDiscardStatsArgs get_discard_stats_args() { return discard_stats; }
-
     ParseGameArgs get_game_args() { return game_args; }
+    ParsePgnArgs get_pgn_args() { return pgn_args; }
 
   private:
     ParseResult parse_command_type(int argc, char** argv);
@@ -90,4 +94,5 @@ class ParseCommandLineArgs {
 
     ParseDiscardStatsArgs discard_stats;
     ParseGameArgs game_args;
+    ParsePgnArgs pgn_args;
 };

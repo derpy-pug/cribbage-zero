@@ -1,6 +1,5 @@
 #pragma once
 
-#include <istream>
 #include <optional>
 #include "card_pile.h"
 #include "hand.h"
@@ -73,7 +72,7 @@ class PGN {
         std::pair<RoundValidationType, RoundValidationType> validate_hands() const;
         std::pair<RoundValidationType, RoundValidationType> validate_discards() const;
         RoundValidationType check_crib_score() const;
-        RoundValidationType check_hand_score(Hand hand, int score) const;
+        RoundValidationType check_hands_score(Hand hand, int score) const;
         RoundValidationType check_cut_score() const;
         RoundValidationType check_pegging_score() const;
         RoundValidationType check_pegging_cards() const;
@@ -114,6 +113,8 @@ class PGN {
     void set_game_info(GameInfo game_info) { this->game_info = game_info; }
 
     ValidationType validate() const;
+
+    
 
     std::string make_pgn() const noexcept(false);
     friend std::ostream& operator<<(std::ostream& os, const PGN& game_pgn);

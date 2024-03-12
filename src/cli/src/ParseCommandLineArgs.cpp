@@ -32,7 +32,9 @@ ParseCommandLineArgs::ParseResult ParseCommandLineArgs::parse_command_type(
         }
     } else if (std::string(argv[1]) == "play") {
         // TODO: Return a card to play during the pegging phase
-        result = ParseResult::ERROR;
+        result = ParseResult::PLAY;
+    } else if (std::string(argv[1]) == "pgn") {
+        result = ParseResult::PGN;
     } else {
         result = ParseResult::ERROR;
     }

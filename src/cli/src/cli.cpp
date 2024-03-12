@@ -104,6 +104,11 @@ int cli_game(const ParseGameArgs& args) {
     return 0;
 }
 
+int cli_pgn(const ParsePgnArgs& args) {
+    printf("PGN in progress\n");
+    return 0;
+}
+
 int cli_discard_stats(const ParseDiscardStatsArgs& args) {
     auto hand_input = args.get_hand();
     auto is_dealer_input = args.get_is_dealer();
@@ -267,12 +272,22 @@ int cli_main(int argc, char** argv) {
     if (command_type == ParseCommandLineArgs::ParseResult::HELP) {
         std::cout << help() << std::endl;
         ret = 0;
-    } else if (command_type == ParseCommandLineArgs::ParseResult::GAME) {
+    } 
+    else if (command_type == ParseCommandLineArgs::ParseResult::GAME) {
         ret = cli_game(args.get_game_args());
-    } else if (command_type == ParseCommandLineArgs::ParseResult::DISCARDS) {
+    } 
+    else if (command_type == ParseCommandLineArgs::ParseResult::DISCARDS) {
         ret = cli_discard_stats(args.get_discard_stats_args());
-    } else {
-        std::cout << "No command specified. Exiting." << std::endl;
+    } 
+    else if (command_type == ParseCommandLineArgs::ParseResult::PGN) {
+        ret = cli_pgn(args.get_pgn_args());
+    } 
+    else if (command_type == ParseCommandLineArgs::ParseResult::ERROR) {
+        std::cout << "Error parsing command. Exiting." << std::endl;
+        ret = 1;
+    }
+    else {
+        std::cout << "Command not implemented yet." << std::endl;
         ret = 1;
     }
     return ret;

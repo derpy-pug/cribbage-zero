@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "cribbage_random.h"
-#include "generate_statistics.h"
+#include "statistics/generate_statistics.h"
 
 namespace cribbage {
 

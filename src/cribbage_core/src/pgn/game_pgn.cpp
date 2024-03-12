@@ -58,14 +58,14 @@ PGN::ValidationType PGN::Round::validate() const {
         Hand hand = hand1.value();
         hand.remove_card(discards1->first);
         hand.remove_card(discards1->second);
-        hand1_score_validation = check_hand_score(hand, hand1_score.value());
+        hand1_score_validation = check_hands_score(hand, hand1_score.value());
     }
     RoundValidationType hand2_score_validation;
     if (hand2_validation == VALID && discards2_validation == VALID) {
         Hand hand = hand2.value();
         hand.remove_card(discards2->first);
         hand.remove_card(discards2->second);
-        hand2_score_validation = check_hand_score(hand, hand2_score.value());
+        hand2_score_validation = check_hands_score(hand, hand2_score.value());
     }
 
     RoundValidationType crib_score_validation;
@@ -240,7 +240,7 @@ PGN::Round::RoundValidationType PGN::Round::check_crib_score() const {
 
 }
 
-PGN::Round::RoundValidationType PGN::Round::check_hand_score(Hand hand, int hand_score) const {
+PGN::Round::RoundValidationType PGN::Round::check_hands_score(Hand hand, int hand_score) const {
 
     int score = score_hand(hand, cut.value(), false);
     if (score == hand1_score) {

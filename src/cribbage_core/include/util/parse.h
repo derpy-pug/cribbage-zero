@@ -4,7 +4,7 @@
 #include <utility>
 
 #include "hand.h"
-#include "statistics.h"
+#include "statistics/statistics.h"
 
 namespace cribbage {
 
