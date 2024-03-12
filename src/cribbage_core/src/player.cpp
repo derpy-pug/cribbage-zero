@@ -124,7 +124,7 @@ std::pair<Card, Card> StatPlayer::make_discards(
     gen_discard.generate_all_discard_stats();
 
     AllDiscardStatistics all_discard_stats = gen_discard.get_all_discard_stats();
-    all_discard_stats.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
+    all_discard_stats.sort(ScoreType::COMBINED, Statistic::MEAN);
     const DiscardStatistics& discard_stats =
       all_discard_stats.get_best_discard_stats();
     get_hand().remove_card(discard_stats.get_discard1());

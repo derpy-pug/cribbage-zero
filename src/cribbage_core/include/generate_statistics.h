@@ -64,6 +64,17 @@ class GenerateCribStatistics {
     StatisticTable stat_table;
 };
 
+class GenerateDiscardHeuristics {
+  public:
+    GenerateDiscardHeuristics(const AllDiscardStatistics& all_discard_stats); 
+
+    DiscardHeuristics generate_discard_heuristics(ScoreType score_type = ScoreType::COMBINED,
+                                                  Statistic stat = Statistic::MEAN) const;
+
+  private:
+    const AllDiscardStatistics& all_discard_stats;
+};
+
 
 class GenerateDiscardStatistics {
   public:
@@ -86,6 +97,15 @@ class GenerateDiscardStatistics {
     void generate_all_discard_stats(std::optional<Card> cut = std::nullopt,
                                     bool use_simulated = false,
                                     Player* opponent = nullptr);
+
+    /*
+     * @brief generates the heuristics for the discard statistics.
+     *
+     * @important This should be called after generate_all_discard_stats() has
+     *       been called.
+     */
+    void generate_heuristics(ScoreType score_type = ScoreType::COMBINED,
+                             Statistic stat = Statistic::MEAN);
 
     AllDiscardStatistics get_all_discard_stats() const {
         return all_discard_stats;

@@ -68,7 +68,7 @@ void test_stats() {
 
     AllDiscardStatistics all_discard_stats =
       gen_discard.get_all_discard_stats();
-    all_discard_stats.sort_discard_stats(ScoreType::COMBINED, Statistic::MEAN);
+    all_discard_stats.sort(ScoreType::COMBINED, Statistic::MEAN);
     const DiscardStatistics& discard_stats =
       all_discard_stats.get_best_discard_stats();
     // std::cout << discard_stats << std::endl;
@@ -156,15 +156,16 @@ int cli_discard_stats(const ParseDiscardStatsArgs& args) {
 
     GenerateDiscardStatistics gen_discard(p1.get(), is_dealer, probs);
     gen_discard.generate_all_discard_stats(cut);
+    gen_discard.generate_heuristics();
 
     AllDiscardStatistics all_discard_stats =
       gen_discard.get_all_discard_stats();
 
     if (sort_by) {
-        all_discard_stats.sort_discard_stats(sort_by->first, sort_by->second);
+        all_discard_stats.sort(sort_by->first, sort_by->second);
     }
     else {
-        all_discard_stats.sort_discard_stats(); // default sort
+        all_discard_stats.sort(); // default sort
     }
 
     /* const DiscardStatistics& discard_stats_best = */

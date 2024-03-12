@@ -5,12 +5,13 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <numeric>
 
 #define TABLE_DIR "tables/"
 
 namespace cribbage {
 
-constexpr static int default_num_sim_discards = 2 << 19; 
+constexpr static int default_num_sim_discards = 2 << 19;
 
 const static float default_stat_vs_stat_my_crib[13][13] = {
   {0.013979, 0.0284529, 0.0315924, 0.0317945, 0.00486279, 0.00565147,
@@ -60,7 +61,8 @@ const static float default_stat_vs_stat_opp_crib[13][13] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.00313854, 0.0310097},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.00335312}};
 
-ScoreDistributionTable::ScoreDistributionTable() : possible_min(0), possible_max(29), min_score(29), max_score(0) {
+ScoreDistributionTable::ScoreDistributionTable()
+    : possible_min(0), possible_max(29), min_score(29), max_score(0) {
     dist_table.resize(30);
 }
 
@@ -450,13 +452,14 @@ void CribDiscardProbabilities::to_prob_table() {
     is_freq_table = false;
 }
 
-DiscardStatistics::DiscardStatistics(
-  Card discard1, Card discard2, bool is_dealer, PlayerInfo player_info)
-  
+DiscardStatistics::DiscardStatistics(Card discard1, Card discard2,
+                                     bool is_dealer, PlayerInfo player_info)
+
     : discard1(discard1),
       discard2(discard2),
       player_info(player_info),
       is_dealer(is_dealer),
+      heuristic(0),
       score_dist_hand(),
       score_dist_crib(),
       score_dist_combined(-60, 60) {}
@@ -487,6 +490,26 @@ const ScoreDistributionTable& DiscardStatistics::get_score_dist(
             return score_dist_combined;
         default:
             std::cerr << "Error: Invalid score type" << std::endl;
+            exit(1);
+    }
+}
+
+float DiscardStatistics::get_value(ScoreType score_type, Statistic stat) const {
+    switch (stat) {
+        case Statistic::MEAN:
+            return get_mean(score_type);
+        case Statistic::MEDIAN:
+            return get_median(score_type);
+        case Statistic::VARIANCE:
+            return get_variance(score_type);
+        case Statistic::STD_DEV:
+            return get_std_dev(score_type);
+        case Statistic::MAX:
+            return get_max(score_type);
+        case Statistic::MIN:
+            return get_min(score_type);
+        default:
+            std::cerr << "Error: Invalid statistic" << std::endl;
             exit(1);
     }
 }
@@ -567,6 +590,8 @@ std::string DiscardStatistics::get_discard_string() const {
     discard_string +=
       "Max: " + std::to_string(get_max(ScoreType::COMBINED)) + " ";
     discard_string += "\n";
+
+    discard_string += "Heuristic: " + std::to_string(heuristic) + "\n";
     return discard_string;
 }
 
@@ -576,9 +601,11 @@ std::ostream& operator<<(std::ostream& os,
     return os;
 }
 
-AllDiscardStatistics::AllDiscardStatistics() : discard_stats() {}
+AllDiscardStatistics::AllDiscardStatistics()
+    : discard_stats(), score_type(), stat() {}
 
-const DiscardStatistics& AllDiscardStatistics::get_discard_stats(Card discard1, Card discard2) const {
+const DiscardStatistics& AllDiscardStatistics::get_discard_stats(
+  Card discard1, Card discard2) const {
     for (auto it = discard_stats.cbegin(); it != discard_stats.cend(); ++it) {
         if ((*it).get_discard1() == discard1 &&
             (*it).get_discard2() == discard2) {
@@ -589,7 +616,10 @@ const DiscardStatistics& AllDiscardStatistics::get_discard_stats(Card discard1, 
     throw std::exception();
 }
 
-void AllDiscardStatistics::sort_discard_stats(ScoreType score_type, Statistic stat) {
+void AllDiscardStatistics::sort(ScoreType score_type, Statistic stat) {
+    this->score_type = score_type;
+    this->stat = stat;
+
     auto comparison_heuristic = [score_type](const DiscardStatistics& a,
                                              const DiscardStatistics& b) {
         return a.get_mean(score_type) > b.get_mean(score_type);
@@ -636,7 +666,7 @@ const DiscardStatistics& AllDiscardStatistics::get_best_discard_stats() const {
 
 std::string AllDiscardStatistics::get_discard_stats_string(
   std::optional<int> num_discard_stats) const {
-    int num = 15; // Default
+    int num = 15;  // Default
     if (num_discard_stats)
         num = *num_discard_stats;
 
@@ -648,8 +678,7 @@ std::string AllDiscardStatistics::get_discard_stats_string(
     return discard_stats_string;
 }
 
-void AllDiscardStatistics::print_discard_stats(
-  int num_discard_stats) const {
+void AllDiscardStatistics::print_discard_stats(int num_discard_stats) const {
     std::cout << get_discard_stats_string(num_discard_stats);
 }
 
@@ -660,6 +689,33 @@ std::ostream& operator<<(std::ostream& os,
         os << *it << std::endl;
     }
     return os;
+}
+
+int DiscardHeuristics::get_index(Card discard1, Card discard2) const {
+    auto pair = std::pair<Card, Card>(discard1, discard2);
+    return get_index(pair);
+}
+
+int DiscardHeuristics::get_index(std::pair<Card, Card> discard) const {
+    for (auto it = discards.cbegin(); it != discards.cend(); ++it) {
+        if (*it == discard || std::make_pair(it->second, it->first) == discard) {
+            return std::distance(discards.cbegin(), it);
+        }
+    } 
+    return -1;
+}
+
+float DiscardHeuristics::get_heuristic(Card discard1, Card discard2) const {
+    int index = get_index(discard1, discard2);
+    if (index == -1) {
+        std::cerr << "Error: Discard not found" << std::endl;
+        exit(1);
+    }
+    return heuristics[index];
+}
+
+float DiscardHeuristics::get_heuristic(const DiscardStatistics& discard_stats) const {
+    return get_heuristic(discard_stats.get_discard1(), discard_stats.get_discard2());
 }
 
 StatisticTable::StatisticTable()

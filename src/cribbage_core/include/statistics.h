@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "card.h"
 #include "player.h"
@@ -142,12 +143,16 @@ class DiscardStatistics {
 
     const ScoreDistributionTable& get_score_dist(ScoreType score_type) const;
 
+    float get_value(ScoreType score_type, Statistic stat) const;
+
     float get_mean(ScoreType score_type) const;
     int get_median(ScoreType score_type) const;
     float get_variance(ScoreType score_type) const;
     float get_std_dev(ScoreType score_type) const;
     int get_max(ScoreType score_type) const;
     int get_min(ScoreType score_type) const;
+
+    float get_heuristic() const { return heuristic; }
 
     float get_prob(ScoreType score_type, int score) const;
     float get_prob_cummulative(ScoreType score_type, int score) const;
@@ -165,11 +170,31 @@ class DiscardStatistics {
     Card discard2;
     PlayerInfo player_info;
     bool is_dealer;
+    float heuristic;
 
     ScoreDistributionTable score_dist_hand;
     ScoreDistributionTable score_dist_crib;
     ScoreDistributionTable score_dist_combined;
 };
+
+class DiscardHeuristics {
+  public:
+    DiscardHeuristics() = default;
+
+    friend class GenerateDiscardHeuristics;
+
+    float get_heuristic(Card discard1, Card discard2) const;
+    float get_heuristic(const DiscardStatistics& discard_stats) const;
+
+  private:
+    int get_index(Card discard1, Card discard2) const;
+    int get_index(std::pair<Card, Card> discards) const;
+
+  private:
+    std::vector<float> heuristics;
+    std::vector<std::pair<Card, Card>> discards;
+};
+
 
 class AllDiscardStatistics {
   public:
@@ -177,13 +202,13 @@ class AllDiscardStatistics {
 
     friend class GenerateDiscardStatistics;
 
-    void sort_discard_stats(ScoreType score_type = ScoreType::COMBINED,
+    void sort(ScoreType score_type = ScoreType::COMBINED,
                             Statistic stat = Statistic::MEAN);
 
     /*
      * @brief Get the best discard statistics.
      *
-     * @important This should only be called after sort_discard_stats() has been
+     * @important This should only be called after sort() has been
      *           called.
      *
      * @return The best discard statistics.
@@ -195,7 +220,8 @@ class AllDiscardStatistics {
         return discard_stats;
     }
 
-    std::string get_discard_stats_string(std::optional<int> num_discard_stats) const;
+    std::string get_discard_stats_string(
+      std::optional<int> num_discard_stats) const;
     void print_discard_stats(int num_discard_stats = 15) const;
 
     friend std::ostream& operator<<(
@@ -203,13 +229,16 @@ class AllDiscardStatistics {
 
   private:
     std::vector<DiscardStatistics> discard_stats;
+
+    ScoreType score_type; 
+    Statistic stat;
 };
 
 class StatisticTable {
   public:
     StatisticTable();
     //~StatisticTable() = default;
-    
+
     friend class GenerateCribStatistics;
 
     int load_tables(std::optional<std::string> table = std::nullopt);
