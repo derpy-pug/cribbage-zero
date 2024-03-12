@@ -36,5 +36,5 @@ In the top level folder with README. Run the setup script.
 
 Then run with
 ```
-build/app/app
+./cribbage
 ```
