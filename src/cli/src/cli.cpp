@@ -5,9 +5,11 @@
 
 #include "cli.h"
 #include "cribbage_random.h"
+#include "ParseCommandLineArgs.h"
 
 #include "help.h"
 
+// Location of the tables directory
 #define TABLE_DIR std::string("tables/")
 
 using namespace cribbage;
@@ -74,172 +76,35 @@ void test_stats() {
     // std::cout << gen_discard << std::endl;
 }
 
-ParseCommandLineArgs::ParseCommandLineArgs(int argc, char** argv)
-    : argc(argc), argv(argv) {
-    int ret = parse();
-    if (ret == 2) {
-        exit(0);
-    } else if (ret != 0) {
-        throw std::invalid_argument("Invalid command line arguments");
-    }
-}
-
-int ParseCommandLineArgs::parse() {
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
-        if (arg == "-h" || arg == "--hand") {
-            if (i + 1 < argc) {
-                hand_str = argv[++i];
-                input_hand = true;
-            } else {
-                std::cerr << "--hand option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if (arg == "--dealer") {
-            if (i + 1 < argc) {
-                std::string dealer_str = argv[++i];
-                // Lower case
-                is_dealer = parse_is_dealer(dealer_str);
-                input_is_dealer = true;
-            } else {
-                std::cerr << "--dealer option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if (arg == "-c" || arg == "--cut") {
-            if (i + 1 < argc) {
-                cut_str = argv[++i];
-                input_cut = true;
-            } else {
-                std::cerr << "--cut option requires one argument." << std::endl;
-                return 1;
-            }
-        } else if (arg == "-d" || arg == "--discards") {
-            if (i + 1 < argc) {
-                discard_str = argv[++i];
-                input_discards = true;
-            } else {
-                std::cerr << "--discards option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if (arg == "-s" || arg == "--sort-by") {
-            if (i + 1 < argc) {
-                sort_by_str = argv[++i];
-                input_sort_by = true;
-            } else {
-                std::cerr << "--sort-by option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if (arg == "-t" || arg == "--table") {
-            if (i + 1 < argc) {
-                table_str = argv[++i];
-                input_table = true;
-            } else {
-                std::cerr << "--table option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if (arg == "--top-discards") {
-            if (i + 1 < argc) {
-                top_discards = std::stoi(argv[++i]);
-                input_top_discards = true;
-            } else {
-                std::cerr << "--top-discards option requires one argument."
-                          << std::endl;
-                return 1;
-            }
-        } else if (arg == "--help") {
-            std::cout << help() << std::endl;
-            return 2;
-        } else {
-            std::cerr << "Unknown option: " << arg << std::endl;
-            return 1;
-        }
-    }
-    return 0;
-}
-
-std::optional<Hand> ParseCommandLineArgs::get_hand() const {
-    if (!input_hand) {
-        return std::nullopt;
-    }
-    return parse_hand(hand_str);
-}
-
-std::optional<bool> ParseCommandLineArgs::get_is_dealer() const {
-    if (!input_is_dealer) {
-        return std::nullopt;
-    }
-    return std::optional<bool>(is_dealer);
-}
-
-std::optional<Card> ParseCommandLineArgs::get_cut() const {
-    if (!input_cut) {
-        return std::nullopt;
-    }
-    return Card(cut_str);
-}
-
-std::optional<std::pair<Card, Card>> ParseCommandLineArgs::get_discards()
-  const {
-    if (!input_discards) {
-        return std::nullopt;
-    }
-    return parse_discards(discard_str);
-}
-
-std::pair<Statistic, ScoreType> ParseCommandLineArgs::get_sort_by() const {
-    if (!input_sort_by) {
-        return {Statistic::MEAN, ScoreType::COMBINED};
-    }
-    return parse_sort_by(sort_by_str);
-}
-
-std::optional<std::string> ParseCommandLineArgs::get_table() const {
-    if (!input_table) {
-        return std::nullopt;
-    }
-    return table_str;
-}
-
-int ParseCommandLineArgs::get_top_discards() const {
-    if (!input_top_discards) {
-        return 15;
-    }
-    return top_discards;
-}
-
-int cli_game(const ParseCommandLineArgs& args) {
+int cli_game(const ParseGameArgs& args) {
     PlayerInfo p1_info{"Staples", PlayerType::STAT};
-    PlayerInfo p2_info{"Stanley", PlayerType::STAT};
+    PlayerInfo p2_info{"Stanley", PlayerType::HUMAN};
     std::unique_ptr<Player> p1 = PlayerFactory::create_player(p1_info);
     std::unique_ptr<Player> p2 = PlayerFactory::create_player(p2_info);
 
     GenerateCribStatistics gen_stats(p1.get(), p2.get());
     gen_stats.get_stat_table().load_tables(args.get_table());
 
-    CribDiscardProbabilities probs = gen_stats.get_crib_discard_probs();
+    const CribDiscardProbabilities& probs = gen_stats.get_crib_discard_probs();
 
     Game game(p1.get(), p2.get(), probs);
     game.play_game();
 
-    /* std::cout << game.get_pgn() << std::endl; */
-    /* game.get_pgn().save("game.pgn"); */
+    std::cout << game.get_pgn() << std::endl;
+    // game.get_pgn().save("game.pgn");
 
-    PGN pgn;
-    std::fstream pgn_file("pgn/game.pgn", std::ios::in);
-    std::stringstream buffer;
-    buffer << pgn_file.rdbuf();
-    pgn.load(buffer);
-    std::cout << pgn << std::endl;
+    /* Test loading PGN */
+    /* PGN pgn; */
+    /* std::fstream pgn_file("pgn/game.pgn", std::ios::in); */
+    /* std::stringstream buffer; */
+    /* buffer << pgn_file.rdbuf(); */
+    /* pgn.load(buffer); */
+    /* std::cout << pgn << std::endl; */
 
     return 0;
 }
 
-int cli_discard_stats(const ParseCommandLineArgs& args) {
+int cli_discard_stats(const ParseDiscardStatsArgs& args) {
     auto hand_input = args.get_hand();
     auto is_dealer_input = args.get_is_dealer();
     Hand hand;
@@ -264,7 +129,7 @@ int cli_discard_stats(const ParseCommandLineArgs& args) {
     auto discards = args.get_discards();
     auto sort_by = args.get_sort_by();
     auto table = args.get_table();
-    int top_discards = args.get_top_discards();
+    auto top_discards = args.get_top_discards();
 
     PlayerInfo p1_info{"Staples", PlayerType::STAT};
     PlayerInfo p2_info{"Stanley", PlayerType::STAT};
@@ -295,7 +160,12 @@ int cli_discard_stats(const ParseCommandLineArgs& args) {
     AllDiscardStatistics all_discard_stats =
       gen_discard.get_all_discard_stats();
 
-    all_discard_stats.sort_discard_stats(sort_by.second, sort_by.first);
+    if (sort_by) {
+        all_discard_stats.sort_discard_stats(sort_by->first, sort_by->second);
+    }
+    else {
+        all_discard_stats.sort_discard_stats(); // default sort
+    }
 
     /* const DiscardStatistics& discard_stats_best = */
     /*     gen_discard.get_best_discard_stats(); */
@@ -390,8 +260,19 @@ int cli_main(int argc, char** argv) {
 
     ParseCommandLineArgs args(argc, argv);
 
-    int ret = cli_discard_stats(args);
-    /* int ret = cli_game(args); */
-
+    int ret;
+    ParseCommandLineArgs::ParseResult command_type = args.get_command_type();
+    
+    if (command_type == ParseCommandLineArgs::ParseResult::HELP) {
+        std::cout << help() << std::endl;
+        ret = 0;
+    } else if (command_type == ParseCommandLineArgs::ParseResult::GAME) {
+        ret = cli_game(args.get_game_args());
+    } else if (command_type == ParseCommandLineArgs::ParseResult::DISCARDS) {
+        ret = cli_discard_stats(args.get_discard_stats_args());
+    } else {
+        std::cout << "No command specified. Exiting." << std::endl;
+        ret = 1;
+    }
     return ret;
 }

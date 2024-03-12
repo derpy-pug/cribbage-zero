@@ -195,7 +195,7 @@ class AllDiscardStatistics {
         return discard_stats;
     }
 
-    std::string get_discard_stats_string(int num_discard_stats = 15) const;
+    std::string get_discard_stats_string(std::optional<int> num_discard_stats) const;
     void print_discard_stats(int num_discard_stats = 15) const;
 
     friend std::ostream& operator<<(

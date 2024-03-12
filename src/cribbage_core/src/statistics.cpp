@@ -635,9 +635,13 @@ const DiscardStatistics& AllDiscardStatistics::get_best_discard_stats() const {
 }
 
 std::string AllDiscardStatistics::get_discard_stats_string(
-  int num_discard_stats) const {
+  std::optional<int> num_discard_stats) const {
+    int num = 15; // Default
+    if (num_discard_stats)
+        num = *num_discard_stats;
+
     std::string discard_stats_string = "";
-    for (int i = 0; i < num_discard_stats; i++) {
+    for (int i = 0; i < num; i++) {
         discard_stats_string += discard_stats[i].get_discard_string();
         discard_stats_string += "\n";
     }

@@ -161,6 +161,14 @@ bool Game::can_play_any_card(const Hand& hand,
 
 bool Game::score_pegging(bool is_player1_turn, const CardPile& pegging_cards,
                          bool is_go) {
+    if (!round.pegging_player.has_value()) {
+        round.pegging_player = std::vector<bool>(8, false);
+    }
+    if (!round.pegging_scores.has_value()) {
+        round.pegging_scores = std::vector<int>();
+        round.pegging_scores->reserve(8);
+    }
+
     if (is_go) {
         round.pegging_scores->back() += 1;
         WhichPlayer player =
@@ -169,14 +177,6 @@ bool Game::score_pegging(bool is_player1_turn, const CardPile& pegging_cards,
         return board.get_winner().has_value();
     }
 
-    if (!round.pegging_scores.has_value()) {
-        round.pegging_scores = std::vector<int>();
-        round.pegging_scores->reserve(8);
-    }
-    if (!round.pegging_player.has_value()) {
-        round.pegging_player = std::vector<bool>();
-        round.pegging_player->reserve(8);
-    }
     int score = pegging_cards.score_pile();
     round.pegging_scores->push_back(score);
     if (is_player1_turn) {

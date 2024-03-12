@@ -56,6 +56,8 @@ std::pair<Card, Card> HumanPlayer::make_discards(
     std::cout << "Your hand: " << get_hand() << std::endl;
     std::cout << "Discard two cards: ";
     unsigned int i, j;
+    // TODO: Check for invalid input
+    // Currently, if the user inputs a non-integer, the program will crash
     std::cin >> i;
     std::cin >> j;
     if (i == j || i >= get_hand().size() ||

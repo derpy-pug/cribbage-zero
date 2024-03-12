@@ -44,7 +44,7 @@ class Player {
      * @brief Play a card in the pegging phase.
      *
      * @important Removes the card from the player's hand.
-     * @important does not check if the card is a valid play.
+     * @important does check if the card is a valid play.
      *
      * @param pile The pile of cards played so far.
      * @param dealt_hand The player's hand before discarding.

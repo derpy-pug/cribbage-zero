@@ -140,7 +140,7 @@ bool parse_is_dealer(std::string is_dealer_str) {
         return {card1, card2};
     }
 
-    std::pair<Statistic, ScoreType> parse_sort_by(std::string sort_by_str) {
+    std::pair<ScoreType, Statistic> parse_sort_by(std::string sort_by_str) {
         std::transform(sort_by_str.begin(), sort_by_str.end(), sort_by_str.begin(),
                 ::tolower);
         std::stringstream ss(sort_by_str);
@@ -176,7 +176,7 @@ bool parse_is_dealer(std::string is_dealer_str) {
             throw std::invalid_argument("Invalid score type");
         }
 
-        return {stat, score_type};
+        return {score_type, stat};
     }
 
 }  // namespace cribbage
