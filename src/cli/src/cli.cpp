@@ -1,11 +1,9 @@
-#include <algorithm>
-#include <fstream>
 #include <iostream>
-#include <sstream>
 
+#include "cribbage.h"
+#include "ParseCommandLineArgs.h"
 #include "cli.h"
 #include "cribbage_random.h"
-#include "ParseCommandLineArgs.h"
 
 #include "help.h"
 
@@ -168,9 +166,8 @@ int cli_discard_stats(const ParseDiscardStatsArgs& args) {
 
     if (sort_by) {
         all_discard_stats.sort(sort_by->first, sort_by->second);
-    }
-    else {
-        all_discard_stats.sort(); // default sort
+    } else {
+        all_discard_stats.sort();  // default sort
     }
 
     /* const DiscardStatistics& discard_stats_best = */
@@ -267,26 +264,21 @@ int cli_main(int argc, char** argv) {
 
     int ret;
     ParseCommandLineArgs::ParseResult command_type = args.get_command_type();
-    
+
     //CribbageRandom::get_instance()->seed(3);
     if (command_type == ParseCommandLineArgs::ParseResult::HELP) {
         std::cout << help() << std::endl;
         ret = 0;
-    } 
-    else if (command_type == ParseCommandLineArgs::ParseResult::GAME) {
+    } else if (command_type == ParseCommandLineArgs::ParseResult::GAME) {
         ret = cli_game(args.get_game_args());
-    } 
-    else if (command_type == ParseCommandLineArgs::ParseResult::DISCARDS) {
+    } else if (command_type == ParseCommandLineArgs::ParseResult::DISCARDS) {
         ret = cli_discard_stats(args.get_discard_stats_args());
-    } 
-    else if (command_type == ParseCommandLineArgs::ParseResult::PGN) {
+    } else if (command_type == ParseCommandLineArgs::ParseResult::PGN) {
         ret = cli_pgn(args.get_pgn_args());
-    } 
-    else if (command_type == ParseCommandLineArgs::ParseResult::ERROR) {
+    } else if (command_type == ParseCommandLineArgs::ParseResult::ERROR) {
         std::cout << "Error parsing command. Exiting." << std::endl;
         ret = 1;
-    }
-    else {
+    } else {
         std::cout << "Command not implemented yet." << std::endl;
         ret = 1;
     }

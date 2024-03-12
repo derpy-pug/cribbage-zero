@@ -4,6 +4,7 @@
 #include "card.h"
 #include "deck.h"
 #include "statistics/generate_statistics.h"
+#include "statistics/statistics.h"
 #include "hand.h"
 #include "player.h"
 #include "scoring.h"

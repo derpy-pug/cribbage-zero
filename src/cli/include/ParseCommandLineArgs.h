@@ -1,5 +1,7 @@
 #pragma once
-#include "cribbage.h"
+
+#include "hand.h"
+#include "statistics/stat_enums.h"
 
 #include <optional>
 
