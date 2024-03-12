@@ -14,6 +14,10 @@ CribbageRandom* CribbageRandom::get_instance() {
     return instance; 
 }
 
+void CribbageRandom::seed(unsigned int seed) {
+    generator.seed(seed);
+}
+
 CribbageRandom::~CribbageRandom() {
     delete instance;
 }

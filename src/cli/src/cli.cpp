@@ -78,7 +78,7 @@ void test_stats() {
 
 int cli_game(const ParseGameArgs& args) {
     PlayerInfo p1_info{"Staples", PlayerType::STAT};
-    PlayerInfo p2_info{"Stanley", PlayerType::HUMAN};
+    PlayerInfo p2_info{"Stanley", PlayerType::STAT};
     std::unique_ptr<Player> p1 = PlayerFactory::create_player(p1_info);
     std::unique_ptr<Player> p2 = PlayerFactory::create_player(p2_info);
 
@@ -257,12 +257,12 @@ int cli_discard_stats(const ParseDiscardStatsArgs& args) {
  */
 
 int cli_main(int argc, char** argv) {
-
     ParseCommandLineArgs args(argc, argv);
 
     int ret;
     ParseCommandLineArgs::ParseResult command_type = args.get_command_type();
     
+    //CribbageRandom::get_instance()->seed(3);
     if (command_type == ParseCommandLineArgs::ParseResult::HELP) {
         std::cout << help() << std::endl;
         ret = 0;

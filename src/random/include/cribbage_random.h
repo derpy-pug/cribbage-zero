@@ -43,6 +43,8 @@ class CribbageRandom
      */
     bool get_bool();
 
+    void seed(unsigned int seed);
+
     static CribbageRandom* get_instance();
 
     std::mt19937_64& get_generator() { return generator; }
