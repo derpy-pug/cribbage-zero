@@ -89,7 +89,7 @@ int cli_game(const ParseGameArgs& args) {
     game.play_game();
 
     std::cout << game.get_pgn() << std::endl;
-    // game.get_pgn().save("game.pgn");
+    game.get_pgn().save("game2.pgn");
 
     /* Test loading PGN */
     /* PGN pgn; */
@@ -103,7 +103,45 @@ int cli_game(const ParseGameArgs& args) {
 }
 
 int cli_pgn(const ParsePgnArgs& args) {
-    printf("PGN in progress\n");
+    if (!args.get_pgn_file_name()) {
+        std::cout << "No PGN file specified. Exiting." << std::endl;
+        return 1;
+    }
+    std::string pgn_file_name = args.get_pgn_file_name().value();
+    std::cout << "Loading PGN file: " << pgn_file_name << std::endl;
+    std::fstream pgn_file(pgn_file_name, std::ios::in);
+    std::stringstream buffer;
+    buffer << pgn_file.rdbuf();
+    PGN pgn;
+    pgn.load(buffer);
+    /* std::cout << pgn << std::endl; */
+    PGN::ValidationType validation = pgn.validate();
+    if (validation == PGN::ValidationType::FINISHED) {
+        std::cout << "PGN is valid." << std::endl;
+    } else {
+        std::cout << "PGN is invalid. ";
+        switch (validation) {
+            case PGN::ValidationType::INVALID:
+                std::cout << "(Invalid)" << std::endl;
+                break;
+
+            case PGN::ValidationType::MISSING_ROUND:
+                std::cout << "(Missing round)" << std::endl;
+                break;
+            case PGN::ValidationType::MISSING_SCORES:
+                std::cout << "(Missing Scores or Bad Score)" << std::endl;
+                break;
+            case PGN::ValidationType::PARTIAL:
+                std::cout << "(Partial)" << std::endl;
+                break;
+            case PGN::ValidationType::UNFINISHED:
+                std::cout << "(Unfinished)" << std::endl;
+                break;
+            default:
+                std::cout << "Unknown error." << std::endl;
+                break;
+        }
+    }
     return 0;
 }
 

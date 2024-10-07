@@ -3,6 +3,8 @@
 
 namespace cribbage {
 
+static const bool TWO_PLAYER = true; // Two player cribbage or Three player cribbage
+
 Game::Game(Player* player1, Player* player2,
            const CribDiscardProbabilities& crib_discard_probs)
     : player1(player1),
@@ -45,6 +47,7 @@ bool Game::play_game() {
 void Game::play_round() {
     round_number++;
     round = PGN::Round();
+    round.round_number = round_number;
 
     deal();
     discard();
@@ -63,7 +66,7 @@ void Game::play_round() {
         return;
     }
     score();
-
+    
     pgn.add_round(round);
 }
 
@@ -159,6 +162,7 @@ bool Game::can_play_any_card(const Hand& hand,
     return false;
 }
 
+// The pegging_cards has a get_scores() that could be used instead
 bool Game::score_pegging(bool is_player1_turn, const CardPile& pegging_cards,
                          bool is_go) {
     if (!round.pegging_player.has_value()) {
@@ -170,7 +174,9 @@ bool Game::score_pegging(bool is_player1_turn, const CardPile& pegging_cards,
     }
 
     if (is_go) {
-        round.pegging_scores->back() += 1;
+        if (TWO_PLAYER && round.pegging_scores->size() != 8) {
+            round.pegging_scores->back() += 1;
+        }
         WhichPlayer player =
           is_player1_turn ? WhichPlayer::FIRST_DEALER : WhichPlayer::FIRST_PONE;
         board.move(player, 1);

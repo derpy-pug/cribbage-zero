@@ -57,6 +57,9 @@ Card parse_card(std::string card_str) {
         case 'K':
             rank = Rank::KING;
             break;
+        case 'N':
+            rank = Rank::NONE;
+            break;
         default:
             throw std::invalid_argument("Invalid rank character");
     }
@@ -73,6 +76,9 @@ Card parse_card(std::string card_str) {
             break;
         case 'S':
             suit = Suit::SPADES;
+            break;
+        case 'N':
+            suit = Suit::NONE;
             break;
         default:
             throw std::invalid_argument("Invalid suit character");

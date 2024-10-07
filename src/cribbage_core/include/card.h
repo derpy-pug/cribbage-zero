@@ -91,9 +91,20 @@ class Card {
      */
     int get_value() const;
 
+    /*
+     * @brief Checks if the card is a complete card
+     *
+     * A card is complete if it has a valid suit and rank. (i.e. not NONE)
+     *
+     * @return True if the card is complete, false otherwise
+     */
+    bool is_complete() const { return suit != Suit::NONE && rank != Rank::NONE; }
+
     bool operator==(const Card& rhs) const;
 
+    // Checks if the rank of the lhs card is less than the rank of the rhs card
     static bool compare_rank(const Card& lhs, const Card& rhs);
+    // Checks if the suit of the lhs card is less than the suit of the rhs card
     static bool compare_suit(const Card& lhs, const Card& rhs);
 
     /*

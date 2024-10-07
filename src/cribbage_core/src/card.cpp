@@ -16,6 +16,10 @@ Suit Card::get_suit() const {
     return suit;
 }
 
+int Card::get_suit_int() const {
+    return static_cast<int>(suit);
+}
+
 Rank Card::get_rank() const {
     return rank;
 }
@@ -25,10 +29,10 @@ int Card::get_rank_int() const {
 }
 
 int Card::get_value() const {
-    if (static_cast<int>(rank) >= 10) {
+    if (get_rank_int() >= 10) {
         return 10;
     }
-    return static_cast<int>(rank);
+    return get_rank_int();
 }
 
 bool Card::operator==(const Card& rhs) const {

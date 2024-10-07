@@ -22,7 +22,7 @@ void Deck::make_deck() {
 }
 
 void Deck::shuffle() {
-    auto g = CribbageRandom::get_instance()->get_generator();
+    auto& g = CribbageRandom::get_instance()->get_generator();
     std::shuffle(cards.begin(), cards.end(), g);
     next_card_idx = cards.size() - 1;
 }
@@ -37,7 +37,7 @@ void Deck::shuffleTopCardsIntoDeck() {
 
 Card Deck::deal_card() {
     if (next_card_idx < 0) {
-        std::cerr << "No more cards in deck. Undefined Behavior." << std::endl;
+        return Card();
     }
     Card card = cards[next_card_idx];
     --next_card_idx;
@@ -46,7 +46,7 @@ Card Deck::deal_card() {
 
 Card Deck::deal_card_and_remove() {
     if (next_card_idx >= (int)cards.size()) {
-        std::cerr << "No more cards in deck. Undefined Behavior." << std::endl;
+        return Card();
     }
     Card card = cards[next_card_idx];
     cards.erase(cards.begin() + next_card_idx);
@@ -55,6 +55,7 @@ Card Deck::deal_card_and_remove() {
 }
 
 Hand Deck::deal_hand(int numCards) {
+    numCards = std::min((size_t)numCards, cards_remaining());
     Hand hand;
     for (int i = 0; i < numCards; ++i) {
         hand.add_card(deal_card());
@@ -63,16 +64,13 @@ Hand Deck::deal_hand(int numCards) {
 }
 
 Hand Deck::deal_hand_and_remove(int numCards) {
-    if (next_card_idx + 1 < numCards) {
-        std::cerr << "Not enough cards in deck. Undefined Behavior."
-                  << std::endl;
-    }
+    numCards = std::min((size_t)numCards, cards_remaining());
     Hand hand;
     for (int i = 0; i < numCards; ++i) {
         hand.add_card(cards[next_card_idx - i]);
     }
-    cards.erase(cards.begin() + next_card_idx - numCards + 1,
-                cards.begin() + next_card_idx + 1);
+    cards.erase(cards.begin() + cards_remaining() - numCards,
+                cards.begin() + cards_remaining());
     next_card_idx -= numCards;
     return hand;
 }

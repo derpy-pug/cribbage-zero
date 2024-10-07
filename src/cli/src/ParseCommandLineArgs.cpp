@@ -34,7 +34,13 @@ ParseCommandLineArgs::ParseResult ParseCommandLineArgs::parse_command_type(
         // TODO: Return a card to play during the pegging phase
         result = ParseResult::PLAY;
     } else if (std::string(argv[1]) == "pgn") {
-        result = ParseResult::PGN;
+        pgn_args = ParsePgnArgs(argc - 1, &argv[1]);
+        if (pgn_args.is_good_parse()) {
+            result = ParseResult::PGN;
+        }
+        else {
+            result = ParseResult::ERROR;
+        }
     } else {
         result = ParseResult::ERROR;
     }
@@ -153,6 +159,36 @@ std::optional<std::string> ParseDiscardStatsArgs::get_table() const {
 std::optional<int> ParseDiscardStatsArgs::get_top_discards() const {
     return top_discards;
 }
+
+
+// ParsePgnArgs
+
+ParsePgnArgs::ParsePgnArgs(int argc, char** argv) {
+    int ret = parse(argc, argv);
+    good_parse = ret == 0;
+}
+
+int ParsePgnArgs::parse(int argc, char** argv) {
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "-f" || arg == "--file") {
+            if (i + 1 < argc) {
+                pgn_file_name = argv[++i];
+            } else {
+                std::cerr << arg << " requires a file name" << std::endl;
+                return 1;
+            }
+        } else {
+            std::cerr << "Unknown option: " << arg << std::endl;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+
+// ParseGameArgs
 
 ParseGameArgs::ParseGameArgs(int argc, char** argv) {
     int ret = parse(argc, argv);

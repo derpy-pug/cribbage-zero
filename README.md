@@ -31,7 +31,7 @@ app/app
 
 In the top level folder with README. Run the setup script.
 ```
-./setup {Debug/Release}
+./build {Debug/Release}
 ```
 
 Then run with

@@ -44,7 +44,21 @@ class ParseDiscardStatsArgs {
 };
 
 class ParsePgnArgs {
-
+    public:
+        ParsePgnArgs() = default;
+        ParsePgnArgs(int argc, char** argv);
+    
+        bool is_good_parse() { return good_parse; }
+    
+        std::optional<std::string> get_pgn_file_name() const { return pgn_file_name; }
+    
+    private:
+        int parse(int argc, char** argv);
+    
+    private:
+        bool good_parse;
+    
+        std::optional<std::string> pgn_file_name;
 };
 
 class ParseGameArgs {

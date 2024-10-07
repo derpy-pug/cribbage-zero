@@ -16,8 +16,13 @@ void Hand::add_card(Card card) {
     cards.push_back(card);
 }
 
-void Hand::remove_card(Card card) {
-    cards.erase(std::remove(cards.begin(), cards.end(), card), cards.end());
+bool Hand::remove_card(Card card) {
+    auto it = std::find(cards.begin(), cards.end(), card);
+    if (it == cards.end()) {
+        return false;
+    }
+    cards.erase(it);
+    return true;
 }
 
 bool Hand::contains(Card card) const {

@@ -16,7 +16,7 @@ class Hand : public CardContainer {
     Hand(std::vector<Card> cards);
 
     void add_card(Card card);
-    void remove_card(Card card);
+    bool remove_card(Card card);
 
     void sort();
     Hand sort() const;

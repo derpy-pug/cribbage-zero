@@ -15,12 +15,12 @@ class PGN {
     enum class GameResult { NONE = 0, FIRST_DEALER, FIRST_PONE };
 
     enum class ValidationType {
-        FAIL,
+        INVALID,
         MISSING_ROUND,
         MISSING_SCORES,
         PARTIAL,
         UNFINISHED,
-        FINSIHED
+        FINISHED
     };
 
     struct GameInfo {
@@ -56,6 +56,9 @@ class PGN {
         void add_pegging_score(int score);
 
         ValidationType validate() const;
+
+        std::string to_string() const;
+        friend std::ostream& operator<<(std::ostream& os, const Round& round);
       private:
         // Bitflags for hand validation
         
@@ -114,7 +117,7 @@ class PGN {
 
     ValidationType validate() const;
 
-    
+    const std::vector<Round>& get_rounds() const { return rounds; }
 
     std::string make_pgn() const noexcept(false);
     friend std::ostream& operator<<(std::ostream& os, const PGN& game_pgn);

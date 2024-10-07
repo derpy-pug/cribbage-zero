@@ -46,9 +46,12 @@ class Deck : public CardContainer {
      * The deck does not lose the card dealt,
      * so shuffling gets this card back.
      *
+     * If the deck is empty, a NONE card is returned.
+     * Check for this with `!card.is_complete()`
+     *
      * @return The card dealt from the deck
      */
-    [[nodiscard]] Card deal_card();
+    Card deal_card();
 
     /*
      * @brief Deals a card from the deck and removes it from the deck
@@ -58,11 +61,14 @@ class Deck : public CardContainer {
      * This is the same as deal_card(), but the card is removed from the deck.
      * To get the card back, the deck would need to be remade.
      *
+     * If the deck is empty, a NONE card is returned, and the deck is not changed.
+     * Check for this with `!card.is_complete()`
+     *
      * @see deal_hand_and_remove()
      *
      * @return The card dealt from the deck
      */
-    [[nodiscard]] Card deal_card_and_remove();
+    Card deal_card_and_remove();
 
     /*
      * @brief Deals a hand from the deck
@@ -70,10 +76,13 @@ class Deck : public CardContainer {
      * The deck does not lose the cards dealt,
      * so shuffling gets all the cards back.
      *
+     * If the deck does not have enough cards, the hand will only have 
+     * the remaining cards in the deck. 
+     *
      * @param numCards The number of cards to deal
      * @return The hand dealt from the deck
      */
-    [[nodiscard]] Hand deal_hand(int numCards);
+    Hand deal_hand(int numCards);
 
     /*
      * @brief Deals a hand from the deck and removes it from the deck
@@ -82,6 +91,9 @@ class Deck : public CardContainer {
      * so shuffling does not get these cards back.
      * This is the same as deal_hand(), but the cards are removed from the deck.
      * To get the cards back, the deck would need to be remade.
+     *
+     * If the deck does not have enough cards, the hand will only have
+     * the remaining cards in the deck.
      *
      * Possible use case: dealing one hand to one player with `deal_hand_and_remove()`
      * and dealing the other hand to the other player with `deal_hand()`. Then,
@@ -94,7 +106,7 @@ class Deck : public CardContainer {
      * @param numCards The number of cards to deal
      * @return The hand dealt from the deck
      */
-    [[nodiscard]] Hand deal_hand_and_remove(int numCards);
+    Hand deal_hand_and_remove(int numCards);
 
     /*
      * @brief Removes the cards from the deck in the hand
@@ -109,6 +121,9 @@ class Deck : public CardContainer {
      * @return True if the card was removed, false otherwise
      */
     bool remove_card(const Card& card);
+
+
+    size_t cards_remaining() const { return next_card_idx + 1; }
 
   private:
     int next_card_idx;

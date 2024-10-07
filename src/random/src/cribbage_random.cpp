@@ -1,10 +1,13 @@
 #include "cribbage_random.h"
 
+#include <chrono>
+
 CribbageRandom* CribbageRandom::instance = nullptr;
 
 CribbageRandom::CribbageRandom() {
     std::random_device rd;
     generator = std::mt19937_64(rd());
+    // seed(std::chrono::system_clock::now().time_since_epoch().count());
 }
 
 CribbageRandom* CribbageRandom::get_instance() {
@@ -19,7 +22,6 @@ void CribbageRandom::seed(unsigned int seed) {
 }
 
 CribbageRandom::~CribbageRandom() {
-    delete instance;
 }
 
 int CribbageRandom::get_int(int min_inclusive, int max_exclusive) {

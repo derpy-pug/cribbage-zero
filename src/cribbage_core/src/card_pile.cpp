@@ -5,12 +5,19 @@
 #include "scoring.h"
 
 namespace cribbage {
+// Two player cribbage or Three player cribbage
+// TODO: Make this a parameter
+static const bool TWO_PLAYER = true; 
 
-CardPile::CardPile() : current_sum(0), current_round_offset(0) {}
+CardPile::CardPile() : current_sum(0), current_round_offset(0) {
+    int reserve_size = TWO_PLAYER ? 12 : 8;
+    scores.reserve(reserve_size);
+}
 
 void CardPile::add_card(Card card) {
     if (!can_play_card(card)) {
         next_round();
+        scores.back()++; // Add 1 point for the go
     }
     cards.push_back(card);
     current_sum += card.get_value();
@@ -67,6 +74,18 @@ int CardPile::score_pile() const {
     }
     // Score runs
     score += score_pile_run();
+
+    // Score last card go
+    if (TWO_PLAYER) {
+        if (cards.size() == 8) {
+            score++;
+        }
+    }
+    else {
+        if (cards.size() == 12) {
+            score++;
+        }
+    }
     return score;
 }
 

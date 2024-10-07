@@ -33,10 +33,13 @@ class CardContainer {
         return os;
     }
 
+    const std::vector<Card>& get_cards() const { return cards; }
+    std::vector<Card>& get_cards() { return cards; }
+
     Card& operator[](std::size_t idx) { return cards[idx]; }
     Card operator[](std::size_t idx) const { return cards[idx]; }
 
-    std::size_t size() const { return cards.size(); }
+    size_t size() const { return cards.size(); }
     bool empty() const { return cards.empty(); }
 
     std::vector<Card>::iterator begin() { return cards.begin(); }
