@@ -36,7 +36,7 @@ void Deck::shuffleTopCardsIntoDeck() {
 }
 
 Card Deck::deal_card() {
-    if (next_card_idx < 0) {
+    if (cards_remaining() == 0) {
         return Card();
     }
     Card card = cards[next_card_idx];
@@ -45,7 +45,7 @@ Card Deck::deal_card() {
 }
 
 Card Deck::deal_card_and_remove() {
-    if (next_card_idx >= (int)cards.size()) {
+    if (cards_remaining() == 0) {
         return Card();
     }
     Card card = cards[next_card_idx];
@@ -76,8 +76,6 @@ Hand Deck::deal_hand_and_remove(int numCards) {
 }
 
 int Deck::remove_cards(const Hand& hand) {
-    // This function return should be used
-    // How?
     auto num_erased = std::erase_if(
         cards, [&hand](const Card& card) { return hand.contains(card); });
     next_card_idx -= num_erased;
@@ -85,7 +83,10 @@ int Deck::remove_cards(const Hand& hand) {
 }
 
 bool Deck::remove_card(const Card& card) {
-    cards.erase(std::remove(cards.begin(), cards.end(), card), cards.end());
+    auto it = cards.erase(std::remove(cards.begin(), cards.end(), card), cards.end());
+    if (it == cards.end()) {
+        return false;
+    }
     --next_card_idx;
     return true;
 }

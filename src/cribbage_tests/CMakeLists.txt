@@ -7,6 +7,12 @@ file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS "*.cpp")
 # Add the test executable
 add_executable(${PROJECT_NAME} ${TEST_SOURCES})
 
+add_custom_target(run_tests
+    COMMAND ctest --output-on-failure
+    DEPENDS cribbage_tests
+    COMMENT "Running all tests..."
+)
+
 # Link gtest and your core library to the test executable
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest_main cribbage_core)
 
@@ -21,16 +27,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/.
 target_compile_options(${PROJECT_NAME} PRIVATE
     -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unused-private-field -Wno-unused-lambda-capture -Wno-unused-local-typedef -Wno-unused-macros
 )
-
-# Add dependencies between the test target and its dependencies
-add_dependencies(cribbage_tests cribbage_core)
-
-# Run tests only if the target or its dependencies are built
-add_custom_command(TARGET cribbage_tests
-                   POST_BUILD
-                   COMMAND ctest)
-
-set_property(SOURCE card.cpp PROPERTY TEST_DEPENDS card_test)
 
 # Add a test
 include(GoogleTest)

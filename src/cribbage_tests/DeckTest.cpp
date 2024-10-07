@@ -152,14 +152,95 @@ TEST(DeckTest, DealCard) {
     EXPECT_EQ(deck.size(), 52);
     for (size_t i = 0; i < deck.size(); ++i) {
         Card card = deck.deal_card();
-        /* EXPECT_EQ(card.get_rank_int(), (i % 13) + 1); */
-        /* EXPECT_EQ(card.get_suit_int(), (i / 13)); */
         EXPECT_EQ(deck.cards_remaining(), 52 - i - 1);
     }
     EXPECT_EQ(deck.cards_remaining(), 0);
     Card card = deck.deal_card();
-    std::cout << card << std::endl;
     EXPECT_EQ(card.get_rank(), Rank::NONE);
     EXPECT_EQ(card.get_suit(), Suit::NONE);
     EXPECT_EQ(deck.cards_remaining(), 0);
+}
+
+TEST(DeckTest, DealCardAndRemove) {
+    Deck deck;
+    deck.shuffle();
+    size_t deckSize = deck.size();
+    EXPECT_EQ(deck.size(), 52);
+    EXPECT_EQ(deck.cards_remaining(), 52);
+    for (size_t i = 0; i < deckSize; ++i) {
+        Card card = deck.deal_card_and_remove();
+        EXPECT_EQ(deck.cards_remaining(), 52 - i - 1);
+        EXPECT_EQ(deck.size(), 52 - i - 1);
+    }
+    EXPECT_EQ(deck.cards_remaining(), 0);
+    Card card = deck.deal_card_and_remove();
+    EXPECT_EQ(card.get_rank(), Rank::NONE);
+    EXPECT_EQ(card.get_suit(), Suit::NONE);
+    EXPECT_EQ(deck.cards_remaining(), 0);
+
+    deck.make_deck();
+    deck.shuffle();
+    EXPECT_EQ(deck.size(), 52);
+    EXPECT_EQ(deck.cards_remaining(), 52);
+    Hand hand;
+    for( size_t i = 0; i < 10; ++i) {
+        Card card = deck.deal_card_and_remove();
+        hand.add_card(card);
+        EXPECT_EQ(deck.cards_remaining(), 52 - i - 1);
+        EXPECT_EQ(deck.size(), 52 - i - 1);
+    }
+    deck.shuffle();
+    EXPECT_EQ(deck.size(), 42);
+    EXPECT_EQ(deck.cards_remaining(), 42);
+    // Check that the hand is not in the deck
+    for (Card card : hand.get_cards()) {
+        EXPECT_EQ(std::find(deck.get_cards().begin(), deck.get_cards().end(), card), deck.get_cards().end());
+    }
+}
+
+TEST(DeckTest, DealHand) {
+    Deck deck;
+    deck.shuffle();
+    Hand hand = deck.deal_hand(10);
+    EXPECT_EQ(hand.size(), 10);
+    EXPECT_EQ(deck.cards_remaining(), 42);
+    EXPECT_EQ(deck.size(), 52);
+
+    deck.shuffle();
+    EXPECT_EQ(deck.size(), 52);
+    EXPECT_EQ(deck.cards_remaining(), 52);
+    hand = deck.deal_hand(52);
+    EXPECT_EQ(hand.size(), 52);
+    EXPECT_EQ(deck.cards_remaining(), 0);
+    EXPECT_EQ(deck.size(), 52);
+}
+
+TEST(DeckTest, DealHandAndRemove) {
+    Deck deck;
+    deck.shuffle();
+    Hand hand = deck.deal_hand_and_remove(10);
+    EXPECT_EQ(hand.size(), 10);
+    EXPECT_EQ(deck.cards_remaining(), 42);
+    EXPECT_EQ(deck.size(), 42);
+
+    for (Card card : hand.get_cards()) {
+        EXPECT_EQ(std::find(deck.get_cards().begin(), deck.get_cards().end(), card), deck.get_cards().end());
+    }
+
+    deck.shuffle();
+    EXPECT_EQ(deck.size(), 42);
+    EXPECT_EQ(deck.cards_remaining(), 42);
+    hand = deck.deal_hand_and_remove(42);
+    EXPECT_EQ(hand.size(), 42);
+    EXPECT_EQ(deck.cards_remaining(), 0);
+    EXPECT_EQ(deck.size(), 0);
+
+    deck.make_deck();
+    EXPECT_EQ(deck.size(), 52);
+    hand = deck.deal_hand_and_remove(100);
+    EXPECT_EQ(hand.size(), 52);
+    EXPECT_EQ(deck.cards_remaining(), 0);
+    EXPECT_EQ(deck.size(), 0);
+
+
 }
