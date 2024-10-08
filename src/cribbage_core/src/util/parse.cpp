@@ -91,10 +91,13 @@ Card parse_card(std::string card_str) {
 /*
  * @breif Parse a string into a Hand and a is_dealer bool
  *
- * @param hand_str A string of cards possibly separated by spaces
- *              and ending with a Y or N.
+ * The string should be a list of cards
+ * Ex.
+ *  "AS 2S 3S 4S 5S 6S" 
+ *  "as 2s 3s 4s"
+ *  "AS2S3S 4S 5s"
  *
- * @return A pair of a Hand and a bool.
+ * @return A hand
  */
 Hand parse_hand(std::string hand_str) {
     std::transform(hand_str.begin(), hand_str.end(), hand_str.begin(),
@@ -102,13 +105,14 @@ Hand parse_hand(std::string hand_str) {
     // Remove possible spaces
     hand_str.erase(std::remove(hand_str.begin(), hand_str.end(), ' '),
                    hand_str.end());
-    if (hand_str.size() != 12) {
-        throw std::invalid_argument("Hand string must be 12 characters");
+    if (hand_str.size() % 2 == 1) {
+        throw std::invalid_argument("Hand input must be even length");
     }
     std::string card_str;
     Hand hand;
     // every two characters is a card
-    for (int i = 0; i < 6; i++) {
+    size_t num_cards = hand_str.size() / 2;
+    for (size_t i = 0; i < num_cards; i++) {
         card_str = hand_str.substr(i * 2, 2);
         hand.add_card(Card(card_str));
     }

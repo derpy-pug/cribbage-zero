@@ -113,18 +113,22 @@ int cli_pgn(const ParsePgnArgs& args) {
     std::stringstream buffer;
     buffer << pgn_file.rdbuf();
     PGN pgn;
-    pgn.load(buffer);
+    bool good_load = pgn.load(buffer);
+    if (!good_load) {
+        std::cout << "Error loading PGN file. Exiting." << std::endl;
+        return 1;
+    }
     /* std::cout << pgn << std::endl; */
     PGN::ValidationType validation = pgn.validate();
     if (validation == PGN::ValidationType::FINISHED) {
         std::cout << "PGN is valid." << std::endl;
-    } else {
-        std::cout << "PGN is invalid. ";
+    } 
+    else if (validation == PGN::ValidationType::INVALID) {
+        std::cout << "PGN is invalid." << std::endl;
+    }
+    else {
+        std::cout << "PGN is missing something. ";
         switch (validation) {
-            case PGN::ValidationType::INVALID:
-                std::cout << "(Invalid)" << std::endl;
-                break;
-
             case PGN::ValidationType::MISSING_ROUND:
                 std::cout << "(Missing round)" << std::endl;
                 break;

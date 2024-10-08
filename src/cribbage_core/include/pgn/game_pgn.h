@@ -108,7 +108,7 @@ class PGN {
     //~GamePgn() = default;
 
     bool save(std::string filename) const;
-    void load(std::stringstream& pgn);
+    bool load(std::stringstream& pgn);
 
     void add_round(Round&& round);
     void add_round(const Round& round);

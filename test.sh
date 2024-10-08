@@ -2,9 +2,4 @@
 
 cd build
 
-make test
-ret=$?
-
-cd ..
-
-exit $ret
+make test || exit 1
