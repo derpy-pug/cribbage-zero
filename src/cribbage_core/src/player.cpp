@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <string>
 
 #include "cribbage_random.h"
 #include "statistics/generate_statistics.h"
@@ -32,9 +33,21 @@ Card HumanPlayer::play_card(const CardPile& pile, const Hand& dealt_hand, Card c
     std::cout << "Your hand: " << get_hand() << std::endl;
     std::cout << "Cut card: " << cut << std::endl;
     std::cout << "Play a card: ";
-    unsigned int i;
-    std::cin >> i;
-    if (i >= get_hand().size()) {
+    std::string input;
+    std::getline(std::cin, input);
+    int i;
+    try {
+        i = std::stoi(input);
+    }
+    catch (std::invalid_argument& e) {
+        std::cout << "Invalid card index" << std::endl;
+        return play_card(pile, dealt_hand, cut);
+    }
+    if (i < 0) {
+        std::cout << "Invalid card index" << std::endl;
+        return play_card(pile, dealt_hand, cut);
+    }
+    if ((ulong)i >= get_hand().size()) {
         std::cout << "Invalid card index" << std::endl;
         return play_card(pile, dealt_hand, cut);
     }
@@ -55,13 +68,19 @@ std::pair<Card, Card> HumanPlayer::make_discards(
     }
     std::cout << "Your hand: " << get_hand() << std::endl;
     std::cout << "Discard two cards: ";
-    unsigned int i, j;
-    // TODO: Check for invalid input
-    // Currently, if the user inputs a non-integer, the program will crash
-    std::cin >> i;
-    std::cin >> j;
-    if (i == j || i >= get_hand().size() ||
-        j >= get_hand().size()) {
+
+    std::string input;
+    std::getline(std::cin, input);
+    int i, j;
+    try {
+    int num_read = sscanf(input.c_str(), "%d %d", &i, &j);
+    }
+    catch (std::invalid_argument& e) {
+        std::cout << "Invalid card index" << std::endl;
+        return make_discards(is_dealer, crib_discard_probs);
+    }
+    if (i == j || (ulong)i >= get_hand().size() ||
+        (ulong)j >= get_hand().size()) {
         std::cout << "Invalid card index" << std::endl;
         return make_discards(is_dealer, crib_discard_probs);
     }
