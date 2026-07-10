@@ -11,34 +11,6 @@ namespace cribbage {
 GenerateCribStatistics::GenerateCribStatistics(Player* dealer, Player* pone)
     : dealer(dealer), pone(pone) {}
 
-float GenerateCribStatistics::get_mean_counting_flush(Card card1, Card card2,
-                                                      bool is_dealer,
-                                                      int num_flush_cards) {
-    float extra_flush = 0;
-    if (card1.get_suit() == card2.get_suit()) {
-        // Expected value of a flush given 2 cards of the same suit
-        // and how many cards of that suit are in their remaining hand
-        // This assumes that the oppenents discards suits are random
-        // 0 in hand: 0.108696 * 5 = 0.054348
-        // 1 in hand: 0.007905 * 5 = 0.039526
-        // 2 in hand: 0.005533 * 5 = 0.027668
-        // 3 in hand: 0.003689 * 5 = 0.018445
-        // 4 in hand: 0.002306 * 5 = 0.011528
-        static const float flush_probs[5] = {0.054348, 0.039526, 0.027668,
-                                             0.018445, 0.011528};
-        extra_flush = flush_probs[num_flush_cards];
-    }
-    if (is_dealer) {
-        return stat_table.mean_table.get_dealer_crib(card1.get_rank_int() - 1,
-                                                     card2.get_rank_int() - 1) +
-               extra_flush;
-    } else {
-        return stat_table.mean_table.get_opp_crib(card1.get_rank_int() - 1,
-                                                  card2.get_rank_int() - 1) +
-               extra_flush;
-    }
-}
-
 void GenerateCribStatistics::generate_probabilities() {
     generate_discard_probabilities();
 }

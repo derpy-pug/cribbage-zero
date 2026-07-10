@@ -15,7 +15,177 @@ GenerateDiscardStatistics::GenerateDiscardStatistics(
       is_dealer(is_dealer),
       crib_discard_probs(crib_discard_probs) {}
 
+Hand make_kept_hand(
+    const Hand& original_hand,
+    const Card& discard1,
+    const Card& discard2
+) {
+    Hand kept_hand = original_hand;
+    kept_hand.remove_card(discard1);
+    kept_hand.remove_card(discard2);
+    return kept_hand;
+}
+
+struct WeightedCardPair {
+    Card first;
+    Card second;
+    double weight;
+};
+
+std::vector<WeightedCardPair> make_opponent_pairs(
+    const Deck& unknown_cards,
+    const CribDiscardProbabilities& probabilities,
+    bool opponent_is_dealer
+) {
+    std::vector<WeightedCardPair> pairs;
+    pairs.reserve(1035);
+
+    for (auto first = unknown_cards.cbegin();
+         first != unknown_cards.cend();
+         ++first) {
+        for (auto second = first + 1;
+             second != unknown_cards.cend();
+             ++second) {
+            pairs.push_back({
+                *first,
+                *second,
+                probabilities.get_prob(
+                    *first,
+                    *second,
+                    opponent_is_dealer
+                )
+            });
+        }
+    }
+
+    return pairs;
+}
+
 DiscardStatistics GenerateDiscardStatistics::generate_discard_stats(
+    Card discard1,
+    Card discard2,
+    std::optional<Card> optional_cut
+) {
+    const Hand& original_hand = player->get_hand();
+
+    DiscardStatistics result(
+        discard1,
+        discard2,
+        is_dealer,
+        player->get_info()
+    );
+
+    auto& hand_distribution = result.score_dist_hand;
+    auto& crib_distribution = result.score_dist_crib;
+    auto& combined_distribution = result.score_dist_combined;
+
+    const Hand kept_hand =
+        make_kept_hand(original_hand, discard1, discard2);
+
+    Deck unknown_cards;
+    unknown_cards.remove_cards(original_hand);
+
+    // Put make_opponent_pairs here.
+    // It runs once for this discard choice, not once per cut.
+    const auto opponent_pairs =
+        make_opponent_pairs(
+            unknown_cards,
+            crib_discard_probs,
+            !is_dealer
+        );
+
+    auto process_cut =
+        [&](const Card& cut, double cut_probability) {
+            const int hand_score =
+                score_hand(kept_hand, cut, false);
+
+            hand_distribution[hand_score] +=
+                cut_probability;
+
+            double feasible_probability = 0.0;
+
+            // First pass: calculate the total probability of pairs
+            // that remain possible after choosing this cut.
+            for (const WeightedCardPair& opponent : opponent_pairs) {
+                if (opponent.first == cut ||
+                    opponent.second == cut) {
+                    continue;
+                }
+
+                feasible_probability += opponent.weight;
+            }
+
+            if (feasible_probability <= 0.0) {
+                throw std::runtime_error(
+                    "No feasible opponent discard outcomes"
+                );
+            }
+
+            // Second pass: score each feasible physical discard pair.
+            for (const WeightedCardPair& opponent : opponent_pairs) {
+                if (opponent.first == cut ||
+                    opponent.second == cut) {
+                    continue;
+                }
+
+                const double opponent_probability =
+                    opponent.weight /
+                    feasible_probability;
+
+                // Put score_crib here.
+                // This replaces make_crib(...) followed by score_hand(...).
+                const int crib_score =
+                    score_crib(
+                        discard1,
+                        discard2,
+                        opponent.first,
+                        opponent.second,
+                        cut
+                    );
+
+                const int combined_score =
+                    is_dealer
+                        ? hand_score + crib_score
+                        : hand_score - crib_score;
+
+                const double outcome_probability =
+                    cut_probability *
+                    opponent_probability;
+
+                crib_distribution[crib_score] +=
+                    outcome_probability;
+
+                combined_distribution[combined_score] +=
+                    outcome_probability;
+            }
+        };
+
+    if (optional_cut.has_value()) {
+        const Card cut = *optional_cut;
+
+        if (original_hand.contains(cut)) {
+            throw std::invalid_argument(
+                "Cut card is already in the player's hand"
+            );
+        }
+
+        process_cut(cut, 1.0);
+    } else {
+        const double cut_probability =
+            1.0 /
+            static_cast<double>(unknown_cards.size());
+
+        for (const Card& cut : unknown_cards) {
+            process_cut(cut, cut_probability);
+        }
+    }
+    hand_distribution.update_score_bounds();
+    crib_distribution.update_score_bounds();
+    combined_distribution.update_score_bounds();
+    return result;
+}
+
+DiscardStatistics GenerateDiscardStatistics::generate_discard_stats_legacy(
   Card discard1, Card discard2, std::optional<Card> optional_cut) {
     DiscardStatistics discard_stat(discard1, discard2, is_dealer,
                                    player->get_info());
@@ -35,6 +205,7 @@ DiscardStatistics GenerateDiscardStatistics::generate_discard_stats(
     crib.add_card(Card(Suit::SPADES, Rank::ACE));  // Doesn't matter
 
     Hand hand = player->get_hand();
+    Hand hand_full = hand;
     hand.remove_card(discard1);
     hand.remove_card(discard2);
 
@@ -57,7 +228,7 @@ DiscardStatistics GenerateDiscardStatistics::generate_discard_stats(
         // Score for crib and combined stats
         int cards_count[14] = {-1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
         for (int i = 0; i < 6; i++) {
-            cards_count[hand[i].get_rank_int()]--;
+            cards_count[hand_full[i].get_rank_int()]--;
         }
         cards_count[cut.get_rank_int()]--;
 
@@ -70,14 +241,14 @@ DiscardStatistics GenerateDiscardStatistics::generate_discard_stats(
                 num_skipped++;
                 continue;
             }
-            crib[2] = Card(Suit::SPADES, static_cast<Rank>(i));
+            crib[2] = Card(Suit::SPADES, static_cast<Rank>(i)); // Suit doesn't matter
             cards_count[i]--;
             for (int j = i; j < 14; j++) {
                 if (cards_count[j] == 0) {
                     num_skipped++;
                     continue;
                 }
-                crib[3] = Card(Suit::HEARTS, static_cast<Rank>(j));
+                crib[3] = Card(Suit::HEARTS, static_cast<Rank>(j)); // Suit doesn't matter
                 cards_count[j]--;
 
                 // j and k need to be different ranks and different to the cut rank
@@ -156,7 +327,6 @@ DiscardStatistics GenerateDiscardStatistics::generate_discard_stats(
             }
             cards_count[i]++;
         }
-        cards_count[cut.get_rank_int() - 1]++;
         if (optional_cut) {
             break;
         }
@@ -173,16 +343,23 @@ DiscardStatistics GenerateDiscardStatistics::generate_discard_stats(
     score_dist_hand.normalize();
     score_dist_crib.normalize();
 
+    // auto calc_sum = [](const ScoreDistributionTable& dist) {
+    //     float sum = 0.0f;
 
-    /* std::cout << "Discards: " << discard1 << " " << discard2 << std::endl; */
-    /* if (sum < 0.999 || sum > 1.001) { */
-    /*     std::cerr << "Error: Probabilities do not sum to 1. Sum: " << sum << std::endl; */
-    /* } */
-    /* else { */
-    /*     std::cout << "Probabilities sum to 1. Sum: " << sum << std::endl; */
-    /* } */
-    /* std::cout << num_skipped << " hands skipped" << std::endl; */
-    /* std::cout << std::endl; */
+    //     for (int score = dist.get_possible_score_min();
+    //     score <= dist.get_possible_score_max();
+    //     ++score) {
+    //         sum += dist[score];
+    //     }
+
+    //     return sum;
+    // };
+
+    // std::cout << "Hand:     " << calc_sum(score_dist_hand) << '\n';
+    // std::cout << "Crib:     " << calc_sum(score_dist_crib) << '\n';
+    // std::cout << "Combined: " << calc_sum(score_dist_combined) << '\n';
+    // std::cout << "Skipped: " << num_skipped << '\n';
+    // std::cout << std::endl;
 
     return discard_stat;
 }

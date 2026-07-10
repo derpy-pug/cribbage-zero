@@ -37,8 +37,8 @@ const float& ScoreDistributionTable::get_table_value(int score) const {
 
 float ScoreDistributionTable::calc_mean() const {
     float mean = 0;
-    for (int i = min_score; i <= max_score; ++i) {
-        mean += i * get_table_value(i);
+    for (int score = min_score; score <= max_score; ++score) {
+        mean += score * get_table_value(score);
     }
     return mean;
 }
@@ -146,21 +146,55 @@ void ScoreDistributionTable::clear() {
 }
 
 void ScoreDistributionTable::normalize() {
-    float total = 0;
-    for (int i = possible_min; i <= possible_max; ++i) {
-        auto prob = dist_table[i - possible_min];
-        if (prob > 0) {
-            total += prob;
-            if (i < min_score) {
-                min_score = i;
+    float total = 0.0f;
+
+    min_score = possible_max;
+    max_score = possible_min;
+
+    for (int score = possible_min; score <= possible_max; ++score) {
+        const float probability =
+            dist_table[score - possible_min];
+
+        if (probability > 0.0f) {
+            total += probability;
+
+            if (score < min_score) {
+                min_score = score;
             }
-            if (i > max_score) {
-                max_score = i;
+
+            if (score > max_score) {
+                max_score = score;
             }
         }
     }
-    for (int i = min_score; i <= max_score; ++i) {
-        dist_table[i - min_score] /= total;
+
+    if (total == 0.0f) {
+        return;
+    }
+
+    for (int score = min_score; score <= max_score; ++score) {
+        dist_table[score - possible_min] /= total;
+    }
+}
+
+void ScoreDistributionTable::update_score_bounds() {
+
+    min_score = possible_max;
+    max_score = possible_min;
+
+    for (int score = possible_min; score <= possible_max; ++score) {
+        const float probability =
+            dist_table[score - possible_min];
+
+        if (probability > 0.0f) {
+            if (score < min_score) {
+                min_score = score;
+            }
+
+            if (score > max_score) {
+                max_score = score;
+            }
+        }
     }
 }
 

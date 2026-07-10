@@ -32,16 +32,6 @@ class GenerateCribStatistics {
         return stat_table.prob_table;
     }
 
-    /*
-     * @brief Gets the mean of a discard but also takes into account the
-     *       probability of the crib getting a flush.
-     *
-     * @note this is not used by any core functions.
-     */
-    [[deprecated]] float get_mean_counting_flush(Card card1, Card card2,
-                                                 bool is_dealer,
-                                                 int num_flush_cards);
-
   private:
     void generate_discard_probabilities();
     void calculate_discard_score_distribution();

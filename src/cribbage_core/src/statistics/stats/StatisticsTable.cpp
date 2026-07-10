@@ -83,6 +83,8 @@ int StatisticsTable::load_tables(std::optional<std::string> table) {
         load_default_tables();
         return 1;
     }
+
+    // TODO: Better directory handling
     std::string dirname_string = TABLE_DIR + table.value();
 
     int num_loaded = 0;

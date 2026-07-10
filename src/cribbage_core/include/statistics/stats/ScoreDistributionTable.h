@@ -40,6 +40,7 @@ class ScoreDistributionTable {
     void clear();
 
     void normalize();
+    void update_score_bounds();
 
   private:
     float& get_table_value(int score);

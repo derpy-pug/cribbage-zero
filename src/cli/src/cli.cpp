@@ -183,11 +183,11 @@ int cli_discard_stats(const ParseDiscardStatsArgs& args) {
 
     GenerateCribStatistics gen_stats(p1.get(), p2.get());
     int num_tables_loaded = gen_stats.get_stat_table().load_tables(table);
-    /* if (num_tables_loaded == 0) { */
-    /*   std::cout << "No tables found. Generating tables." << std::endl; */
-    /*   gen_stats.generate_probabilities(); */
-    /*   gen_stats.save_tables(dirname); */
-    /* } */
+    // if (num_tables_loaded == 0) {
+    //     std::cout << "No tables found. Generating tables." << std::endl;
+    //     gen_stats.generate_probabilities();
+    //     gen_stats.save_tables(dirname);
+    // } 
     if (num_tables_loaded == 0) {
         std::cout << "No tables found. Exiting." << std::endl;
         return 1;
@@ -200,7 +200,11 @@ int cli_discard_stats(const ParseDiscardStatsArgs& args) {
     std::cout << std::endl;
 
     GenerateDiscardStatistics gen_discard(p1.get(), is_dealer, probs);
-    gen_discard.generate_all_discard_stats(cut);
+
+    bool use_simulation = false; // Rather than probability tables
+    // Using simulation is very slow
+
+    gen_discard.generate_all_discard_stats(cut, use_simulation);
     gen_discard.generate_heuristics();
 
     AllDiscardStatistics all_discard_stats =

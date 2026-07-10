@@ -57,6 +57,9 @@ class GenerateDiscardStatistics {
     DiscardStatistics generate_discard_stats(
       Card discard1, Card discard2, std::optional<Card> cut = std::nullopt);
 
+    DiscardStatistics generate_discard_stats_legacy(
+      Card discard1, Card discard2, std::optional<Card> cut = std::nullopt);
+
     /*
      * @brief Generate discard statistics for all possible cut cards and
      *        all possible opponent discards.
