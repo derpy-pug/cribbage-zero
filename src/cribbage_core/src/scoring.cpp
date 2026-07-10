@@ -1,7 +1,9 @@
 #include "scoring.h"
 
+#include <cassert>
 #include <algorithm>
 #include <iostream>
+#include <array>
 #include <unordered_map>
 #include <vector>
 
@@ -76,30 +78,40 @@ std::vector<std::pair<int, int>> hand_set(const Hand& hand, Card cut) {
     return set;
 }
 
-int score_15(const Hand& hand, Card cut) {
-    int score = 0;
-    char interactions[32] = {0};
-    int k = 0;
+/*
+* Iterates over all nonempty subsets of 5 cards ands calculates if
+* they sum to 15
+*/
+int score_15(const Hand& hand, const Card& cut) {
+    assert(hand.size() == 4);
+    std::array<int, 5> values{};
 
+    std::size_t index = 0;
     for (const Card& card : hand) {
-        int value = static_cast<int>(card.get_value());
-        int k_temp = k;
-        for (int j = 0; j < k_temp; j++) {
-            int sum = interactions[j] + value;
-            if (sum == 15)
-                score += 2;
-            if (sum < 15)
-                interactions[k++] = sum;
+        values[index++] = card.get_value();
+    }
+    values[index] = cut.get_value();
+
+    int score = 0;
+    int subsets = 31; // Five cards have 2^5 - 1 = 31 nonempty subsets.
+    for (int subset = 1; subset <= subsets; ++subset) {
+        int sum = 0;
+
+        for (std::size_t card_index = 0;
+             card_index < values.size();
+             ++card_index) {
+
+            bool is_in_subset = subset & (1u << card_index);
+            if (is_in_subset) {
+                sum += values[card_index];
+            }
         }
-        interactions[k++] = value;
+
+        if (sum == 15) {
+            score += 2;
+        }
     }
 
-    // Handle cut card
-    for (int j = 0; j < k; j++) {
-        int sum = interactions[j] + static_cast<int>(cut.get_value());
-        if (sum == 15)
-            score += 2;
-    }
     return score;
 }
 
