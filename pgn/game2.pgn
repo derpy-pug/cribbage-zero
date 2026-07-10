@@ -51,3 +51,141 @@
   C 5C
   P TH 4C 4D QH AH AD AS | 4H 
   SP 0 0 2 0 0 2 8 1 
+[FirstDealer "Staples"]
+[FirstDealerType "Stat"]
+[FirstPone "Stanley"]
+[FirstPoneType "Stat"]
+[Result "1-0"]
+
+1.
+  H1 AC 2H 5H TH JH QC  D1 AC 2H  S1 10
+  H2 2C 4C 5D 6S 7S KS  D2 2C 7S  S2 9
+  SC 2
+  C 9D
+  P 5D JH KS 5H | 4C TH 6S QC 
+  SP 0 2 0 1 0 0 0 1 
+
+2.
+  H1 AH 3S TH JS JH QD  D1 AH 3S  S1 11
+  H2 2H 3C 6S 6D 7D KH  D2 3C KH  S2 6
+  SC 4
+  C KS
+  P JH 6S QD 2H | TH 6D JS | 7D 
+  SP 0 0 0 1 0 0 1 1 
+
+3.
+  H1 AC AS 2D 6D 9S JH  D1 6D 9S  S1 4
+  H2 2C 2S 7S 8D 9D TD  D2 2C TD  S2 5
+  SC 5
+  C JC  SH 2
+  P 8D JH 9D 2D 2S | AS 7S AC 
+  SP 0 0 0 0 4 0 0 1 
+
+4.
+  H1 AH AD 2C 8C TH JS  D1 8C TH  S1 2
+  H2 2D 5H 6H TS KH KS  D2 2D 6H  S2 8
+  SC 7
+  C 7D
+  P AD 5H AH KH JS 2C | TS KS 
+  SP 0 0 0 0 0 1 0 1 
+
+5.
+  H1 4C 5D 6C 9H TH TC  D1 TH TC  S1 9
+  H2 5C 6D 7S 8S 9C JH  D2 9C JH  S2 8
+  SC 10
+  C QS
+  P 5C 9H 7S 6C 4C | 6D 5D 8S 
+  SP 0 0 0 0 2 0 0 1 
+
+6.
+  H1 AS AH 4S 6H 7S KC  D1 6H 7S  S1 8
+  H2 7C 8C 9C TS JC QC  D2 TS JC  S2 10
+  SC 1
+  C 3C
+  P KC 7C AH 8C AS 4S | QC 9C 
+  SP 0 0 0 0 0 2 0 1 
+
+7.
+  H1 2S 4C 9C 9D TC JS  D1 2S 4C  S1 16
+  H2 4H 5S 7C 8D KC KH  D2 4H 8D  S2 8
+  SC 2
+  C JH  SH 2
+  P KH TC 7C | 9D KC JS | 5S 9C 
+  SP 0 0 1 0 0 1 0 1 
+
+8.
+  H1 4H 5S 9H TH JS QD  D1 4H 9H  S1 9
+  H2 2D 4S 7H JH KD KS  D2 KD KS  S2 5
+  SC 4
+  C 2H
+  P QD 2D TH 7H | JS JH 5S 4S 
+  SP 0 0 0 1 0 2 0 1 
+[FirstDealer "Staples"]
+[FirstDealerType "Stat"]
+[FirstPone "Stanley"]
+[FirstPoneType "Stat"]
+[Result "1-0"]
+
+1.
+  H1 5C TH JC JH JD KC  D1 TH KC  S1 13
+  H2 2D 3H 6S 6C 9D QD  D2 2D QD  S2 18
+  SC 0
+  C 6D
+  P 9D JC 6S 5C | 3H JD 6C JH 
+  SP 0 0 0 1 0 0 0 1 
+
+2.
+  H1 AH AC 2H 6C 8D JD  D1 2H JD  S1 6
+  H2 2C 5H 6H 7S 9H QC  D2 5H QC  S2 6
+  SC 4
+  C 4C
+  P 8D 7S 6C 9H AC | 6H AH 2C 
+  SP 0 2 3 4 2 0 0 1 
+
+3.
+  H1 3D 4H 9C TS TD QD  D1 3D 4H  S1 2
+  H2 2S 6S 6C 8S TH JD  D2 2S TH  S2 4
+  SC 12
+  C 3S
+  P JD TD 8S | QD 6C 9C 6S | TS 
+  SP 0 0 1 0 0 0 2 1 
+
+4.
+  H1 3H 4S 8D 9D TH KD  D1 4S KD  S1 3
+  H2 AD 2C 4C 8S TC KC  D2 AD 8S  S2 6
+  SC 6
+  C KS
+  P 3H KC TH 2C 4C | 8D TC 9D 
+  SP 0 0 0 0 1 0 0 4 
+
+5.
+  H1 AS 7S 8D TS QD KS  D1 8D QD  S1 5
+  H2 AD 9C TC JC QC KH  D2 AD KH  S2 8
+  SC 0
+  C 3S
+  P TC 7S JC AS | 9C KS QC | TS 
+  SP 0 0 0 1 0 0 1 1 
+
+6.
+  H1 6H 8C 9D TH QC KD  D1 QC KD  S1 7
+  H2 2C 4S 5D 8H 9S TC  D2 2C 4S  S2 9
+  SC 4
+  C 5S
+  P TH 5D 9D 6H | TC 8C 9S | 8H 
+  SP 0 2 0 1 0 0 4 1 
+
+7.
+  H1 4H 6S 6D 8H 9S 9D  D1 4H 8H  S1 12
+  H2 AC 2H 3S 3D 6C 7C  D2 6C 7C  S2 16
+  SC 7
+  C AS
+  P 3D 6D 2H 9S 3S 6S AC | 9D 
+  SP 0 0 0 0 0 0 1 1 
+
+8.
+  H1 2S 7S TC JS QS KH  D1 TC KH  S1 8
+  H2 2D 4H 5S 8D JD KC  D2 2D 4H  S2 4
+  SC 7
+  C 3H
+  P JS JD 2S 5S | QS KC 7S | 8D 
+  SP 0 2 0 1 0 0 1 1 

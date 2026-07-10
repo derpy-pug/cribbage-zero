@@ -68,10 +68,11 @@ int CardPile::score_pile() const {
         if (cards[i].get_rank() == cards[i - 1].get_rank()) {
             pairs++;
         } else {
-            score += score_pair_count(pairs);
             break;
         }
     }
+    score += score_pair_count(pairs);
+    
     // Score runs
     score += score_pile_run();
 
